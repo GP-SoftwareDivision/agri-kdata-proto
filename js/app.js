@@ -26,7 +26,7 @@ function nav(id){
   currentPage = id;
   // 챗봇 페이지에서는 플로팅 숨김
   document.getElementById('fab').style.display = (id==='chatbot') ? 'none' : '';
-  if(id==='chatbot') closeChatPanel();
+  if(id==='chatbot'){ closeChatPanel(); setTimeout(initChatWidget, 120); }
   if(id==='dashboard') setTimeout(initChart, 150);
   if(id==='docs' && !document.querySelector('.doc-view.on')) goDocView('home');
   if(id==='map') setTimeout(function(){
@@ -452,72 +452,132 @@ function confirmDoc(){
   toast('ok','서류가 생성되었습니다 — TSA 타임스탬프 적용');
 }
 
-/* ══════════ 챗봇 — 공통 캔드 응답 ══════════ */
-function cannedAnswer(q){
-  if(q.includes('저장')) return {
-    txt:'저장 출하 시나리오를 계산해봤어요. 저온창고 보관 비용(월 12원/kg)과 감모율 2.5%를 반영하면, <b>4주 후 판매 시 예상 순수익이 지금보다 약 +3.1%</b>입니다. 다만 예측 불확실성이 커지니 절반만 저장하는 분산 전략을 권장드립니다.',
-    srcs:['가격 예측 모델 (4주)','농업교육포털 「양파 저장 관리」']};
-  if(q.includes('수수료')) return {
-    txt:'가락시장 경매 수수료는 <b>낙찰가의 7%</b>(위탁 수수료 기준)이며, 하역비·표준하차비가 별도입니다. 청송에서 가락시장까지 운송비는 5톤 기준 약 42만원(84원/kg)으로 계산됩니다.',
-    srcs:['서울시농수산식품공사 수수료 기준','물류비 산정 모델']};
-  if(q.includes('정책자금') || q.includes('서류')) return {
-    txt:'정책자금 신청을 도와드릴게요. 김농가님은 <b>농업경영회생자금</b> 신청 요건을 충족하며, 필요한 증빙 4종 중 3종은 자동으로 준비할 수 있어요. 행정서류 메뉴에서 이어서 작성하시겠어요?',
-    srcs:['농림축산식품부 정책자금 안내','내 경영체 정보 (농정원)'], action:'docs'};
-  return {
-    txt:'오늘 청송 기준 양파(상품) 도매가는 <b>1,240원/kg</b>이고, 7일 뒤 예측은 <b>1,305원/kg (▲5.2%)</b>입니다. 8/22~29 분산 출하를 권장드려요. 더 자세한 근거가 필요하시면 말씀해주세요.',
-    srcs:['KAMIS 도매 경락가 · 8/19','가격 예측 모델 (7일)']};
+/* ══════════ AI 챗봇 — rag-orchestrator 위젯 연동 ══════════ */
+/* 백엔드팀 PoC(services/ai/rag-orchestrator)의 임베더블 위젯을 그대로 마운트한다.
+   답변·카드·출처는 전부 백엔드가 만들고, 이 파일은 마운트와 연결 상태만 책임진다. */
+const API_KEY_LS = 'agri.apiBase';
+let chatWidget = null, panelWidget = null, chatMounting = false;
+
+function apiBase(){
+  const p = new URLSearchParams(location.search).get('api');
+  if(p !== null) return p;
+  const saved = localStorage.getItem(API_KEY_LS);
+  if(saved !== null) return saved;
+  /* 로컬 시연 기본값: 같은 머신에서 띄운 rag-orchestrator */
+  return /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'http://localhost:8080' : '';
+}
+function apiLabel(){ return apiBase() || location.origin + ' (동일 출처)'; }
+
+function widgetOptions(extra){
+  return Object.assign({
+    apiBase: apiBase(),
+    tenantId: 'demo-tenant',
+    userName: '김농가',
+    assetsBase: 'vendor/agri-chat/assets/',
+    theme: {accent:'#0E7A46', 'accent-ink':'#ffffff'},
+    colorScheme: 'light',
+    fonts: false,                      /* 호스트(Noto Sans KR) 폰트 사용 */
+    storageKey: 'agri-chat.sessions.agriG',
+    onAction: hostAction
+  }, extra || {});
 }
 
-/* ── 챗봇 페이지 대화 ── */
-function sendChat(preset){
-  const inp = document.getElementById('chatInput');
-  const q = (preset || inp.value).trim();
-  if(!q) return;
-  inp.value = '';
-  const scroll = document.getElementById('chatScroll');
-  scroll.insertAdjacentHTML('beforeend', `<div class="bub-u">${escapeH(q)}</div>`);
-  const tid = 'tp' + Date.now();
-  scroll.insertAdjacentHTML('beforeend', `<div class="ai-row" id="${tid}"><div class="ai-avatar"><svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M10 17V9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M10 9C10 5.5 12.5 3 16 3C16 6.5 13.5 9 10 9Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 12C10 9.5 8 7.5 5 7.5C5 10 7 12 10 12Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></div><div class="typing"><i></i><i></i><i></i></div></div>`);
-  scroll.scrollTop = scroll.scrollHeight;
-  setTimeout(()=>{
-    const a = cannedAnswer(q);
-    const row = document.getElementById(tid);
-    row.querySelector('.typing').outerHTML = `
-      <div class="ai-card">
-        <div class="ai-txt">${a.txt}</div>
-        <div class="srcs">${a.srcs.map(s=>`<span class="src">${s}</span>`).join('')}</div>
-        ${a.action==='docs' ? '<div><button class="btn btn-pri btn-sm" onclick="nav(\'docs\')">행정서류로 이동</button></div>' : ''}
-      </div>`;
-    scroll.scrollTop = scroll.scrollHeight;
-  }, 1100);
+/* 카드 버튼을 우리 화면으로 연결 */
+function hostAction(e){
+  const kind = e && e.kind, label = (e && e.label) || '';
+  if(kind === 'document-vault'){ openDocs('home'); return; }
+  if(kind === 'channel-cta'){ nav('map'); toast('info', label + ' — 판로 지도에서 확인하세요'); return; }
+  if(kind === 'contact'){ toast('info', label + ' — 전화 연결은 시안 범위 외입니다'); return; }
+  toast('info', label + ' — 시안 범위 외 동작입니다');
 }
-function askFromOutside(q){ nav('chatbot'); setTimeout(()=>sendChat(q), 450); }
 
-/* ── 플로팅 챗봇 패널 ── */
-function toggleChatPanel(){ document.getElementById('chatPanel').classList.toggle('open'); }
-function openChatPanel(){ document.getElementById('chatPanel').classList.add('open'); }
+function setConn(state, text){
+  const chip = document.getElementById('connChip');
+  if(!chip) return;
+  chip.className = 'conn ' + state;
+  document.getElementById('connText').textContent = text;
+  const off = document.getElementById('chatOffline'), host = document.getElementById('chatHost');
+  off.classList.toggle('on', state === 'err');
+  host.classList.toggle('hide', state === 'err');
+  document.getElementById('apiLabel').textContent = apiLabel();
+  document.getElementById('offlineApi').textContent = apiLabel();
+}
+
+/* 연결 확인: actuator 헬스가 CORS로 막혀도 chat API 가 열려 있으면 사용 가능하다 */
+async function probeApi(){
+  const base = apiBase();
+  const tryFetch = async function(path, opt){
+    try{
+      const c = new AbortController(); const t = setTimeout(function(){ c.abort(); }, 4000);
+      const r = await fetch(base + path, Object.assign({signal:c.signal}, opt));
+      clearTimeout(t);
+      return r.ok || r.status === 405 || r.status === 400;
+    }catch(e){ return false; }
+  };
+  if(await tryFetch('/health/readiness')) return true;
+  return await tryFetch('/api/v1/chat', {method:'OPTIONS'});
+}
+
+async function initChatWidget(){
+  if(chatMounting) return;
+  const host = document.getElementById('chatHost');
+  if(!host || !window.AgriChat) return;
+  chatMounting = true;
+  setConn('wait', '연결 확인 중…');
+  try{
+    if(chatWidget){ chatWidget.destroy(); chatWidget = null; }
+    host.innerHTML = '';
+    chatWidget = AgriChat.mount(host, widgetOptions({header:false}));
+    await chatWidget.ready;
+    const ok = await probeApi();
+    setConn(ok ? 'ok' : 'err', ok ? '백엔드 연결됨' : '연결 실패');
+    chatWidget.on('error', function(){ setConn('err', '연결 실패'); });
+    chatWidget.on('auth-error', function(){ setConn('err', '인증 필요'); });
+  }catch(err){
+    setConn('err', '연결 실패');
+  }
+  chatMounting = false;
+}
+function retryChatConnect(){ initChatWidget(); }
+function newChatSession(){
+  if(chatWidget){ chatWidget.newSession(); toast('ok','새 상담을 시작했습니다'); }
+  else initChatWidget();
+}
+function openApiModal(){
+  document.getElementById('apiInput').value = apiBase();
+  openModal('apiModal');
+}
+function saveApiBase(){
+  localStorage.setItem(API_KEY_LS, document.getElementById('apiInput').value.trim());
+  closeModal('apiModal');
+  if(panelWidget){ panelWidget.destroy(); panelWidget = null; document.getElementById('cpBody').innerHTML = ''; }
+  initChatWidget();
+  toast('ok','API 주소를 저장했습니다 — 다시 연결합니다');
+}
+/* 외부(대시보드 칩 등)에서 질문을 보내면 챗봇 페이지로 이동해 실제 질의 */
+function askFromOutside(q){
+  nav('chatbot');
+  const send = function(){ if(chatWidget) chatWidget.send(q); else setTimeout(send, 400); };
+  setTimeout(send, 700);
+}
+
+/* ── 플로팅 챗봇 패널 (같은 위젯을 contained 모드로) ── */
+function mountPanelWidget(){
+  const body = document.getElementById('cpBody');
+  if(!body || panelWidget || !window.AgriChat) return;
+  body.innerHTML = '';
+  panelWidget = AgriChat.mount(body, widgetOptions({header:false, contained:true}));
+}
+function toggleChatPanel(){
+  const p = document.getElementById('chatPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open')) mountPanelWidget();
+}
+function openChatPanel(){ document.getElementById('chatPanel').classList.add('open'); mountPanelWidget(); }
 function closeChatPanel(){ document.getElementById('chatPanel').classList.remove('open'); }
 function expandChat(){ closeChatPanel(); nav('chatbot'); }
-function cpSend(preset){
-  const inp = document.getElementById('cpInput');
-  const q = (preset || inp.value).trim();
-  if(!q) return;
-  inp.value = '';
-  const body = document.getElementById('cpBody');
-  body.insertAdjacentHTML('beforeend', `<div class="cp-bub-u">${escapeH(q)}</div>`);
-  const tid = 'cpt' + Date.now();
-  body.insertAdjacentHTML('beforeend', `<div class="typing" id="${tid}" style="align-self:flex-start"><i></i><i></i><i></i></div>`);
-  body.scrollTop = body.scrollHeight;
-  setTimeout(()=>{
-    const a = cannedAnswer(q);
-    document.getElementById(tid).outerHTML = `
-      <div class="cp-bub-a">${a.txt}
-        <div class="cp-src">출처: ${a.srcs.join(' · ')}</div>
-        ${a.action==='docs' ? '<div style="margin-top:8px"><button class="btn btn-pri btn-sm" onclick="closeChatPanel();nav(\'docs\')">행정서류로 이동</button></div>' : ''}
-      </div>`;
-    body.scrollTop = body.scrollHeight;
-  }, 1000);
-}
+function cpSend(preset){ if(panelWidget && preset) panelWidget.send(preset); }
+
 function escapeH(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 /* ══════════ 판로 지도 (Leaflet · 시도→시군구→읍면동 드릴다운) ══════════ */
