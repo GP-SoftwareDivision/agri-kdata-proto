@@ -200,7 +200,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .cp-foot input:focus{border-color:var(--g600)}
 
 /* ── 토스트 ─────────────────────── */
-#toasts{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:130;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
+#toasts{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);z-index:1400;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
 .toast{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(16,24,40,.16);animation:tIn .35s var(--ease);pointer-events:auto;border:1px solid}
 .toast.out{animation:tOut .3s var(--ease) forwards}
 @keyframes tIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -263,21 +263,22 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 
 /* ── 판로 지도 ─────────────────────── */
 .map-wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;align-items:stretch}
-#panMap{width:100%;height:640px;border-radius:10px;background:#CFE7F2;outline:none}
-.leaflet-container{font-family:inherit;background:#CFE7F2}
+#panMap{width:100%;height:640px;border-radius:10px;background:#e0efff;outline:none}
+.leaflet-container{font-family:inherit;background:#e0efff}
 .leaflet-control-zoom a{color:var(--g700) !important}
 .custom-label{background:none;border:none}
-.custom-label .label-text{font-size:12px;font-weight:700;color:#ffffff;text-shadow:0 1px 2px rgba(0,0,0,.6), 0 0 4px rgba(0,0,0,.45);white-space:nowrap;transform:translate(-50%,-50%);display:inline-block;pointer-events:none}
+.custom-label .label-text{font-size:15px;font-weight:700;color:#ffffff;text-shadow:0 1px 2px rgba(0,0,0,.6), 0 0 4px rgba(0,0,0,.45);white-space:nowrap;transform:translate(-50%,-50%);display:inline-block;pointer-events:none}
 .custom-label.label-dim .label-text{color:#f2f3f2;opacity:.75;text-shadow:0 1px 2px rgba(0,0,0,.35)}
 .custom-label.label-hide{display:none}
 .labels-off .custom-label{display:none}
-#map-tooltip{position:fixed;z-index:200;background:#1A1E24;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .12s;transform:translate(12px,-24px);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#map-tooltip{position:fixed;z-index:900;background:#1A1E24;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .16s var(--ease);box-shadow:0 6px 18px rgba(0,0,0,.25)}
 #map-tooltip.show{opacity:1}
 #map-tooltip .tip-name{font-weight:900;margin-bottom:2px}
 #map-tooltip .tip-val b{color:#7FC9A2}
-.metric-seg{display:flex;gap:4px;background:#F2F4F3;border-radius:10px;padding:4px}
-.metric-seg button{padding:7px 14px;font-size:13px;border-radius:7px;color:var(--sub);font-weight:500;transition:all .15s}
-.metric-seg button.on{background:#fff;color:var(--txt);font-weight:700;box-shadow:0 1px 3px rgba(16,24,40,.08)}
+.metric-seg{display:inline-flex;gap:3px;background:#EDF0EE;border:1px solid var(--bd);border-radius:10px;padding:3px}
+.metric-seg button{padding:7px 16px;font-size:13px;border-radius:7px;color:var(--sub);font-weight:500;transition:all .18s var(--ease);white-space:nowrap}
+.metric-seg button:hover:not(.on){color:var(--g700);background:rgba(255,255,255,.7)}
+.metric-seg button.on{background:var(--g700);color:#fff;font-weight:700;box-shadow:0 1px 3px rgba(10,92,54,.28)}
 .rank-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:9px;cursor:pointer;transition:background .15s}
 .rank-row:hover{background:var(--g50)}
 .rank-row.sel{background:var(--g100)}
@@ -314,12 +315,12 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .bell-badge{position:absolute;top:-6px;right:-7px;min-width:16px;height:16px;border-radius:999px;background:var(--red);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
 
 /* ── 전체화면 지도 + 플로팅 오버레이 ─────────────── */
-.map-full{position:relative;height:calc(100vh - 60px);overflow:hidden;background:#CFE7F2}
-.map-full #panMap{position:absolute;inset:0;width:100%;height:100%;border-radius:0;background:#CFE7F2}
-.mf{position:absolute;z-index:40}
+.map-full{position:relative;height:calc(100vh - 60px);overflow:hidden;background:#e0efff}
+.map-full #panMap{position:absolute;inset:0;width:100%;height:100%;border-radius:0;background:#e0efff}
+.mf{position:absolute;z-index:800}
 .mf-panel{background:#fff;border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 28px rgba(16,24,40,.12)}
-.mf-tl{top:16px;left:16px;padding:14px 18px;max-width:700px}
-.mf-crumb{top:16px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--bd);border-radius:999px;padding:9px 18px;box-shadow:0 4px 14px rgba(16,24,40,.10);display:flex;align-items:center;gap:8px;font-size:13.5px;max-width:420px}
+.mf-tl{top:16px;left:16px;padding:12px 16px;max-width:700px;background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.mf-crumb{bottom:20px;left:calc(50% - 194px);transform:translateX(-50%);background:#fff;border:1px solid var(--bd);border-radius:999px;padding:9px 18px;box-shadow:0 4px 14px rgba(16,24,40,.10);display:flex;align-items:center;gap:8px;font-size:13.5px;max-width:420px}
 .mf-crumb .seg{color:var(--sub);cursor:pointer;font-weight:500}
 .mf-crumb .seg:hover{color:var(--g700);text-decoration:underline}
 .mf-crumb .seg.cur{color:var(--g700);font-weight:900;cursor:default}
@@ -336,13 +337,13 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mf-legend{left:16px;bottom:64px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px 16px;box-shadow:0 4px 14px rgba(16,24,40,.10);display:flex;flex-direction:column;gap:5px}
 .mf-legend .lg-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--sub)}
 .mf-legend .lg-sw{width:16px;height:12px;border-radius:3px}
-.map-full .leaflet-left .leaflet-control-zoom{margin-left:16px;margin-top:0;top:170px;position:relative}
+.map-full .leaflet-left .leaflet-control-zoom{margin-left:16px;margin-top:0;top:104px;position:relative}
 
 /* ── 판로(시장) 마커 ─────────────────────── */
 .mk{background:none;border:none}
-.mk-pin{position:relative;transform:translate(-50%,-100%);cursor:pointer;transition:transform .18s var(--ease);filter:drop-shadow(0 3px 6px rgba(0,0,0,.32))}
-.mk-pin:hover{transform:translate(-50%,-100%) scale(1.18)}
-.mk-pin.sel{transform:translate(-50%,-100%) scale(1.22)}
+.mk-pin{position:relative;cursor:pointer;opacity:.62;transform-origin:50% 100%;transition:transform .2s var(--ease),opacity .2s var(--ease),filter .2s var(--ease);filter:drop-shadow(0 2px 4px rgba(0,0,0,.22))}
+.mk-pin:hover{opacity:1;transform:translateY(-6px) scale(1.12);filter:drop-shadow(0 8px 12px rgba(0,0,0,.36))}
+.mk-pin.sel{opacity:1;transform:translateY(-4px) scale(1.14);filter:drop-shadow(0 8px 12px rgba(0,0,0,.36))}
 .mk-pin svg{display:block}
 .mk-badge{position:absolute;top:-7px;right:-9px;background:var(--red);color:#fff;font-size:9.5px;font-weight:900;padding:1px 5px;border-radius:999px;border:1.5px solid #fff;white-space:nowrap}
 /* 마커 팝업 */
@@ -360,11 +361,39 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mkp-foot{padding:9px 14px 12px;display:flex;gap:6px}
 .mkp-tags{display:flex;flex-wrap:wrap;gap:4px;padding:0 14px 4px}
 /* 마커 hover 툴팁 (경량) */
-.mk-tip{background:#1A1E24;color:#fff;border:none;border-radius:8px;padding:7px 11px;font-size:11.5px;box-shadow:0 6px 18px rgba(0,0,0,.25);white-space:nowrap}
-.mk-tip::before{border-top-color:#1A1E24 !important}
+.mk-tip{background:#fff;color:var(--txt);border:1px solid var(--bd);border-radius:8px;padding:7px 11px;font-size:11.5px;box-shadow:0 6px 18px rgba(16,24,40,.16);white-space:nowrap;animation:tipFade .18s var(--ease)}
+.mk-tip .tipwrap{display:block;animation:tipRise .22s var(--ease);will-change:transform}
+@keyframes tipFade{from{opacity:0}to{opacity:1}}
+@keyframes tipRise{from{transform:translateY(7px)}to{transform:none}}
+.mk-tip::before{border-top-color:#fff !important;filter:drop-shadow(0 1px 0 var(--bd))}
 .mk-tip .n{font-weight:900;display:block;margin-bottom:2px}
-.mk-tip .v b{color:#7FC9A2}
+.mk-tip .v{color:var(--sub)}
+.mk-tip .v b{color:var(--g700)}
 /* 마커 토글 */
-.mf-mkt{left:16px;bottom:110px;background:#fff;border:1px solid var(--bd);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--g700);cursor:pointer;box-shadow:0 4px 14px rgba(16,24,40,.10);user-select:none;display:flex;align-items:center;gap:7px}
+.mf-mkt{left:122px;bottom:16px;background:#fff;border:1px solid var(--bd);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--g700);cursor:pointer;box-shadow:0 4px 14px rgba(16,24,40,.10);user-select:none;display:flex;align-items:center;gap:7px}
 .mf-mkt:hover{background:var(--g50)}
 .mf-mkt.off{color:var(--mut)}
+
+/* 좁은 화면: 우측 패널이 없어지면 브레드크럼을 진짜 중앙으로 */
+@media (max-width:1200px){
+  .mf-crumb{left:50%}
+}
+
+/* ── 드릴다운 floating 타일 (참조: web_bi sigfocus pane) ─────────── */
+.leaflet-pane.float-pane{
+  transition:filter .3s var(--ease);
+  left:-3px; top:-8px;
+  filter:drop-shadow(0 10px 13px rgba(16,24,40,.34));
+}
+/* 지도 위 팝업은 패널보다 아래, 마커 툴팁은 패널보다 위 */
+.leaflet-tooltip.mk-tip{z-index:900}
+
+/* ── 중앙 조준점 (시군구 레벨에서 지역 타겟팅) ─────────── */
+.crosshair{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;z-index:650;pointer-events:none;opacity:0;transition:opacity .25s var(--ease)}
+.crosshair.on{opacity:1}
+.crosshair::before,.crosshair::after{content:'';position:absolute;background:rgba(26,30,36,.55);box-shadow:0 0 0 1px rgba(255,255,255,.55)}
+.crosshair::before{left:50%;top:0;width:1.5px;height:100%;margin-left:-.75px}
+.crosshair::after{top:50%;left:0;height:1.5px;width:100%;margin-top:-.75px}
+.crosshair i{position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border:1.5px solid var(--g600);border-radius:50%;background:rgba(255,255,255,.35);box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+.crosshair b{position:absolute;left:50%;top:-26px;transform:translateX(-50%);background:var(--g700);color:#fff;font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.25);opacity:0;transition:opacity .2s var(--ease)}
+.crosshair b{display:none}

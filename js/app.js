@@ -34,6 +34,7 @@ function nav(id){
     if(panMap && panMap.invalidateSize) panMap.invalidateSize();
   }, 180);
   if(typeof closeNotif === 'function') closeNotif();
+  if(id !== 'map' && $mapTip) $mapTip.classList.remove('show');
   window.scrollTo({top:0});
 }
 
@@ -539,7 +540,7 @@ const SIDO_DATA = {
   '48':{n:'경남', full:'경상남도', price:1240, net:6.3, vol:134, fee:74,  ch:'창원 팔용 도매시장'},
   '50':{n:'제주', full:'제주특별자치도', price:1180, net:1.8, vol:36,  fee:168, ch:'제주 도매시장 (해상운송)'}
 };
-const HEAT = ['#EAF4EE','#BFE3CF','#7FC9A2','#35A46C','#0E7A46'];
+const HEAT = ['#D3E9DC','#AEDBC4','#7FC9A2','#35A46C','#0E7A46'];
 const DIM_FILL = '#DCDFDC';
 const ITEM_BASE = {'양파':1240,'배추':3150,'무':1420,'마늘':6800,'고추':11200};
 const DATE_FACTOR = {'2026-08-19':1.0,'2026-08-18':0.982,'2026-08-17':0.969,'2026-08-14':0.945,'2026-08-12':0.928};
@@ -552,6 +553,8 @@ let panMap = null, mapMetric = 'price', curItem = '양파', curDate = '2026-08-1
 let labelsOn = true;
 // 드릴다운 상태
 let VIEW = {level:'nation', sido:null, sig:null};   // 지도 렌더 레벨
+let suppressUntil = 0, userMoved = false;            // 줌 기반 레벨 전환 가드
+const SIGUNGU_ZOOM = 8.5;                            // 이 줌 이상이면 시군구 레벨
 let PANEL = {level:'sido', code:'11'};              // 우측 패널 대상
 // geo·레이어 캐시
 let GEO = {sido:null, sig:null, emd:null};
@@ -594,31 +597,63 @@ function levelRange(){
 function heatColor(v, mn, mx){ const t=(v-mn)/((mx-mn)||1); return HEAT[Math.max(0,Math.min(4,Math.floor(t*5)))]; }
 
 /* ── 툴팁 ── */
-let $mapTip = null;
-function showMapTip(html, e){
+let $mapTip = null, tipHover = false;
+function ensureTip(){
   if(!$mapTip){ $mapTip=document.createElement('div'); $mapTip.id='map-tooltip'; document.body.appendChild($mapTip); }
-  $mapTip.innerHTML = html; $mapTip.classList.add('show'); moveMapTip(e);
+  return $mapTip;
 }
-function moveMapTip(e){ if($mapTip && e && e.originalEvent){ $mapTip.style.left=e.originalEvent.clientX+'px'; $mapTip.style.top=e.originalEvent.clientY+'px'; } }
-function hideMapTip(){ if($mapTip) $mapTip.classList.remove('show'); }
+function tipHtml(level, code){
+  const m = METRIC_META[mapMetric];
+  return '<div class="tip-name">'+ (level==='sido' ? SIDO_DATA[code].full : nameOf(level, code)) +
+         '</div><div class="tip-val">'+m.title+' <b>'+m.fmt(valOf(level,code))+m.unit+'</b></div>';
+}
+function showMapTip(html, e){
+  const t = ensureTip();
+  tipHover = true;
+  t.classList.remove('ch');
+  t.innerHTML = html; t.classList.add('show'); moveMapTip(e);
+}
+function moveMapTip(e){ if($mapTip && e && e.originalEvent){ $mapTip.style.left=(e.originalEvent.clientX+14)+'px'; $mapTip.style.top=(e.originalEvent.clientY-$mapTip.offsetHeight-12)+'px'; } }
+function hideMapTip(){
+  tipHover = false;
+  if($mapTip) $mapTip.classList.remove('show');
+  updateCrosshairTip();          /* hover 해제 시 조준점 툴팁 복귀 */
+}
+/* 조준점이 가리키는 타일에 hover 와 동일한 툴팁 표시 */
+function updateCrosshairTip(){
+  const t = ensureTip();
+  const ch = document.getElementById('crosshair');
+  if(tipHover || !ch || !ch.classList.contains('has') || currentPage !== 'map'){
+    if(!tipHover) t.classList.remove('show');
+    return;
+  }
+  const box = panMap.getContainer().getBoundingClientRect();
+  t.classList.add('ch');
+  t.innerHTML = tipHtml(PANEL.level, PANEL.code);
+  /* transform 대신 실좌표로 배치 — 조준점 중앙 상단 */
+  const cx = box.left + box.width/2, cy = box.top + box.height/2;
+  t.style.left = Math.round(cx - t.offsetWidth/2) + 'px';
+  t.style.top  = Math.round(cy - 22 - t.offsetHeight) + 'px';
+  t.classList.add('show');
+}
 
 /* ── 레이어 빌드 (참조: web_bi dashboard.js fn_BuildLevelGroup) ── */
 function buildGroup(features, level){
   const group = L.layerGroup();
   const geoLayer = L.geoJSON({type:'FeatureCollection', features}, {
+    pane: level==='sido' ? 'overlayPane' : 'drill',
     style: function(){ return {fillColor:HEAT[0], fillOpacity:.92, color:'#fff', weight:1.1, opacity:.85}; },
     onEachFeature: function(feature, lyr){
       const p = feature.properties;
       const code = p.CTPRVN_CD || p.SIG_CD || p.EMD_CD;
-      const name = level==='sido' ? SIDO_DATA[code].n : (p.SIG_KOR_NM || p.EMD_KOR_NM);
+      const name = level==='sido' ? SIDO_DATA[code].full : (p.SIG_KOR_NM || p.EMD_KOR_NM);
       lyrs[level][code] = lyr; bnds[level][code] = lyr.getBounds();
-      const lm = L.marker(lyr.getBounds().getCenter(), {icon:L.divIcon({className:'custom-label', html:'<span class="label-text">'+name+'</span>'}), interactive:false});
+      const lm = L.marker(lyr.getBounds().getCenter(), {icon:L.divIcon({className:'custom-label', html:'<span class="label-text">'+name+'</span>'}), interactive:false, pane: level==='sido' ? 'markerPane' : 'drill'});
       group.addLayer(lm); lbls[level][code] = lm;
       lyr.on('mouseover', function(e){
         if(lyr.options.ghost) return;
         lyr.setStyle(lyr.options.dimmed ? {fillOpacity:.95, weight:1.6, color:'#9a9d9a'} : {weight:2.2, color:'#1A1E24', opacity:.55, fillOpacity:1});
-        const m = METRIC_META[mapMetric];
-        showMapTip('<div class="tip-name">'+ (level==='sido'?SIDO_DATA[code].full:name) +'</div><div class="tip-val">'+m.title+' <b>'+m.fmt(valOf(level,code))+m.unit+'</b></div>', e);
+        showMapTip(tipHtml(level, code), e);
       });
       lyr.on('mousemove', moveMapTip);
       lyr.on('mouseout', function(){ if(!lyr.options.ghost) restyle(level, code); hideMapTip(); });
@@ -672,21 +707,78 @@ function ensureEmdGroup(sigCd){
 }
 
 /* ── 뷰 전환 (전국 / 시도 포커스 / 읍면동 단독) ── */
+/* 좌측 필터·우측 통계 패널에 지도가 가리지 않도록 여백 확보 */
+function fitPad(){
+  const w = document.getElementById('panMap').clientWidth;
+  const right = w > 1200 ? 400 : w > 900 ? 300 : 40;
+  return {paddingTopLeft:[48,132], paddingBottomRight:[right,88]};
+}
+function flyPad(b, dur, minZ){
+  const d = dur || .5;
+  const o = fitPad(); o.duration = d;
+  /* moveend 가 유실돼도 고착되지 않도록 시간 기반 억제 */
+  suppressUntil = Date.now() + d * 1000 + 350;
+  if(minZ){
+    /* 드릴다운 레벨이 유지되도록 최소 줌 보장 (참조: web_bi fn_PinFocus) */
+    const z = Math.max(panMap.getBoundsZoom(b, false, L.point(o.paddingTopLeft[0]+o.paddingBottomRight[0], o.paddingTopLeft[1]+o.paddingBottomRight[1])), minZ);
+    const c = panMap._getBoundsCenterZoom(b, o).center;
+    panMap.flyTo(c, z, {duration:d});
+  } else {
+    panMap.flyToBounds(b, o);
+  }
+}
+/* 드릴다운 타일 떠 보이게 (그림자 + 살짝 오프셋) */
+function setFloat(on){
+  const p = panMap.getPane('drill');
+  if(p) p.classList.toggle('float-pane', !!on);
+}
+/* 지도 중심에 있는 시도 코드 (bounds 근사) */
+function sidoAtCenter(){
+  const c = panMap.getCenter();
+  let hit = null, area = Infinity;
+  Object.keys(bnds.sido).forEach(function(cd){
+    const b = bnds.sido[cd];
+    if(!b.contains(c)) return;
+    const a = (b.getNorth()-b.getSouth()) * (b.getEast()-b.getWest());
+    if(a < area){ area = a; hit = cd; }
+  });
+  return hit;
+}
+/* 스크롤 줌에 따른 레벨 자동 전환 — 읍면동은 클릭으로만 진입 */
+function onZoomEnd(){
+  if(!panMap || panMap === 'loading' || Date.now() < suppressUntil) return;
+  const z = panMap.getZoom();
+  if(VIEW.level === 'emd'){
+    /* 읍면동에서 충분히 축소하면 부모 시도(시군구 레벨)로 복귀 */
+    if(z < SIGUNGU_ZOOM + 0.6) focusSidoView(VIEW.sig.slice(0,2), true);
+    return;
+  }
+  if(z >= SIGUNGU_ZOOM){
+    const target = (userMoved || !VIEW.sido) ? (sidoAtCenter() || VIEW.sido) : VIEW.sido;
+    if(target && target !== VIEW.sido) focusSidoView(target, true);
+    else if(target && VIEW.level !== 'sido') focusSidoView(target, true);
+  } else if(VIEW.level !== 'nation'){
+    showNationView(true);
+  }
+}
 function clearOverlays(){
   Object.values(groups.sig).forEach(g=>{ if(panMap.hasLayer(g)) panMap.removeLayer(g); });
   Object.values(groups.emd).forEach(g=>{ if(panMap.hasLayer(g)) panMap.removeLayer(g); });
 }
-function showNationView(){
+function showNationView(keepZoom){
   VIEW = {level:'nation', sido:null, sig:null};
   clearOverlays();
+  setFloat(false);
   if(!panMap.hasLayer(groups.sido)) panMap.addLayer(groups.sido);
   Object.keys(lyrs.sido).forEach(cd=>{ lyrs.sido[cd].options.dimmed=false; lyrs.sido[cd].options.ghost=false; });
   PANEL = {level:'sido', code:PANEL.code.slice(0,2) ? PANEL.code.slice(0,2) : '11'};
   if(!SIDO_DATA[PANEL.code]) PANEL = {level:'sido', code:'11'};
-  panMap.flyToBounds(L.geoJSON(GEO.sido).getBounds().pad(0.02), {duration:.5});
+  if(!keepZoom) flyPad(L.geoJSON(GEO.sido).getBounds());
+  userMoved = false;
   refreshAll();
+  updateCrosshair();
 }
-function focusSidoView(cd){
+function focusSidoView(cd, keepZoom){
   VIEW = {level:'sido', sido:cd, sig:null};
   clearOverlays();
   if(!panMap.hasLayer(groups.sido)) panMap.addLayer(groups.sido);
@@ -695,9 +787,11 @@ function focusSidoView(cd){
     lyrs.sido[k].options.dimmed = (k!==cd);
   });
   panMap.addLayer(ensureSigGroup(cd));
+  setFloat(true);
   PANEL = {level:'sido', code:cd};
-  panMap.flyToBounds(bnds.sido[cd].pad(0.08), {duration:.5});
+  if(!keepZoom){ flyPad(bnds.sido[cd], .5, SIGUNGU_ZOOM + 0.25); userMoved = false; }
   refreshAll();
+  updateCrosshair();
 }
 function enterEmdView(sigCd){
   ensureEmdIndex(function(){
@@ -706,10 +800,95 @@ function enterEmdView(sigCd){
     /* 참조 규칙: 읍면동 모드는 해당 시군구 조각만 단독 렌더 */
     if(panMap.hasLayer(groups.sido)) panMap.removeLayer(groups.sido);
     panMap.addLayer(ensureEmdGroup(sigCd));
+    setFloat(true);
     PANEL = {level:'sig', code:sigCd};
-    panMap.flyToBounds(bnds.sig[sigCd].pad(0.1), {duration:.55});
+    flyPad(bnds.sig[sigCd], .55, SIGUNGU_ZOOM + 1.5);
+    userMoved = false;
     refreshAll();
+    updateCrosshair();
   });
+}
+
+/* ── 중앙 조준점: 시군구 레벨에서 지도 중심의 지역을 활성화 ── */
+function ptInRing(lat, lng, ring){
+  let inside = false;
+  for(let i=0, j=ring.length-1; i<ring.length; j=i++){
+    const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if(((yi > lat) !== (yj > lat)) && (lng < (xj-xi) * (lat-yi) / ((yj-yi)||1e-12) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function ptInFeature(lat, lng, feature){
+  const g = feature.geometry;
+  if(!g) return false;
+  const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+  for(const poly of polys){
+    if(!poly.length || !ptInRing(lat, lng, poly[0])) continue;
+    let hole = false;
+    for(let h=1; h<poly.length; h++){ if(ptInRing(lat, lng, poly[h])){ hole = true; break; } }
+    if(!hole) return true;
+  }
+  return false;
+}
+let chRaf = 0, chSwitching = false;
+function updateCrosshair(){
+  const el = document.getElementById('crosshair');
+  if(!el || !panMap || panMap === 'loading') return;
+  el.classList.add('on');                      /* 모든 레벨에서 상시 표시 */
+  const c = panMap.getCenter();
+
+  /* 시군구 레벨: 조준점이 다른 시도로 넘어가면 그 시도 데이터로 전환 */
+  if(VIEW.level === 'sido' && !chSwitching){
+    const cur = (sigBySido[VIEW.sido] || []).some(function(f){
+      const b = bnds.sig[f.properties.SIG_CD];
+      return (!b || b.contains(c)) && ptInFeature(c.lat, c.lng, f);
+    });
+    if(!cur){
+      const other = GEO.sido.features.find(function(f){
+        const cd = f.properties.CTPRVN_CD;
+        if(cd === VIEW.sido || !SIDO_DATA[cd]) return false;
+        const b = bnds.sido[cd];
+        return (!b || b.contains(c)) && ptInFeature(c.lat, c.lng, f);
+      });
+      if(other){
+        chSwitching = true;
+        focusSidoView(other.properties.CTPRVN_CD, true);   /* 줌 유지한 채 전환 */
+        chSwitching = false;
+        return;                                           /* focusSidoView 가 재호출 */
+      }
+    }
+  }
+
+  /* 현재 레벨에서 조준점 아래 지역 판정 */
+  let feats, lv;
+  if(VIEW.level === 'nation'){ feats = GEO.sido.features; lv = 'sido'; }
+  else if(VIEW.level === 'sido'){ feats = sigBySido[VIEW.sido] || []; lv = 'sig'; }
+  else { feats = emdBySig[VIEW.sig] || []; lv = 'emd'; }
+
+  let hit = null;
+  for(const f of feats){
+    const cd = f.properties.CTPRVN_CD || f.properties.SIG_CD || f.properties.EMD_CD;
+    if(lv === 'sido' && !SIDO_DATA[cd]) continue;
+    const b = bnds[lv][cd];
+    if(b && !b.contains(c)) continue;
+    if(ptInFeature(c.lat, c.lng, f)){ hit = cd; break; }
+  }
+  if(hit){
+    el.classList.add('has');
+    if(!(PANEL.level === lv && PANEL.code === hit)){
+      PANEL = {level:lv, code:hit};
+      renderSel(); markRank();
+      const row = document.querySelector('#rankList .rank-row.sel');
+      if(row && row.scrollIntoView) row.scrollIntoView({block:'nearest'});
+    }
+  } else {
+    el.classList.remove('has');
+  }
+  updateCrosshairTip();
+}
+function queueCrosshair(){
+  if(chRaf) return;
+  chRaf = setTimeout(function(){ chRaf = 0; updateCrosshair(); }, 40);
 }
 
 /* ── 초기화 ── */
@@ -720,10 +899,16 @@ function initPanMap(){
   .then(function(res){
     GEO.sido = res[0]; GEO.sig = res[1];
     GEO.sig.features.forEach(f=>{ const sd=f.properties.SIG_CD.slice(0,2); (sigBySido[sd]=sigBySido[sd]||[]).push(f); });
-    panMap = L.map('panMap', {zoomControl:true, attributionControl:false, scrollWheelZoom:true, doubleClickZoom:false, zoomSnap:.25});
+    panMap = L.map('panMap', {zoomControl:true, attributionControl:false, scrollWheelZoom:true, doubleClickZoom:false, zoomSnap:.25, zoomDelta:.5, minZoom:5.5, maxZoom:12, wheelPxPerZoomLevel:90});
+    /* 드릴다운 타일 전용 pane — 포커스 시 그림자+오프셋으로 떠 보이게 (참조: web_bi sigfocus) */
+    panMap.createPane('drill');
+    panMap.getPane('drill').style.zIndex = 450;
+    panMap.on('zoomend', onZoomEnd);
+    panMap.on('move zoom', queueCrosshair);
+    panMap.on('movestart', function(){ if(Date.now() >= suppressUntil) userMoved = true; });
     groups.sido = buildGroup(GEO.sido.features, 'sido');
     panMap.addLayer(groups.sido);
-    panMap.fitBounds(L.geoJSON(GEO.sido).getBounds().pad(0.02));
+    panMap.fitBounds(L.geoJSON(GEO.sido).getBounds(), fitPad());
     buildMarkets();
     refreshAll();
   })
@@ -733,6 +918,7 @@ function initPanMap(){
 /* ── 렌더 일괄 ── */
 function refreshAll(){
   paintVisible(); renderCrumb(); renderSel(); renderRank(); renderLegend(); renderStats();
+  if(!chSwitching) queueCrosshair();
 }
 function paintVisible(){
   if(!panMap || panMap==='loading') return;
@@ -893,7 +1079,7 @@ function mkNet(m){
 function mkIcon(m, selected){
   const ty = MK_TYPE[m.t];
   const badge = m.best ? '<span class="mk-badge">추천</span>' : '';
-  return L.divIcon({className:'mk', iconSize:[34,42], html:
+  return L.divIcon({className:'mk', iconSize:[34,42], iconAnchor:[17,42], popupAnchor:[0,-44], tooltipAnchor:[0,-42], html:
     '<div class="mk-pin'+(selected?' sel':'')+'" data-id="'+m.id+'">'+
       '<svg width="34" height="42" viewBox="0 0 34 42" fill="none">'+
         '<path d="M17 41C17 41 31 25.6 31 16.2 31 8.4 24.7 2 17 2S3 8.4 3 16.2C3 25.6 17 41 17 41Z" fill="'+ty.color+'" stroke="#fff" stroke-width="2.2"/>'+
@@ -924,11 +1110,14 @@ function buildMarkets(){
   MARKETS.forEach(function(m){
     const c = mkNet(m);
     const mk = L.marker([m.lat, m.lng], {icon:mkIcon(m,false), riseOnHover:true, zIndexOffset:m.best?300:100});
-    mk.bindTooltip('<span class="n">'+m.n+'</span><span class="v">'+MK_TYPE[m.t].label+' · <b>'+m.price.toLocaleString()+'원/kg</b></span>',
-      {direction:'top', offset:[0,-40], className:'mk-tip', opacity:1});
-    mk.bindPopup(mkPopup(m), {offset:[0,-34], closeButton:true, autoPanPadding:[24,24]});
-    mk.on('popupopen', function(){ selMk = m.id; });
-    mk.on('popupclose', function(){ if(selMk===m.id) selMk = null; });
+    mk.bindTooltip('<span class="tipwrap"><span class="n">'+m.n+'</span><span class="v">'+MK_TYPE[m.t].label+' · <b>'+m.price.toLocaleString()+'원/kg</b></span></span>',
+      {direction:'top', offset:[0,0], className:'mk-tip', opacity:1});
+    mk.bindPopup(mkPopup(m), {offset:[0,0], closeButton:true, autoPan:false});
+    mk.on('popupopen', function(){
+      selMk = m.id;
+      const el=mk.getElement(); if(el) el.querySelector('.mk-pin').classList.add('sel');
+    });
+    mk.on('popupclose', function(){ if(selMk===m.id) selMk = null; const el=mk.getElement(); if(el) el.querySelector('.mk-pin').classList.remove('sel'); });
     mkGroup.addLayer(mk);
   });
   if(mkOn) mkGroup.addTo(panMap);
@@ -994,3 +1183,9 @@ function readAllNotifs(){
 }
 document.addEventListener('click', closeNotif);
 renderNotifs();
+
+/* ══════════ 디자인시스템 — 세그먼트 탭 데모 ══════════ */
+function dsSeg(btn){
+  btn.parentElement.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b === btn); });
+  toast('info', '"' + btn.textContent.trim() + '" 선택됨');
+}
