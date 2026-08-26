@@ -181,10 +181,10 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .hex{color:var(--sub);font-family:Menlo,monospace;font-size:10.5px}
 
 /* ── 플로팅 챗봇 ─────────────────────── */
-.fab{position:fixed;right:28px;bottom:28px;z-index:80;display:flex;align-items:center;height:56px;border-radius:999px;background:var(--g600);color:#fff;box-shadow:0 6px 20px rgba(14,122,70,.35);padding:0 15px;transition:all .28s var(--ease)}
-.fab:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 12px 28px rgba(14,122,70,.45);background:var(--g700)}
-.fab-label{max-width:0;overflow:hidden;white-space:nowrap;opacity:0;font-weight:700;font-size:14px;transition:all .28s var(--ease)}
-.fab:hover .fab-label{max-width:90px;opacity:1;margin-left:9px}
+.fab{position:fixed;right:28px;bottom:28px;z-index:80;display:flex;align-items:center;height:64px;border-radius:999px;background:#fff;color:var(--g700);border:1px solid var(--bd);box-shadow:0 6px 20px rgba(16,24,40,.16);padding:0 12px;transition:all .28s var(--ease)}
+.fab:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 12px 28px rgba(16,24,40,.22);border-color:var(--g400)}
+.fab-label{max-width:0;overflow:hidden;white-space:nowrap;opacity:0;font-weight:700;font-size:14.5px;color:var(--g700);transition:all .28s var(--ease)}
+.fab:hover .fab-label{max-width:90px;opacity:1;margin-left:10px;margin-right:6px}
 .fab.hidden,.chat-panel.hidden{display:none}
 .chat-panel{position:fixed;right:24px;bottom:98px;width:384px;height:600px;max-height:calc(100vh - 130px);z-index:79;background:#fff;border:1px solid var(--bd);border-radius:16px;box-shadow:0 20px 56px rgba(16,24,40,.22);display:flex;flex-direction:column;transform:translateX(430px) scale(.96);opacity:0;pointer-events:none;transition:transform .42s var(--ease),opacity .3s;overflow:hidden}
 .chat-panel.open{transform:none;opacity:1;pointer-events:auto}
@@ -538,11 +538,11 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 /* OverlayScrollbars 호스트 보정
    라이브러리는 호스트를 flex row 로 만들고 내부 viewport 가 실제 스크롤러가 된다.
    호스트에 걸려 있던 레이아웃(display/overflow/flex 방향)을 viewport 로 위임한다. */
-.page.active[data-overlayscrollbars~="host"]{display:flex;overflow:hidden}
+.page.active[data-overlayscrollbars~="host"]{display:flex;overflow:hidden;position:relative}
 .md-body[data-overlayscrollbars~="host"] > [data-overlayscrollbars-viewport]{display:flex;flex-direction:column;gap:14px}
 
 /* ── 알농이 마스코트 ─────────── */
-.fab-ico{width:40px;height:40px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 1px 2px rgba(0,0,0,.18))}
+.fab-ico{width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#fff}
 .cp-ico{width:26px;height:26px;object-fit:contain;flex-shrink:0}
 .mascot-sm{width:30px;height:30px;object-fit:contain;flex-shrink:0}
 
@@ -550,3 +550,16 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .rcpt-tbl{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed}
 .rcpt-tbl th{width:104px;text-align:left;color:var(--sub);font-weight:700;padding:5px 0;vertical-align:top;white-space:nowrap}
 .rcpt-tbl td{padding:5px 0;color:#374151;line-height:1.6;word-break:keep-all}
+
+/* ── 스크롤 어포던스: 더 볼 내용이 있는 쪽에 페이드 ───────────
+   위/아래로 이어지는 콘텐츠가 있을 때만 해당 방향에 흰색 그라데이션을 덮어
+   "더 있다"는 신호를 준다. absolute 라서 flex 호스트 레이아웃에 영향 없음. */
+.osfade{position:relative}
+.osfade::before,.osfade::after{
+  content:'';position:absolute;left:0;right:0;height:30px;z-index:5;
+  pointer-events:none;opacity:0;transition:opacity .25s var(--ease)
+}
+.osfade::before{top:0;background:linear-gradient(to bottom,var(--fade-c,#fff) 12%,rgba(255,255,255,0))}
+.osfade::after{bottom:0;background:linear-gradient(to top,var(--fade-c,#fff) 12%,rgba(255,255,255,0))}
+.osfade.fade-top::before{opacity:1}
+.osfade.fade-bot::after{opacity:1}

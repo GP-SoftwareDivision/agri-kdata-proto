@@ -156,7 +156,11 @@ function toast(type, msg){
 }
 
 /* ══════════ 모달 ══════════ */
-function openModal(id){ document.getElementById(id).classList.add('open'); }
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  /* 숨겨진 동안 바뀐 콘텐츠 높이를 반영 */
+  if(typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 30);
+}
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(ov=>{
   ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('open'); });
@@ -246,6 +250,7 @@ function renderReceipts(){
       <svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>`).join('')
     : '<div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:var(--sub)">해당 유형의 영수증이 아직 없어요.</div>';
+  if(typeof osUpdateFades === 'function') osUpdateFades();
 }
 function openReceipt(id){
   const r = RECEIPTS.find(x=>x.id===id); if(!r) return;
@@ -1396,6 +1401,7 @@ function renderRank(){
       <div class="rank-bar"><i style="width:${Math.max(4,Math.round(r.v/max*100))}%"></i></div>
       <span style="width:70px;text-align:right;font-size:12px;font-weight:700">${m.fmt(r.v)}<span style="font-weight:400;color:var(--mut);font-size:10.5px">${m.unit}</span></span>
     </div>`).join('');
+  if(typeof osUpdateFades === 'function') osUpdateFades();
 }
 function markRank(){
   document.querySelectorAll('#rankList .rank-row').forEach(el=>el.classList.toggle('sel', el.dataset.code===PANEL.code));
@@ -1580,6 +1586,7 @@ function renderNotifs(){
         <div class="notif-time">${n.time}</div>
       </div>
     </div>`).join('');
+  if(typeof osUpdateFades === 'function') osUpdateFades();
   const unread = NOTIFS.filter(n=>n.unread).length;
   const badge = document.getElementById('bellBadge');
   badge.textContent = unread;
@@ -1670,8 +1677,27 @@ function osInit(el, opt){
   if(OS(el)) return OS(el);                                 /* 중복 초기화 방지 */
   const inst = OS(el, opt || OS_OPT);
   osBindReveal(el, inst);
+  if(el.hasAttribute('data-fade')) osBindFade(el, inst);
   return inst;
 }
+/* 스크롤 어포던스: 위/아래로 더 볼 내용이 있으면 그 방향에 페이드를 켠다 */
+var OS_FADES = [];            /* 초기 렌더가 선행될 수 있어 호이스팅되는 var 사용 */
+function osBindFade(host, inst){
+  const vp = inst.elements().viewport;
+  host.classList.add('osfade');
+  const upd = ()=>{
+    const max = vp.scrollHeight - vp.clientHeight;
+    const t = vp.scrollTop;
+    host.classList.toggle('fade-top', max > 4 && t > 4);
+    host.classList.toggle('fade-bot', max > 4 && t < max - 4);
+  };
+  vp.addEventListener('scroll', upd, {passive:true});
+  if(typeof inst.on === 'function'){ inst.on('scroll', upd); inst.on('updated', upd); }
+  OS_FADES.push(upd);
+  upd();
+}
+/* 목록을 다시 그린 뒤 호출 (콘텐츠 높이가 바뀌므로) */
+function osUpdateFades(){ (OS_FADES||[]).forEach(f=>{ try{ f(); }catch(e){} }); }
 /* 스크롤 중 또는 스크롤바 영역 hover 시에만 스크롤바를 노출한다 */
 function osBindReveal(host, inst){
   const els = inst.elements();
