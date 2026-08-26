@@ -1,0 +1,123 @@
+/* ═══════════════════════════════════════════════════════════════
+   agriG 모바일 오버라이드 (html.m 스코프)
+   진입: /mobile 또는 ?m=1 → <html class="m">
+   기준 뷰포트 390×844. 데스크톱 스타일에는 영향 없음.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 헤더: 로고·벨·아바타 1단 + 가로 스크롤 메뉴 2단 ── */
+html.m .gnb{height:auto;flex-wrap:wrap;padding:0 14px;gap:0 10px}
+html.m .gnb-logo{padding:11px 0}
+html.m .gnb-logo div:last-child{font-size:16px}
+html.m .gnb > div:last-child{margin-left:auto}
+html.m .user-chip{padding:4px}
+html.m .user-chip > div:last-child{display:none}     /* 이름은 숨기고 아바타만 */
+html.m .gnb-menu{order:3;flex:0 0 100%;overflow-x:auto;flex-wrap:nowrap;gap:2px;
+  padding:0 2px 9px;margin:0;scrollbar-width:none}
+html.m .gnb-menu::-webkit-scrollbar{display:none}
+html.m .gnb-item{white-space:nowrap;font-size:13.5px;padding:5px 10px}
+html.m .gnb-item.active::after{left:10px;right:10px;bottom:-5px}
+
+/* ── 공통 레이아웃 ── */
+html.m .wrap{padding:14px 14px 96px;gap:12px;max-width:none !important}
+html.m .sec-t{font-size:15px}
+/* 인라인 grid 는 전부 1열로 (시안 전용 완력 규칙) */
+html.m .wrap [style*="grid-template-columns"]{grid-template-columns:1fr !important}
+html.m .kpis{grid-template-columns:1fr 1fr !important;gap:10px}
+html.m .grid-2,html.m .grid-3{grid-template-columns:1fr}
+html.m .kpi{padding:14px 16px}
+html.m .kpi-v{font-size:22px}
+html.m .pick-grid{grid-template-columns:1fr !important}
+
+/* 대시보드 필터바 */
+html.m .filterbar{height:auto;flex-wrap:wrap;padding:10px 14px;gap:10px}
+html.m .fdiv{display:none}
+html.m #priceChart{height:230px !important}
+
+/* 페이지 헤더(제목+부제/스테퍼 가로 배치) 세로 전환 */
+html.m .wrap > div[style*="justify-content:space-between"]{
+  flex-direction:column !important;align-items:flex-start !important;gap:10px}
+html.m .stepper{transform:scale(.86);transform-origin:left;gap:6px}
+html.m .stp-line{width:18px}
+
+/* ── 로그인 ── */
+html.m #loginPage{flex-direction:column;overflow-y:auto}
+html.m .login-brand{width:100%;min-width:0;padding:18px 22px;gap:8px}
+html.m .login-brand > div:nth-child(2){display:none}  /* 헤드라인·체크리스트 축약 */
+html.m .login-brand > div:last-child{display:none}
+html.m .login-right{align-items:flex-start;padding:8px 0 30px}
+html.m .login-box{width:100%;padding:18px;gap:18px}
+
+/* ── 지도: 플로팅 → 세로 플로우 ── */
+html.m .map-full{height:auto;overflow:visible;display:flex;flex-direction:column;
+  background:var(--bg);padding-bottom:84px}
+html.m .map-full #panMap{position:relative;inset:auto;height:360px;order:2;flex:none}
+html.m .mf{position:static;transform:none}
+html.m .mf-tl{order:1;margin:12px 12px 0;max-width:none;background:#fff;
+  backdrop-filter:none;-webkit-backdrop-filter:none}
+html.m .mf-crumb{order:3;margin:10px auto 0;width:max-content;max-width:92%}
+html.m .mf-stats{order:4;margin:10px 12px 0;overflow-x:auto;scrollbar-width:none}
+html.m .mf-stats::-webkit-scrollbar{display:none}
+html.m .stat-chip{flex:0 0 auto}
+html.m .mf-right{order:5;width:auto;margin:12px;pointer-events:auto;gap:12px}
+html.m .mf-legend{order:6;margin:0 12px;flex-direction:row;flex-wrap:wrap;gap:4px 12px}
+html.m .map-full .leaflet-left .leaflet-control-zoom{top:10px;margin-left:10px}
+/* 지도 위 토글·조준점은 JS가 #panMap 안으로 옮긴다 */
+html.m #panMap .mf-labels{position:absolute;left:10px;bottom:10px;z-index:800}
+html.m #panMap .mf-mkt{position:absolute;left:104px;bottom:10px;z-index:800}
+html.m #rankScroll{max-height:300px}
+
+/* ── 챗봇 ── */
+html.m .chat-live{height:100%}
+html.m .chat-bar{height:auto;flex-wrap:wrap;padding:8px 12px;gap:6px}
+html.m .chat-bar #apiLabel{display:none}
+
+/* ── 모달: 바텀 시트 ── */
+html.m .overlay{align-items:flex-end}
+html.m .modal{width:100% !important;max-width:100vw;border-radius:18px 18px 0 0;
+  max-height:90dvh;transform:translateY(20px)}
+html.m .overlay.open .modal{transform:none}
+html.m .md-modal{max-height:90dvh}
+html.m .md-foot2{padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
+html.m .m-foot{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+html.m .md-body{padding:4px 16px 16px}
+
+/* ── 플로팅 챗봇 패널: 풀폭 바텀 시트 ── */
+html.m .chat-panel{left:10px;right:10px;bottom:0;width:auto;height:82dvh;
+  max-height:none;border-radius:18px 18px 0 0;transform:translateY(105%)}
+html.m .chat-panel.open{transform:none}
+html.m .fab{right:16px;bottom:16px}
+
+/* ── 알림 패널 ── */
+html.m .notif-anchor{position:static}
+html.m .notif-panel{position:fixed;left:10px;right:10px;top:64px;width:auto}
+html.m .notif-panel::before{right:84px}
+
+/* ── 마이페이지 ── */
+html.m .dconn{padding:14px 14px}
+html.m .dconn .btn-sm{padding:0 10px;font-size:12px}
+html.m .rcpt-chips{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;scrollbar-width:none}
+html.m .rcpt-chips::-webkit-scrollbar{display:none}
+html.m .rcpt-chip{min-width:76px;flex:0 0 auto;padding:8px 12px}
+html.m .rcpt-row{height:auto;min-height:56px;padding:10px 12px}
+html.m .rcpt-row > span[style*="white-space"]{font-size:11px}
+
+/* ── 행정서류 ── */
+html.m .sheet{padding:18px 14px}
+html.m .sheet-t{font-size:11.5px}
+html.m .sheet-t th{width:88px;padding:7px 8px}
+html.m .sheet-t td{padding:7px 8px}
+html.m .doc-row2{flex-wrap:wrap;gap:8px 12px;padding:14px}
+
+/* ── 디자인시스템 ── */
+html.m .ds-sec{padding:16px}
+html.m .ds-sec [style*="repeat(8"]{grid-template-columns:repeat(4,1fr) !important}
+html.m .ds-sec [style*="repeat(5"]{grid-template-columns:repeat(2,1fr) !important}
+
+/* ── 토스트 ── */
+html.m #toasts{left:12px;right:12px;transform:none;bottom:86px;align-items:stretch}
+html.m .toast{justify-content:flex-start}
+
+/* 기관 행: 이름·뱃지 줄바꿈 허용, 버튼은 아랫줄로 랩 */
+html.m .dconn > div:first-child{flex-wrap:wrap;gap:10px 12px}
+html.m .dconn > div:first-child > div[style*="flex:1"]{flex:1 1 calc(100% - 56px);min-width:0}
+html.m .dconn div[style*="align-items:center"][style*="gap:8px"]{flex-wrap:wrap}

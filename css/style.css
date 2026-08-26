@@ -7,7 +7,7 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;font-size:14px;word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty}
+body{font-family:'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased;font-size:14px;word-break:keep-all;overflow-wrap:break-word;text-wrap:pretty}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea{font-family:inherit;outline:none}
 a{color:var(--g600);text-decoration:none}a:hover{color:var(--g700)}

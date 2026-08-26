@@ -1136,6 +1136,10 @@ function ensureEmdGroup(sigCd){
 /* ── 뷰 전환 (전국 / 시도 포커스 / 읍면동 단독) ── */
 /* 좌측 필터·우측 통계 패널에 지도가 가리지 않도록 여백 확보 */
 function fitPad(){
+  if(document.documentElement.classList.contains('m')){
+    /* 모바일: 지도 위 플로팅 패널이 없으므로 여백 최소화 */
+    return {paddingTopLeft:[14,14], paddingBottomRight:[14,44]};
+  }
   const w = document.getElementById('panMap').clientWidth;
   const right = w > 1200 ? 400 : w > 900 ? 300 : 40;
   return {paddingTopLeft:[48,132], paddingBottomRight:[right,88]};
@@ -1763,3 +1767,18 @@ document.addEventListener('mouseover', e=>{
   const q = e.target.closest && e.target.closest('.help-q');
   if(q) positionHelpTip(q);
 });
+
+
+/* ══════════ 모바일(/mobile · ?m=1) 보정 ══════════ */
+(function(){
+  if(!document.documentElement.classList.contains('m')) return;
+  /* 지도 위 오버레이(조준점·판로/지역명 토글)를 지도 컨테이너 안으로 옮겨
+     세로 플로우 레이아웃에서도 지도 위에 겹쳐 보이게 한다 */
+  const pan = document.getElementById('panMap');
+  if(pan){
+    ['crosshair','mktToggle','lblToggle'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) pan.appendChild(el);
+    });
+  }
+})();
