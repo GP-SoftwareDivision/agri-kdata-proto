@@ -56,6 +56,8 @@ html.m .wrap{padding:14px 14px 118px;gap:12px;max-width:none !important}
 html.m .sec-t{font-size:15px}
 /* 인라인 grid 는 전부 1열로 (시안 전용 완력 규칙) */
 html.m .wrap [style*="grid-template-columns"]{grid-template-columns:1fr !important}
+/* 1열로 접힌 그리드 아이템이 내용의 min-content 때문에 셀 밖으로 넘치지 않게 */
+html.m .wrap [style*="grid-template-columns"] > *{min-width:0}
 html.m .kpis{grid-template-columns:1fr 1fr !important;gap:10px}
 html.m .grid-2,html.m .grid-3{grid-template-columns:1fr}
 html.m .kpi{padding:14px 16px}
@@ -70,8 +72,6 @@ html.m #priceChart{height:230px !important}
 /* 페이지 헤더(제목+부제/스테퍼 가로 배치) 세로 전환 */
 html.m .wrap > div[style*="justify-content:space-between"]{
   flex-direction:column !important;align-items:flex-start !important;gap:10px}
-html.m .stepper{transform:scale(.86);transform-origin:left;gap:6px}
-html.m .stp-line{width:18px}
 
 /* ── 로그인 ── */
 html.m .view-toggle,html.m .phone-frame-overlay{display:none !important}
@@ -152,7 +152,6 @@ html.m .sheet{padding:18px 14px}
 html.m .sheet-t{font-size:11.5px}
 html.m .sheet-t th{width:88px;padding:7px 8px}
 html.m .sheet-t td{padding:7px 8px}
-html.m .doc-row2{flex-wrap:wrap;gap:8px 12px;padding:14px}
 
 /* ── 디자인시스템 ── */
 html.m .ds-sec{padding:16px}
@@ -190,3 +189,53 @@ html.m .md-allchk > span[style*="margin-left:auto"]{flex:0 0 100%;margin-left:26
 html.m .pur-h .pn{flex:1 1 0;min-width:130px}
 html.m .pur-h .pl{order:5}
 html.m .pur-h .toggle{margin-left:auto}
+
+/* ── 행정서류: 좁은 폭에서 정렬 붕괴 방지 (UI/UX 대개편 전 임시 보정) ── */
+/* 스테퍼: 4단계가 폭을 넘으므로 축소 + 가로 스크롤, 단계명은 줄바꿈 금지 */
+html.m .stepper{gap:6px;max-width:100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+html.m .stepper::-webkit-scrollbar{display:none}
+html.m .stp{flex:0 0 auto}
+html.m .stepper{gap:3px}
+html.m .stp{gap:4px}
+html.m .stp-n{width:20px;height:20px;font-size:10.5px}
+html.m .stp-t{font-size:10.5px;white-space:nowrap;letter-spacing:-.3px}
+html.m .stp-line{width:7px;flex:0 0 auto}
+
+/* 내 서류함 행: 아이콘+제목이 첫 줄을 통째로 쓰고, 진행바·버튼은 다음 줄로 */
+html.m .doc-row2{flex-wrap:wrap;gap:10px 12px;padding:14px}
+html.m .doc-row2 > div:nth-child(2){flex:1 1 calc(100% - 52px) !important;min-width:0 !important}
+html.m .doc-row2 > div:nth-child(2) > div:first-child{flex-wrap:wrap;gap:6px 8px}
+html.m .doc-row2 .badge{flex:0 0 auto}
+html.m .doc-row2 .btn{flex:0 0 auto}
+html.m .mini-prog{width:64px}
+
+/* 제출·보관 완료 화면: 라벨/값을 세로로 쌓아 값이 잘리지 않게 */
+html.m #dv-s4 > div{max-width:none;margin-top:6px}
+html.m .meta-row{flex-direction:column;align-items:flex-start;gap:3px}
+html.m .meta-row .v{text-align:left;word-break:keep-all}
+html.m #dv-s4 > div > div[style*="display:flex"][style*="gap:8px"]{flex-wrap:wrap}
+html.m #dv-s4 .btn{flex:1 1 calc(50% - 4px) !important;min-width:0}
+
+/* 증빙 자동첨부 행: 기관명이 세로로 찢기지 않도록 */
+html.m .doc-row{flex-wrap:wrap;gap:8px 10px}
+html.m .doc-row > div[style*="flex:1"]{flex:1 1 calc(100% - 30px) !important;min-width:0 !important}
+
+/* 내 서류함 헤더: 제목·배지·버튼이 좁은 폭에서 겹치지 않도록 랩 */
+html.m #dv-home .card > div:first-child{flex-wrap:wrap;gap:10px 12px;padding:16px 16px 10px}
+html.m #dv-home .card > div:first-child > div:first-child{flex-wrap:wrap;gap:6px 8px;min-width:0}
+html.m #dv-home .sec-t{white-space:nowrap}
+html.m #dv-home .card > div:first-child .btn{flex:1 1 100%;justify-content:center}
+
+/* 정보 확인 단계 상단 서식 바: 배지·버튼이 카드 밖으로 밀리지 않도록 랩 */
+html.m #dv-s2 > .card:nth-of-type(2){flex-wrap:wrap;gap:8px 10px;padding:12px 14px}
+html.m #dv-s2 > .card:nth-of-type(2) > div[style*="flex:1"]{display:none}
+html.m #dv-s2 > .card:nth-of-type(2) > div:nth-child(2){flex:1 1 calc(100% - 48px);min-width:0}
+html.m #dv-s2 > .card:nth-of-type(2) .badge{flex:0 0 auto}
+html.m #dv-s2 > .card:nth-of-type(2) .btn{flex:1 1 auto}
+
+/* 정보 확인 단계 하단 액션 바: 안내 문구가 눌려 세로로 찢기고 버튼이 화면 밖으로 밀리는 문제 */
+html.m #dv-s2 > div:last-child{flex-wrap:wrap;gap:8px 10px}
+html.m #dv-s2 > div:last-child > div[style*="flex:1"]{display:none}
+html.m #dv-s2 > div:last-child #missingNote{flex:1 1 100%;order:-1;line-height:1.55}
+html.m #dv-s2 > div:last-child .btn{flex:1 1 calc(50% - 5px);min-width:0;justify-content:center}
+html.m #dv-s2 > div:last-child .btn-pri{flex:1 1 100%}
