@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=45">
+<link rel="stylesheet" href="css/style.css?v=46">
 </head>
 <body>
 
@@ -576,7 +576,7 @@ docker run --rm -p 8080:8080 \
                   <div style="flex:1"><b style="font-size:13px">교육 이수증</b><div style="font-size:11px;color:var(--sub)">농정원 (농업교육포털)</div></div>
                   <span style="display:flex;align-items:center;gap:4px;color:var(--orange-t);font-size:12px;font-weight:700"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#B25E0D" stroke-width="1.5"/><path d="M7 4.5V7L8.8 8.5" stroke="#B25E0D" stroke-width="1.5" stroke-linecap="round"/></svg>수신 대기</span></div>
               </div>
-              <div style="font-size:11px;color:var(--sub);line-height:1.6">증빙은 본인 동의 후 기관에서 직접 수신합니다. 수신 대기 문서는 완료되는 대로 자동 첨부됩니다.</div>
+              <div style="font-size:11px;color:var(--sub);line-height:1.6">증빙은 본인 동의 후 기관에서 직접 수신하며, 대기 문서는 완료 즉시 자동 첨부됩니다.</div>
             </div>
             <div class="card" style="padding:16px 20px;display:flex;align-items:center;gap:14px">
               <div style="width:34px;height:34px;border-radius:8px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -715,9 +715,9 @@ docker run --rm -p 8080:8080 \
               <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M9 2.5V11M9 11L5.5 7.5M9 11L12.5 7.5" stroke="#6D4FC4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12.5V14C3 14.8 3.7 15.5 4.5 15.5H13.5C14.3 15.5 15 14.8 15 14V12.5" stroke="#6D4FC4" stroke-width="1.8" stroke-linecap="round"/></svg>
             </div>
             <div class="sec-t">내 데이터 내려받기</div>
-            <span class="help-q">?<span class="tip">내려받은 파일은 CSV·JSON 같은 표준 형식이라, 다른 서비스로 옮기거나 컴퓨터에서 바로 열어볼 수 있습니다.</span></span>
+            <span class="help-q">?<span class="tip">CSV·JSON 같은 표준 형식이라 다른 서비스로 옮기거나 컴퓨터에서 바로 열어볼 수 있어요.</span></span>
           </div>
-          <div style="font-size:13px;color:var(--sub);line-height:1.6">agriG에 저장된 내 데이터를 원하는 항목·기간·형식으로 골라 내 기기나 이메일로 받을 수 있어요.</div>
+          <div style="font-size:13px;color:var(--sub);line-height:1.6">원하는 항목·기간·형식을 골라 내 기기나 이메일로 받을 수 있어요.</div>
           <button class="btn btn-pri" style="width:100%" onclick="openDownload()">
             <svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M9 2.5V11M9 11L5.5 7.5M9 11L12.5 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             데이터 내려받기</button>
@@ -728,9 +728,9 @@ docker run --rm -p 8080:8080 \
               <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="5" cy="9" r="2.4" stroke="#E17A17" stroke-width="1.6"/><circle cx="13.5" cy="4.5" r="2.4" stroke="#E17A17" stroke-width="1.6"/><circle cx="13.5" cy="13.5" r="2.4" stroke="#E17A17" stroke-width="1.6"/><path d="M7.2 7.8L11.3 5.6M7.2 10.2L11.3 12.4" stroke="#E17A17" stroke-width="1.6"/></svg>
             </div>
             <div class="sec-t">제3자 선별 공유</div>
-            <span class="help-q">?<span class="tip">내가 지정한 기관에만, 내가 고른 데이터 범위만, 정한 기간 동안 공유합니다. 언제든 이 화면에서 다시 확인할 수 있어요.</span></span>
+            <span class="help-q">?<span class="tip">내가 지정한 기관에, 고른 범위만, 정한 기간 동안 공유합니다. 이 화면에서 언제든 확인할 수 있어요.</span></span>
           </div>
-          <div style="font-size:13px;color:var(--sub);line-height:1.6">농협 · 보험사 · 심사기관 등 원하는 곳을 지정해, 필요한 데이터만 골라서 안전하게 보냅니다.</div>
+          <div style="font-size:13px;color:var(--sub);line-height:1.6">농협·보험사 등 원하는 곳에 필요한 데이터만 골라 안전하게 보냅니다.</div>
           <button class="btn btn-out" style="width:100%" onclick="openShare()">공유 대상 지정하기</button>
         </div>
       </div>
@@ -740,7 +740,7 @@ docker run --rm -p 8080:8080 \
         <div style="padding:20px 26px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
           <div>
             <div class="sec-t">데이터 이용내역 · 영수증</div>
-            <div style="font-size:12px;color:var(--sub);margin-top:3px">내 데이터를 <b style="color:var(--txt)">언제 · 누가 · 어떤 목적으로</b> 썼는지 실시간으로 기록됩니다. 영수증을 누르면 상세와 근거 동의를 볼 수 있어요.</div>
+            <div style="font-size:12px;color:var(--sub);margin-top:3px">내 데이터를 <b style="color:var(--txt)">언제 · 누가 · 어떤 목적으로</b> 썼는지 실시간 기록됩니다. 영수증을 누르면 상세를 볼 수 있어요.</div>
           </div>
           <button class="btn btn-neu btn-sm" onclick="dlReceipts()">이용내역 전체 내려받기</button>
         </div>
@@ -975,7 +975,7 @@ docker run --rm -p 8080:8080 \
       <!-- 거부 권리 고지 -->
       <div class="md-rights">
         <b class="md-rights-lead">동의하지 않을 권리가 있으며, 거부해도 어떠한 불이익도 없습니다.</b><br>
-        필수 동의를 거부하면 이 기관의 데이터 연동 서비스는 이용할 수 없지만, agriG의 다른 기능은 계속 사용할 수 있습니다. 선택 동의는 거부해도 서비스 이용에 아무 영향이 없습니다. 동의는 마이페이지에서 언제든 철회할 수 있습니다.
+        필수 동의를 거부하면 이 기관의 연동 서비스만 제한되고, agriG의 다른 기능은 그대로 쓸 수 있습니다. 동의는 마이페이지에서 언제든 철회할 수 있습니다.
       </div>
     </div>
     <!-- 동의함 / 동의하지 않음 분리 -->
@@ -1015,11 +1015,11 @@ docker run --rm -p 8080:8080 \
     <div class="m-head"><div class="m-title">모든 동의를 철회하시겠어요?</div>
       <button class="m-x" onclick="closeModal('quitModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
     <div class="m-body">
-      모든 필수 동의를 철회하면 agriG 서비스를 더 이상 이용할 수 없어, <b style="color:var(--red)">회원 탈퇴 절차로 이어집니다.</b><br><br>
+      필수 동의를 모두 철회하면 <b style="color:var(--red)">회원 탈퇴 절차로 이어집니다.</b><br><br>
       탈퇴 시 처리되는 내용:<br>
       · 연동된 모든 기관의 데이터 수집이 즉시 중단됩니다<br>
-      · 저장된 개인데이터는 파기됩니다 (법정 보존 항목 제외)<br>
-      · 이 기기에 보관 중인 서류는 직접 삭제하거나 내려받을 수 있습니다<br><br>
+      · 저장된 개인데이터는 파기됩니다 (법정 보존분 제외)<br>
+      · 이 기기의 서류는 직접 삭제하거나 내려받을 수 있어요<br><br>
       탈퇴 전에 <a href="#" onclick="closeModal('quitModal');openDownload();return false" style="font-weight:700">내 데이터 내려받기</a>를 먼저 해두시는 걸 권해요.
     </div>
     <div class="m-foot">
@@ -1055,7 +1055,7 @@ docker run --rm -p 8080:8080 \
       </div>
       <div>
         <div class="lbl" style="margin-bottom:8px;font-size:13px;display:flex;align-items:center;gap:6px">3. 파일 형식
-          <span class="help-q">?<span class="tip">CSV·JSON은 컴퓨터가 바로 읽을 수 있는 표준 형식이에요. 다른 서비스로 데이터를 옮길 때 사용합니다. PDF는 사람이 보기 편한 형식입니다.</span></span>
+          <span class="help-q">?<span class="tip">CSV·JSON은 다른 서비스로 데이터를 옮길 때 쓰는 표준 형식이고, PDF는 사람이 보기 편한 형식이에요.</span></span>
         </div>
         <div class="metric-seg" id="dlFormat">
           <button class="on" onclick="segPick(this)">JSON</button>
@@ -1077,7 +1077,7 @@ docker run --rm -p 8080:8080 \
       <div class="done-mini"><svg width="26" height="26" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div style="font-size:18px;font-weight:900">내려받기 완료</div>
       <div style="font-size:13px;color:var(--sub);line-height:1.7" id="dlDoneSum"></div>
-      <div style="font-size:12px;color:var(--sub);background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;text-align:left">이 내려받기는 <b>내려받기 영수증</b>으로 기록되었어요. 이용내역에서 언제든 확인할 수 있습니다.</div>
+      <div style="font-size:12px;color:var(--sub);background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;text-align:left"><b>내려받기 영수증</b>으로 기록되어 이용내역에서 확인할 수 있어요.</div>
     </div>
     <div class="m-foot" id="dlFoot">
       <button class="btn btn-neu" onclick="closeModal('dlModal')">취소</button>
@@ -1102,7 +1102,7 @@ docker run --rm -p 8080:8080 \
         <div class="lbl" style="margin-bottom:8px;font-size:13px">1. 누구에게 보낼까요?</div>
         <div style="display:flex;flex-direction:column;gap:8px" id="shareOrgs"></div>
         <div style="font-size:12.5px;color:var(--sub);background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;margin-top:8px;line-height:1.6">
-          찾는 기관이 없나요? 아직 연결할 수 없는 기관이에요. <b style="color:#24559E">연결 기관은 계속 추가될 예정입니다.</b>
+          찾는 기관이 없나요? <b style="color:#24559E">연결 기관은 계속 추가될 예정이에요.</b>
         </div>
       </div>
       <div>
@@ -1122,7 +1122,7 @@ docker run --rm -p 8080:8080 \
     <!-- 2단계: 이동 승인 -->
     <div class="md-body" data-fade id="shareStep2" style="display:none">
       <div class="md-summary"><b>이대로 보낼까요?</b><p id="shareSum"></p></div>
-      <div class="md-rights">보관 기간이 지나면 받은 기관은 데이터를 파기해야 합니다. 공유 사실은 <b>공유 영수증</b>으로 기록되며, 이용내역에서 언제든 확인할 수 있습니다.</div>
+      <div class="md-rights">보관 기간이 지나면 받은 기관은 데이터를 파기해야 합니다.<br><b>공유 영수증</b>으로 기록되어 이용내역에서 확인할 수 있어요.</div>
     </div>
     <!-- 완료 -->
     <div class="md-body" data-fade id="shareDone" style="display:none;text-align:center;padding-top:14px">
@@ -1160,6 +1160,6 @@ docker run --rm -p 8080:8080 \
 
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=45"></script>
+<script src="js/app.js?v=46"></script>
 </body>
 </html>

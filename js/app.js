@@ -361,8 +361,8 @@ function toggleItem(cid, ii){
 function askRevoke(id, itemName){
   pendingConn = CONNS.find(c=>c.id===id);
   document.getElementById('revokeName').textContent = pendingConn.name;
-  document.getElementById('revokeDesc').textContent = (itemName ? ' — "'+itemName+'"은(는) 필수 동의 항목이라 개별 철회 대신 기관 연동 해지로 처리돼요. ' : ' ') +
-    '연동을 해지하면 필수 동의를 포함한 모든 동의가 철회되고, 관련 자동입력·추천 기능이 중단됩니다. 이미 생성된 서류에는 영향이 없으며, 철회 사실은 동의 영수증으로 기록됩니다.';
+  document.getElementById('revokeDesc').textContent = (itemName ? ' — "'+itemName+'"은(는) 필수 항목이라 기관 연동 해지로 처리됩니다. ' : ' ') +
+    '연동을 해지하면 모든 동의가 철회되고 자동입력·추천 기능이 중단됩니다. 이미 생성된 서류에는 영향이 없어요.';
   openModal('revokeModal');
 }
 function confirmRevoke(){
@@ -1645,7 +1645,7 @@ const CAPTURE_STATES = {
   'CAPTURE-012': ()=>{ capEnter(); const el=document.querySelector('[data-capture="CAPTURE-012"]'); if(el) el.scrollIntoView({block:'start'}); },
   'CAPTURE-013': ()=>{ capEnter(); openReceipt('RCPT-U-260819-014'); },
   'CAPTURE-001B': ()=>{ capEnter(); askConsent('kplus'); },
-  'CAPTURE-009C': ()=>{ capEnter(); openDownload(); setTimeout(()=>{ const h=document.querySelector('#dlModal .help-q'); if(h) h.classList.add('force'); }, 300); },
+  'CAPTURE-009C': ()=>{ capEnter(); openDownload(); setTimeout(()=>{ const h=document.querySelector('#dlModal .help-q'); if(h){ h.classList.add('force'); positionHelpTip(h); } }, 300); },
 };
 (function(){
   const m = location.hash.match(/cap=([A-Z0-9-]+)/);
@@ -1743,3 +1743,23 @@ function initScrollAreas(){
   document.querySelectorAll('.md-body').forEach(el=>osInit(el));
 }
 initScrollAreas();
+
+/* ══════════ Help 툴팁 위치 ══════════
+   스크롤 컨테이너(overflow:hidden)에 잘리지 않도록 position:fixed 로 띄우고,
+   아이콘 기준 상단 중앙에 오도록 좌표를 직접 계산한다. 화면 밖으로 나가면 안쪽으로 보정. */
+function positionHelpTip(q){
+  const tip = q && q.querySelector('.tip');
+  if(!tip) return;
+  const r = q.getBoundingClientRect();
+  const w = tip.offsetWidth, h = tip.offsetHeight, pad = 10;
+  let x = r.left + r.width/2;
+  x = Math.max(w/2 + pad, Math.min(x, window.innerWidth - w/2 - pad));
+  let y = r.top - h - 9;
+  if(y < pad) y = r.bottom + 9;              /* 위가 좁으면 아래로 */
+  tip.style.left = Math.round(x) + 'px';
+  tip.style.top  = Math.round(y) + 'px';
+}
+document.addEventListener('mouseover', e=>{
+  const q = e.target.closest && e.target.closest('.help-q');
+  if(q) positionHelpTip(q);
+});
