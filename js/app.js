@@ -89,6 +89,19 @@ function enterApp(){
   }, 330);
 }
 
+function logoutApp(){
+  closeSidebar();
+  if(typeof closeNotif === 'function') closeNotif();
+  if(typeof closeChatPanel === 'function') closeChatPanel();
+  document.getElementById('appShell').classList.remove('on');
+  document.getElementById('fab').classList.add('hidden');
+  document.getElementById('chatPanel').classList.add('hidden');
+  const lp = document.getElementById('loginPage');
+  lp.style.display = '';
+  lp.classList.remove('leaving');
+  toast('info','로그아웃되었습니다');
+}
+
 function nav(id){
   if(currentPage === id) return;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));

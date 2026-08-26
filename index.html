@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=50">
-<link rel="stylesheet" href="css/mobile.css?v=50">
+<link rel="stylesheet" href="css/style.css?v=51">
+<link rel="stylesheet" href="css/mobile.css?v=51">
 </head>
 <body>
 
@@ -864,6 +864,13 @@ docker run --rm -p 8080:8080 \
         <div style="padding:0 26px 8px" class="rcpt-chips" id="rcptChips"></div>
         <div id="rcptScroll" data-fade><div id="rcptList"></div></div>
       </div>
+
+      <!-- 로그아웃 -->
+      <div style="display:flex;justify-content:center;padding:4px 0 8px">
+        <button class="btn btn-neu" style="min-width:200px" onclick="logoutApp()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 2.5H3.5C2.9 2.5 2.5 2.9 2.5 3.5V12.5C2.5 13.1 2.9 13.5 3.5 13.5H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10.5 5L13.5 8L10.5 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 8H6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          로그아웃</button>
+      </div>
     </div>
   </section>
 
@@ -1277,6 +1284,6 @@ docker run --rm -p 8080:8080 \
 
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=50"></script>
+<script src="js/app.js?v=51"></script>
 </body>
 </html>
