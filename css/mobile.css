@@ -186,3 +186,7 @@ html.m .purge-tbl th{width:104px}
 html.m .pur-h{flex-wrap:wrap;gap:6px 8px}
 html.m .md-allchk{flex-wrap:wrap;gap:6px 8px}
 html.m .md-allchk > span[style*="margin-left:auto"]{flex:0 0 100%;margin-left:26px !important;text-align:left !important}
+/* 목적 카드 헤더: 이름·토글 첫 줄, 처리수준 배지는 둘째 줄 (이름 세로 찢김 방지) */
+html.m .pur-h .pn{flex:1 1 0;min-width:130px}
+html.m .pur-h .pl{order:5}
+html.m .pur-h .toggle{margin-left:auto}
