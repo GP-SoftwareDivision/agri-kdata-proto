@@ -2,6 +2,80 @@
 let currentPage = null;
 let chartInited = false;
 
+/* ── PC/모바일 미리보기 전환 ── */
+function setDeviceView(mode){
+  const pcBtn = document.getElementById('vtPc');
+  const moBtn = document.getElementById('vtMobile');
+  const ov = document.getElementById('phoneFrameOverlay');
+  if(mode==='mobile'){
+    pcBtn.classList.remove('active'); moBtn.classList.add('active');
+    const ifr = document.getElementById('phoneFrameIframe');
+    if(!ifr.getAttribute('src')) ifr.src = 'index.html?m=1';
+    ov.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }else{
+    moBtn.classList.remove('active'); pcBtn.classList.add('active');
+    ov.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('phoneFrameOverlay').classList.contains('open')) setDeviceView('pc');
+});
+
+/* ── 모바일 사이드 메뉴 ── */
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarScrim').classList.add('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarScrim').classList.remove('open');
+}
+
+/* ── 챗봇 대화 목록 (7일 보관 · 시안) ── */
+var CHAT_THREADS = [
+  {t:'양파 출하 시기, 지금이 좋을까?', d:'오늘', left:7},
+  {t:'청송 사과 판로 추천 결과', d:'어제', left:6},
+  {t:'농약 안전사용 기준 문의', d:'8/22', left:3},
+  {t:'정책자금 신청 서류 준비', d:'8/20', left:1}
+];
+var activeThread = 0;
+function renderThreads(){
+  const box = document.getElementById('ctList'); if(!box) return;
+  box.innerHTML = CHAT_THREADS.map((th,i)=>`
+    <button class="ct-row ${i===activeThread?'active':''}" onclick="pickThread(${i})">
+      <div class="t">${th.t}</div>
+      <div class="m">${th.d} · ${th.left<=1?'<span class="warn">'+th.left+'일 남음</span>':'<b>'+th.left+'일</b> 남음'}</div>
+      <span class="ct-del" onclick="event.stopPropagation();delThread(${i})" role="button" aria-label="삭제">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 3.5H9.5M4.8 3.2V2.2H7.2V3.2M3.4 3.7L3.9 9.8H8.1L8.6 3.7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+    </button>`).join('');
+}
+function pickThread(i){
+  activeThread = i; renderThreads(); toggleThreads(false);
+  toast('info','「'+CHAT_THREADS[i].t+'」 대화를 불러왔어요 — 시안');
+}
+function delThread(i){
+  const th = CHAT_THREADS.splice(i,1)[0];
+  if(activeThread>=CHAT_THREADS.length) activeThread = Math.max(0, CHAT_THREADS.length-1);
+  renderThreads();
+  toast('ok','「'+th.t+'」 대화를 삭제했어요');
+}
+function newThread(){
+  CHAT_THREADS.unshift({t:'새 대화', d:'오늘', left:7});
+  activeThread = 0; renderThreads(); toggleThreads(false);
+  if(typeof newChatSession === 'function') newChatSession();
+}
+function toggleThreads(force){
+  const p = document.getElementById('chatThreads');
+  const s = document.getElementById('ctScrim');
+  if(!p) return;
+  const open = (force === undefined) ? !p.classList.contains('open') : !!force;
+  p.classList.toggle('open', open);
+  if(s) s.classList.toggle('open', open);
+}
+
 function enterApp(){
   const lp = document.getElementById('loginPage');
   lp.classList.add('leaving');
@@ -22,7 +96,7 @@ function nav(id){
   // reflow로 애니메이션 재시작
   void pg.offsetWidth;
   pg.classList.add('active');
-  document.querySelectorAll('.gnb-item').forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
+  document.querySelectorAll('.gnb-item,.tb-item,.sb-item').forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
   currentPage = id;
   // 챗봇 페이지에서는 플로팅 숨김
   document.getElementById('fab').style.display = (id==='chatbot') ? 'none' : '';
@@ -307,10 +381,10 @@ function renderConns(){
             ${c.on ? '<span class="badge bg-ok" style="font-size:11.5px">연동중</span>' : '<span class="badge bg-mut">미연동</span>'}</div>
           <div style="font-size:12px;color:var(--sub);margin-top:3px" id="meta-${c.id}">${connMetaText(c)}</div>
         </div>
-        ${c.on
+        <div class="dconn-acts">${c.on
           ? `<button class="btn btn-neu btn-sm" id="cbtn-${c.id}" onclick="toggleConnItems('${c.id}')">${connOpen[c.id]?'접기':'항목 관리'}</button>
              <button class="btn btn-dan-out btn-sm" onclick="askRevoke('${c.id}')">전체 철회</button>`
-          : `<button class="btn btn-pri btn-sm" onclick="askConsent('${c.id}')">연동 동의</button>`}
+          : `<button class="btn btn-pri btn-sm" onclick="askConsent('${c.id}')">연동 동의</button>`}</div>
       </div>
       ${c.on ? `<div class="conn-items" id="ci-${c.id}"><div class="ci-inner">${itemsHtml}</div></div>` : ''}
     </div>`;
@@ -588,6 +662,7 @@ function shareNext(){
 
 renderConns();
 renderReceipts();
+renderThreads();
 
 /* ══════════ 행정서류 — 내 서류함 + 4단계 위저드 ══════════ */
 const DOCS_KEY = 'agri_docs_v1';

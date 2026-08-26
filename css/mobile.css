@@ -4,21 +4,55 @@
    기준 뷰포트 390×844. 데스크톱 스타일에는 영향 없음.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── 헤더: 로고·벨·아바타 1단 + 가로 스크롤 메뉴 2단 ── */
-html.m .gnb{height:auto;flex-wrap:wrap;padding:0 14px;gap:0 10px}
-html.m .gnb-logo{padding:11px 0}
+/* ── 헤더: 햄버거 · 로고 · 벨 · 아바타 (1단) — 메뉴는 하단 탭바+사이드바로 이동 ── */
+html.m .gnb{height:54px;flex-wrap:nowrap;padding:0 12px 0 6px;gap:6px}
+html.m .gnb-menu{display:none}
+html.m .gnb-burger{display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:10px;flex-shrink:0}
+html.m .gnb-burger:active{background:var(--bg)}
+html.m .gnb-logo{padding:0;gap:7px}
 html.m .gnb-logo div:last-child{font-size:16px}
-html.m .gnb > div:last-child{margin-left:auto}
-html.m .user-chip{padding:4px}
-html.m .user-chip > div:last-child{display:none}     /* 이름은 숨기고 아바타만 */
-html.m .gnb-menu{order:3;flex:0 0 100%;overflow-x:auto;flex-wrap:nowrap;gap:2px;
-  padding:0 2px 9px;margin:0;scrollbar-width:none}
-html.m .gnb-menu::-webkit-scrollbar{display:none}
-html.m .gnb-item{white-space:nowrap;font-size:13.5px;padding:5px 10px}
-html.m .gnb-item.active::after{left:10px;right:10px;bottom:-5px}
+html.m .gnb > div:last-child{margin-left:auto;gap:12px}
+html.m .user-chip{padding:3px}
+html.m .user-chip > div:last-child{display:none}     /* 이름은 숨기고 아바타만 — 탭=마이페이지 */
+
+/* ── 하단 고정 탭 메뉴 ── */
+html.m .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:90;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-top:1px solid var(--bd);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+html.m .tb-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:5px 0 3px;border-radius:10px;color:#8A939C;background:transparent;
+  font-size:10.5px;font-weight:700;letter-spacing:-.2px;transition:color .15s}
+html.m .tb-item.active{color:var(--g700)}
+html.m .tb-item:active{background:var(--bg)}
+
+/* ── 슬라이드 사이드 메뉴 ── */
+html.m .sidebar-scrim{display:block;position:fixed;inset:0;z-index:1000;
+  background:rgba(15,25,20,.45);opacity:0;pointer-events:none;transition:opacity .28s}
+html.m .sidebar-scrim.open{opacity:1;pointer-events:auto}
+html.m .sidebar{display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:1001;
+  width:min(78vw,300px);background:#fff;box-shadow:12px 0 40px rgba(0,0,0,.16);
+  transform:translateX(-105%);transition:transform .3s var(--ease);
+  padding-bottom:env(safe-area-inset-bottom)}
+html.m .sidebar.open{transform:none}
+html.m .sb-head{display:flex;align-items:center;justify-content:space-between;
+  padding:14px 12px 14px 16px;border-bottom:1px solid var(--bd);flex-shrink:0}
+html.m .sb-user{display:flex;align-items:center;gap:12px;margin:12px;padding:12px 14px;
+  border-radius:12px;background:var(--g50);border:1px solid #DCEBE2;cursor:pointer;flex-shrink:0}
+html.m .sb-menu{flex:1;overflow-y:auto;padding:4px 12px;display:flex;flex-direction:column;gap:2px}
+html.m .sb-item{display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:10px;
+  font-size:14.5px;font-weight:700;color:var(--sub);background:transparent;text-align:left;
+  transition:background .15s,color .15s}
+html.m .sb-item svg{color:#8A939C;flex-shrink:0;transition:color .15s}
+html.m .sb-item.active{background:var(--g50);color:var(--g700)}
+html.m .sb-item.active svg{color:var(--g700)}
+html.m .sb-item:active{background:var(--bg)}
+html.m .sb-div{height:1px;background:var(--bd);margin:8px 4px}
+html.m .sb-foot{flex-shrink:0;padding:12px 16px;border-top:1px solid var(--bd);
+  font-size:11.5px;color:var(--mut)}
 
 /* ── 공통 레이아웃 ── */
-html.m .wrap{padding:14px 14px 96px;gap:12px;max-width:none !important}
+html.m .wrap{padding:14px 14px 118px;gap:12px;max-width:none !important}
 html.m .sec-t{font-size:15px}
 /* 인라인 grid 는 전부 1열로 (시안 전용 완력 규칙) */
 html.m .wrap [style*="grid-template-columns"]{grid-template-columns:1fr !important}
@@ -40,6 +74,7 @@ html.m .stepper{transform:scale(.86);transform-origin:left;gap:6px}
 html.m .stp-line{width:18px}
 
 /* ── 로그인 ── */
+html.m .view-toggle,html.m .phone-frame-overlay{display:none !important}
 html.m #loginPage{flex-direction:column;overflow-y:auto}
 html.m .login-brand{width:100%;min-width:0;padding:18px 22px;gap:8px}
 html.m .login-brand > div:nth-child(2){display:none}  /* 헤드라인·체크리스트 축약 */
@@ -49,7 +84,7 @@ html.m .login-box{width:100%;padding:18px;gap:18px}
 
 /* ── 지도: 플로팅 → 세로 플로우 ── */
 html.m .map-full{height:auto;overflow:visible;display:flex;flex-direction:column;
-  background:var(--bg);padding-bottom:84px}
+  background:var(--bg);padding-bottom:100px}
 html.m .map-full #panMap{position:relative;inset:auto;height:360px;order:2;flex:none}
 html.m .mf{position:static;transform:none}
 html.m .mf-tl{order:1;margin:12px 12px 0;max-width:none;background:#fff;
@@ -67,9 +102,20 @@ html.m #panMap .mf-mkt{position:absolute;left:104px;bottom:10px;z-index:800}
 html.m #rankScroll{max-height:300px}
 
 /* ── 챗봇 ── */
-html.m .chat-live{height:100%}
+html.m .chat-live{height:calc(100dvh - 54px - 62px)}   /* 헤더·탭바 사이 꽉 채움 */
 html.m .chat-bar{height:auto;flex-wrap:wrap;padding:8px 12px;gap:6px}
 html.m .chat-bar #apiLabel{display:none}
+html.m .chat-bar .badge{display:none}
+/* 대화 목록: 좌측 슬라이드 패널 */
+html.m .ct-tgl{display:inline-flex;gap:5px}
+html.m .ct-scrim{position:absolute;inset:0;z-index:59;background:rgba(15,25,20,.35);
+  opacity:0;pointer-events:none;transition:opacity .26s}
+html.m .ct-scrim.open{display:block;opacity:1;pointer-events:auto}
+html.m .chat-threads{position:absolute;top:0;bottom:0;left:0;z-index:60;
+  width:min(80%,290px);box-shadow:12px 0 36px rgba(0,0,0,.14);
+  transform:translateX(-105%);transition:transform .3s var(--ease)}
+html.m .chat-threads.open{transform:none}
+html.m .ct-del{display:flex}                            /* 터치 환경: 삭제 버튼 상시 노출 */
 
 /* ── 모달: 바텀 시트 ── */
 html.m .overlay{align-items:flex-end}
@@ -83,9 +129,9 @@ html.m .md-body{padding:4px 16px 16px}
 
 /* ── 플로팅 챗봇 패널: 풀폭 바텀 시트 ── */
 html.m .chat-panel{left:10px;right:10px;bottom:0;width:auto;height:82dvh;
-  max-height:none;border-radius:18px 18px 0 0;transform:translateY(105%)}
+  max-height:none;border-radius:18px 18px 0 0;transform:translateY(105%);z-index:950}
 html.m .chat-panel.open{transform:none}
-html.m .fab{right:16px;bottom:16px}
+html.m .fab{right:14px;bottom:80px}                     /* 탭바 위로 */
 
 /* ── 알림 패널 ── */
 html.m .notif-anchor{position:static}
@@ -114,10 +160,17 @@ html.m .ds-sec [style*="repeat(8"]{grid-template-columns:repeat(4,1fr) !importan
 html.m .ds-sec [style*="repeat(5"]{grid-template-columns:repeat(2,1fr) !important}
 
 /* ── 토스트 ── */
-html.m #toasts{left:12px;right:12px;transform:none;bottom:86px;align-items:stretch}
+html.m #toasts{left:12px;right:12px;transform:none;bottom:142px;align-items:stretch}
 html.m .toast{justify-content:flex-start}
 
-/* 기관 행: 이름·뱃지 줄바꿈 허용, 버튼은 아랫줄로 랩 */
-html.m .dconn > div:first-child{flex-wrap:wrap;gap:10px 12px}
-html.m .dconn > div:first-child > div[style*="flex:1"]{flex:1 1 calc(100% - 56px);min-width:0}
-html.m .dconn div[style*="align-items:center"][style*="gap:8px"]{flex-wrap:wrap}
+/* ── 기관 카드(dconn): 1행 아이콘+이름·뱃지·메타, 2행 버튼 풀폭 ── */
+html.m .dconn{padding:14px 16px}
+html.m .dconn > div:first-child{flex-wrap:wrap;gap:10px 13px}
+html.m .dconn > div:first-child > div[style*="flex:1"]{flex:1 1 0;min-width:0}
+html.m .dconn-acts{flex:0 0 100%;gap:8px}
+html.m .dconn-acts .btn{flex:1;justify-content:center}
+
+/* 마이페이지 프로필 카드: 버튼 아랫줄로 */
+html.m .card[data-capture="CAPTURE-000"]{flex-wrap:wrap;padding:18px !important;gap:14px !important}
+html.m .card[data-capture="CAPTURE-000"] > div[style*="flex:1"]{flex:1 1 0;min-width:0}
+html.m .card[data-capture="CAPTURE-000"] > .btn{flex:0 0 100%}

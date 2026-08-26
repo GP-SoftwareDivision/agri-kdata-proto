@@ -14,13 +14,17 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=48">
-<link rel="stylesheet" href="css/mobile.css?v=48">
+<link rel="stylesheet" href="css/style.css?v=50">
+<link rel="stylesheet" href="css/mobile.css?v=50">
 </head>
 <body>
 
 <!-- ══════════ 로그인 ══════════ -->
 <div id="loginPage">
+  <div class="view-toggle" id="viewToggle">
+    <button class="vt-btn active" id="vtPc" onclick="setDeviceView('pc')">🖥️ PC버전</button>
+    <button class="vt-btn" id="vtMobile" onclick="setDeviceView('mobile')">📱 모바일 버전</button>
+  </div>
   <div class="login-brand">
     <div style="display:flex;align-items:center;gap:10px">
       <div style="width:36px;height:36px;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center">
@@ -74,9 +78,37 @@
   </div>
 </div>
 
+<!-- ══════════ 모바일 미리보기 프레임 (PC에서 모바일 화면 확인용) ══════════ -->
+<div class="phone-frame-overlay" id="phoneFrameOverlay" onclick="if(event.target===this) setDeviceView('pc')">
+  <div class="phone-frame-wrap">
+    <button class="phone-frame-close" onclick="setDeviceView('pc')" aria-label="닫기">✕</button>
+    <div class="phone-frame">
+      <div class="phone-frame-notch"></div>
+      <div class="phone-frame-screen">
+        <div class="phone-frame-statusbar">
+          <span>9:41</span>
+          <span style="display:flex;align-items:center;gap:5px">
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><rect x="0" y="6" width="2.5" height="5" rx=".5" fill="#111"/><rect x="4.3" y="4" width="2.5" height="7" rx=".5" fill="#111"/><rect x="8.6" y="2" width="2.5" height="9" rx=".5" fill="#111"/><rect x="12.9" y="0" width="2.5" height="11" rx=".5" fill="#111"/></svg>
+            <svg width="15" height="11" viewBox="0 0 15 11" fill="none"><path d="M7.5 9.5C4.5 9.5 2 8 0.5 5.8C2.5 2.8 4.8 1 7.5 1C10.2 1 12.5 2.8 14.5 5.8C13 8 10.5 9.5 7.5 9.5Z" stroke="#111"/><circle cx="7.5" cy="5.8" r="1.4" fill="#111"/></svg>
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x=".75" y=".75" width="20.5" height="10.5" rx="2.5" stroke="#111" stroke-opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/><rect x="22" y="4" width="1.5" height="4" rx=".7" fill="#111" fill-opacity=".5"/></svg>
+          </span>
+        </div>
+        <div class="phone-frame-body">
+          <iframe id="phoneFrameIframe" title="agriG 모바일 미리보기"></iframe>
+        </div>
+        <div class="phone-frame-home"></div>
+      </div>
+    </div>
+    <div class="phone-frame-label">agriG 모바일 미리보기 · <a href="#" style="color:#BFE0CE" onclick="setDeviceView('pc');return false">PC버전으로 닫기</a></div>
+  </div>
+</div>
+
 <!-- ══════════ 앱 셸 ══════════ -->
 <div id="appShell">
   <header class="gnb">
+    <button class="gnb-burger" onclick="openSidebar()" aria-label="전체 메뉴">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3.5 6H18.5M3.5 11H18.5M3.5 16H18.5" stroke="#3B434C" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
     <div class="gnb-logo" onclick="nav('dashboard')">
       <div style="width:30px;height:30px;border-radius:8px;background:var(--g700);display:flex;align-items:center;justify-content:center">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 17V9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M10 9C10 5.5 12.5 3 16 3C16 6.5 13.5 9 10 9Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 12C10 9.5 8 7.5 5 7.5C5 10 7 12 10 12Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
@@ -109,6 +141,68 @@
       </div>
     </div>
   </header>
+
+  <!-- ── 모바일: 슬라이드 사이드 메뉴 ── -->
+  <div class="sidebar-scrim" id="sidebarScrim" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div style="width:30px;height:30px;border-radius:8px;background:var(--g700);display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 17V9" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><path d="M10 9C10 5.5 12.5 3 16 3C16 6.5 13.5 9 10 9Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 12C10 9.5 8 7.5 5 7.5C5 10 7 12 10 12Z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </div>
+        <b style="font-size:16px;color:var(--g700)">agriG</b>
+      </div>
+      <button onclick="closeSidebar()" aria-label="닫기" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="#4B5563" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="sb-user" onclick="nav('mypage');closeSidebar()">
+      <div class="avatar" style="width:42px;height:42px;font-size:17px;border-radius:12px">김</div>
+      <div style="flex:1;min-width:0">
+        <b style="font-size:14.5px">김농가</b>
+        <div style="font-size:12px;color:var(--sub);margin-top:2px">청송농원 · 마이페이지</div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3L9.5 7L5 11" stroke="#9AA3AC" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <nav class="sb-menu">
+      <button class="sb-item" data-nav="dashboard" onclick="nav('dashboard');closeSidebar()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="2.5" width="5.5" height="7" rx="1.2" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="2.5" width="5.5" height="4.5" rx="1.2" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="9" width="5.5" height="6.5" rx="1.2" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="11.5" width="5.5" height="4" rx="1.2" stroke="currentColor" stroke-width="1.5"/></svg>
+        대시보드</button>
+      <button class="sb-item" data-nav="chatbot" onclick="nav('chatbot');closeSidebar()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.5C5.1 2.5 2 5 2 8.2C2 10.2 3.2 12 5.1 13L4.4 15.7C4.3 16 4.6 16.2 4.9 16L8.2 13.9C8.5 13.9 8.7 14 9 14C12.9 14 16 11.4 16 8.2C16 5 12.9 2.5 9 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        AI 챗봇</button>
+      <button class="sb-item" data-nav="map" onclick="nav('map');closeSidebar()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 16C9 16 14.5 11.5 14.5 7.5C14.5 4.5 12 2 9 2C6 2 3.5 4.5 3.5 7.5C3.5 11.5 9 16 9 16Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="7.5" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+        판로 지도</button>
+      <button class="sb-item" data-nav="docs" onclick="nav('docs');closeSidebar()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 2.5H11L14.5 6V15.5H4V2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 2.5V6H14.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 9.5H12M6.5 12H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        행정서류</button>
+      <button class="sb-item" data-nav="mypage" onclick="nav('mypage');closeSidebar()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 15.5C3.5 12.7 6 11 9 11C12 11 14.5 12.7 14.5 15.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        마이페이지</button>
+      <div class="sb-div"></div>
+      <button class="sb-item" data-nav="design" onclick="nav('design');closeSidebar()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5"/><path d="M9 2.5C9 2.5 11.5 5.5 11.5 9C11.5 12.5 9 15.5 9 15.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.8 7H15.2M2.8 11H15.2" stroke="currentColor" stroke-width="1.5"/></svg>
+        디자인시스템</button>
+    </nav>
+    <div class="sb-foot">agriG · 화면기획 프로토타입</div>
+  </aside>
+
+  <!-- ── 모바일: 하단 고정 탭 메뉴 ── -->
+  <nav class="tabbar" id="tabbar">
+    <button class="tb-item" data-nav="dashboard" onclick="nav('dashboard')">
+      <svg width="21" height="21" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="2.5" width="5.5" height="7" rx="1.2" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="2.5" width="5.5" height="4.5" rx="1.2" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="9" width="5.5" height="6.5" rx="1.2" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="11.5" width="5.5" height="4" rx="1.2" stroke="currentColor" stroke-width="1.5"/></svg>
+      <span>대시보드</span></button>
+    <button class="tb-item" data-nav="map" onclick="nav('map')">
+      <svg width="21" height="21" viewBox="0 0 18 18" fill="none"><path d="M9 16C9 16 14.5 11.5 14.5 7.5C14.5 4.5 12 2 9 2C6 2 3.5 4.5 3.5 7.5C3.5 11.5 9 16 9 16Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="7.5" r="2" stroke="currentColor" stroke-width="1.5"/></svg>
+      <span>판로 지도</span></button>
+    <button class="tb-item" data-nav="docs" onclick="nav('docs')">
+      <svg width="21" height="21" viewBox="0 0 18 18" fill="none"><path d="M4 2.5H11L14.5 6V15.5H4V2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M11 2.5V6H14.5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 9.5H12M6.5 12H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <span>행정서류</span></button>
+    <button class="tb-item" data-nav="chatbot" onclick="nav('chatbot')">
+      <svg width="21" height="21" viewBox="0 0 18 18" fill="none"><path d="M9 2.5C5.1 2.5 2 5 2 8.2C2 10.2 3.2 12 5.1 13L4.4 15.7C4.3 16 4.6 16.2 4.9 16L8.2 13.9C8.5 13.9 8.7 14 9 14C12.9 14 16 11.4 16 8.2C16 5 12.9 2.5 9 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <span>AI 챗봇</span></button>
+  </nav>
 
   <!-- ── 대시보드 ── -->
   <section id="page-dashboard" class="page">
@@ -247,6 +341,9 @@
   <section id="page-chatbot" class="page">
     <div class="chat-live">
       <div class="chat-bar">
+        <button class="btn btn-neu btn-sm ct-tgl" onclick="toggleThreads()" aria-label="대화 목록">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3.5H12M2 7H12M2 10.5H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          대화 목록</button>
         <img class="mascot-sm" src="assets/alnongi.png" alt="">
         <b style="font-size:16px">알농이 · AI 영농 상담</b>
         <span class="badge bg-ok">RAG 연동</span>
@@ -256,8 +353,24 @@
         <button class="btn btn-neu btn-sm" onclick="openApiModal()">API 설정</button>
         <button class="btn btn-neu btn-sm" onclick="newChatSession()">새 상담</button>
       </div>
-      <div class="chat-host" id="chatHost"></div>
-      <div class="chat-offline" id="chatOffline">
+      <div class="chat-cols">
+        <div class="ct-scrim" id="ctScrim" onclick="toggleThreads(false)"></div>
+        <aside class="chat-threads" id="chatThreads">
+          <div class="ct-head">
+            <div style="display:flex;align-items:center;gap:7px">
+              <b style="font-size:14px">대화 목록</b>
+              <span class="badge bg-mut" style="font-size:10.5px">7일 보관</span>
+            </div>
+            <button class="btn btn-pri btn-sm" onclick="newThread()">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2V10M2 6H10" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
+              새 대화</button>
+          </div>
+          <div class="ct-list" id="ctList"></div>
+          <div class="ct-foot">대화는 마지막 활동일부터 <b>7일간 보관</b> 후 자동 삭제됩니다.</div>
+        </aside>
+        <div class="chat-main">
+          <div class="chat-host" id="chatHost"></div>
+          <div class="chat-offline" id="chatOffline">
         <div class="card" style="max-width:560px;padding:26px 30px;display:flex;flex-direction:column;gap:14px">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:34px;height:34px;border-radius:9px;background:var(--orange-bg);display:flex;align-items:center;justify-content:center">
@@ -285,6 +398,8 @@ docker run --rm -p 8080:8080 \
           <div style="display:flex;gap:8px">
             <button class="btn btn-pri" onclick="retryChatConnect()">다시 연결</button>
             <button class="btn btn-neu" onclick="openApiModal()">API 설정</button>
+          </div>
+        </div>
           </div>
         </div>
       </div>
@@ -1162,6 +1277,6 @@ docker run --rm -p 8080:8080 \
 
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=48"></script>
+<script src="js/app.js?v=50"></script>
 </body>
 </html>
