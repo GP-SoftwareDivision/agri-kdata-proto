@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="vendor/leaflet.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/style.css?v=30">
 </head>
 <body>
 
@@ -679,11 +679,11 @@ docker run --rm -p 8080:8080 \
   <section id="page-mypage" class="page">
     <div class="wrap" style="max-width:1080px">
       <div>
-        <div style="font-size:22px;font-weight:900;letter-spacing:-.4px">마이페이지</div>
-        <div style="font-size:13px;color:var(--sub);margin-top:4px">내 정보와 데이터 연동을 관리하고, 데이터 활용 내역을 확인합니다.</div>
+        <div style="font-size:22px;font-weight:900;letter-spacing:-.4px">내 데이터 관리</div>
+        <div style="font-size:13px;color:var(--sub);margin-top:4px">내 데이터가 어떻게 쓰이는지 확인하고, 동의·내려받기·공유를 직접 관리합니다.</div>
       </div>
 
-      <div class="card" style="padding:22px 26px;display:flex;align-items:center;gap:18px">
+      <div class="card" style="padding:22px 26px;display:flex;align-items:center;gap:18px" data-capture="CAPTURE-000">
         <div class="avatar" style="width:56px;height:56px;font-size:22px;border-radius:16px">김</div>
         <div style="flex:1">
           <div style="display:flex;align-items:center;gap:10px"><b style="font-size:18px">김농가</b><span class="badge bg-ok">간편인증 연결됨</span></div>
@@ -692,34 +692,60 @@ docker run --rm -p 8080:8080 \
         <button class="btn btn-neu btn-sm" onclick="toast('info','내 정보 수정 — 시안 범위 외')">정보 수정</button>
       </div>
 
-      <!-- 데이터 연동 관리 -->
-      <div class="card">
+      <!-- ② 동의 관리 -->
+      <div class="card" data-capture="CAPTURE-004">
         <div style="padding:20px 26px 6px;display:flex;align-items:center;justify-content:space-between">
           <div>
-            <div class="sec-t">데이터 연동 관리</div>
-            <div style="font-size:12px;color:var(--sub);margin-top:3px">동의한 기관의 데이터만 서비스에 활용됩니다. 언제든 철회할 수 있습니다.</div>
+            <div class="sec-t">데이터 연동 · 동의 관리</div>
+            <div style="font-size:12px;color:var(--sub);margin-top:3px">동의 상태를 언제든 확인하고 즉시 변경(동의 · 철회 · 재동의)할 수 있습니다. 항목별로도 관리됩니다.</div>
           </div>
           <span class="badge bg-ok" id="connSummary"></span>
         </div>
-        <div id="connList" style="padding:8px 6px 10px"></div>
+        <div id="connList" style="padding:8px 6px 4px"></div>
+        <div style="padding:6px 26px 18px;display:flex;justify-content:flex-end">
+          <button style="font-size:12.5px;color:var(--sub);text-decoration:underline;text-underline-offset:3px" onclick="openModal('quitModal')">모든 동의 철회 및 회원 탈퇴</button>
+        </div>
       </div>
 
-      <!-- 데이터 영수증 -->
-      <div class="card">
-        <div style="padding:20px 26px 12px;display:flex;align-items:center;justify-content:space-between">
-          <div>
-            <div class="sec-t">데이터 영수증 <span style="font-size:12px;color:var(--mut);font-weight:400">최근 활용 내역</span></div>
-            <div style="font-size:12px;color:var(--sub);margin-top:3px">내 데이터가 언제, 무엇을 위해 사용됐는지 위변조 불가 로그로 기록됩니다 (TSA 시점확인 포함).</div>
+      <!-- ③ 내려받기 + ④ 선별 공유 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:12px" data-capture="CAPTURE-008">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:34px;height:34px;border-radius:9px;background:#EFEAFB;display:flex;align-items:center;justify-content:center">
+              <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M9 2.5V11M9 11L5.5 7.5M9 11L12.5 7.5" stroke="#6D4FC4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12.5V14C3 14.8 3.7 15.5 4.5 15.5H13.5C14.3 15.5 15 14.8 15 14V12.5" stroke="#6D4FC4" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </div>
+            <div class="sec-t">내 데이터 내려받기</div>
+            <span class="help-q">?<span class="tip">내려받은 파일은 CSV·JSON 같은 표준 형식이라, 다른 서비스로 옮기거나 컴퓨터에서 바로 열어볼 수 있습니다.</span></span>
           </div>
-          <button class="btn btn-neu btn-sm" onclick="toast('info','전체 내역 다운로드 — 시안 범위 외')">전체 내역</button>
+          <div style="font-size:13px;color:var(--sub);line-height:1.6">agriG에 저장된 내 데이터를 원하는 항목·기간·형식으로 골라 내 기기나 이메일로 받을 수 있어요.</div>
+          <button class="btn btn-pri" style="width:100%" onclick="openDownload()">
+            <svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M9 2.5V11M9 11L5.5 7.5M9 11L12.5 7.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            데이터 내려받기</button>
         </div>
-        <table class="rcp-t">
-          <tr><th>일시</th><th>활용 데이터</th><th>활용 목적</th><th>제공/처리 기관</th><th style="text-align:center">기록</th></tr>
-          <tr><td>2026-08-19 14:02</td><td>농업경영체 등록확인서</td><td>정책자금 신청서 자동 첨부</td><td>공공마이데이터 (농식품부)</td><td style="text-align:center"><span class="badge bg-ok">TSA ✓</span></td></tr>
-          <tr><td>2026-08-19 14:02</td><td>사업자등록증명 · 소득금액증명</td><td>정책자금 신청서 자동 첨부</td><td>공공마이데이터 (국세청)</td><td style="text-align:center"><span class="badge bg-ok">TSA ✓</span></td></tr>
-          <tr><td>2026-08-19 09:11</td><td>경락 시세 · 출하 이력</td><td>AI 시세 예측 · 출하 추천</td><td>농정원 · 자사 유통 데이터</td><td style="text-align:center"><span class="badge bg-ok">TSA ✓</span></td></tr>
-          <tr><td>2026-08-18 16:40</td><td>교육 이수 이력</td><td>AI 챗봇 답변 개인화</td><td>농정원 (농업교육포털)</td><td style="text-align:center"><span class="badge bg-ok">TSA ✓</span></td></tr>
-        </table>
+        <div class="card" style="padding:22px 24px;display:flex;flex-direction:column;gap:12px" data-capture="CAPTURE-010">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:34px;height:34px;border-radius:9px;background:var(--orange-bg);display:flex;align-items:center;justify-content:center">
+              <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="5" cy="9" r="2.4" stroke="#E17A17" stroke-width="1.6"/><circle cx="13.5" cy="4.5" r="2.4" stroke="#E17A17" stroke-width="1.6"/><circle cx="13.5" cy="13.5" r="2.4" stroke="#E17A17" stroke-width="1.6"/><path d="M7.2 7.8L11.3 5.6M7.2 10.2L11.3 12.4" stroke="#E17A17" stroke-width="1.6"/></svg>
+            </div>
+            <div class="sec-t">제3자 선별 공유</div>
+            <span class="help-q">?<span class="tip">내가 지정한 기관에만, 내가 고른 데이터 범위만, 정한 기간 동안 공유합니다. 언제든 이 화면에서 다시 확인할 수 있어요.</span></span>
+          </div>
+          <div style="font-size:13px;color:var(--sub);line-height:1.6">농협 · 보험사 · 심사기관 등 원하는 곳을 지정해, 필요한 데이터만 골라서 안전하게 보냅니다.</div>
+          <button class="btn btn-out" style="width:100%" onclick="openShare()">공유 대상 지정하기</button>
+        </div>
+      </div>
+
+      <!-- ⑤ 이용내역 관리 (데이터 영수증) -->
+      <div class="card" data-capture="CAPTURE-012">
+        <div style="padding:20px 26px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div class="sec-t">데이터 이용내역 · 영수증</div>
+            <div style="font-size:12px;color:var(--sub);margin-top:3px">내 데이터를 <b style="color:var(--txt)">언제 · 누가 · 어떤 목적으로</b> 썼는지 실시간으로 기록됩니다. 영수증을 누르면 상세와 근거 동의를 볼 수 있어요.</div>
+          </div>
+          <button class="btn btn-neu btn-sm" onclick="dlReceipts()">이용내역 전체 내려받기</button>
+        </div>
+        <div style="padding:0 26px 8px" class="rcpt-chips" id="rcptChips"></div>
+        <div id="rcptList" style="padding:6px 12px 14px"></div>
       </div>
     </div>
   </section>
@@ -916,37 +942,219 @@ docker run --rm -p 8080:8080 \
   </div>
 </div>
 
-<div class="overlay" id="revokeModal">
+<!-- ══════════ 마이데이터 규약 모달들 ══════════ -->
+
+<!-- 알기 쉬운 동의 (CAPTURE-001~003) -->
+<div class="overlay" id="consentModal" data-capture="CAPTURE-001">
+  <div class="modal md-modal">
+    <div class="m-head" style="padding-bottom:8px">
+      <div>
+        <div class="m-title" style="font-size:19px" id="consentTitle">데이터 연동 동의</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px">내용을 확인하고 항목별로 선택해주세요</div>
+      </div>
+      <button class="m-x" onclick="closeModal('consentModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="md-body">
+      <!-- 핵심 요약 (쉬운 말) -->
+      <div class="md-summary">
+        <b>이 동의로 무엇을 하나요?</b>
+        <p id="consentDesc"></p>
+      </div>
+      <!-- 모두 동의 -->
+      <label class="md-allchk" id="allChkWrap">
+        <input type="checkbox" id="allChk" onchange="mdAllToggle(this.checked)">
+        <b>모두 동의합니다</b>
+        <span style="font-size:12px;color:var(--sub);margin-left:auto">필수 + 선택 전체</span>
+      </label>
+      <!-- 필수 동의 -->
+      <div class="md-sec-t"><span class="tag-req">필수</span> 서비스 이용에 꼭 필요한 동의</div>
+      <div id="reqItems" style="display:flex;flex-direction:column;gap:8px"></div>
+      <!-- 선택 동의 (목적별 구분) -->
+      <div class="md-sec-t"><span class="tag-opt">선택</span> 동의하지 않아도 서비스를 쓸 수 있어요</div>
+      <div id="optItems" style="display:flex;flex-direction:column;gap:8px"></div>
+      <!-- 거부 권리 고지 -->
+      <div class="md-rights">
+        <b>동의하지 않을 권리가 있습니다.</b> 필수 동의를 거부하면 이 기관의 데이터 연동 서비스는 이용할 수 없지만, agriG의 다른 기능은 계속 사용할 수 있습니다. <b>선택 동의는 거부해도 어떤 불이익도 없습니다.</b> 동의는 마이페이지에서 언제든 철회할 수 있습니다.
+      </div>
+    </div>
+    <!-- 동의함 / 동의하지 않음 분리 -->
+    <div class="md-foot2">
+      <button class="btn-decline" onclick="mdDecline()">동의하지 않음</button>
+      <button class="btn-accept" id="consentOk" disabled onclick="confirmConsent()">동의함</button>
+    </div>
+  </div>
+</div>
+
+<!-- 약관 보기 (CAPTURE-002) -->
+<div class="overlay" id="termsModal" data-capture="CAPTURE-002">
+  <div class="modal" style="width:480px;max-height:calc(100vh - 120px);display:flex;flex-direction:column">
+    <div class="m-head"><div class="m-title" id="termsTitle">약관 보기</div>
+      <button class="m-x" onclick="closeModal('termsModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="m-body" style="overflow-y:auto" id="termsBody"></div>
+    <div class="m-foot"><button class="btn btn-pri" style="width:100%" onclick="closeModal('termsModal')">확인했어요</button></div>
+  </div>
+</div>
+
+<!-- 기관 연동 해지 확인 -->
+<div class="overlay" id="revokeModal" data-capture="CAPTURE-006">
   <div class="modal">
-    <div class="m-head"><div class="m-title">연동을 철회할까요?</div>
+    <div class="m-head"><div class="m-title">연동을 해지할까요?</div>
       <button class="m-x" onclick="closeModal('revokeModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
-    <div class="m-body"><b style="color:var(--txt)" id="revokeName"></b> 연동을 철회하면 관련 자동입력·추천 기능이 제한됩니다. 이미 생성된 서류에는 영향이 없으며, 철회 기록도 데이터 영수증에 남습니다.</div>
+    <div class="m-body"><b style="color:var(--txt);font-size:15px" id="revokeName"></b><span id="revokeDesc"> 연동을 해지하면 필수 동의를 포함한 모든 동의가 철회되고, 관련 자동입력·추천 기능이 중단됩니다. 이미 생성된 서류에는 영향이 없으며, 철회 사실은 동의 영수증으로 기록됩니다.</span></div>
     <div class="m-foot">
       <button class="btn btn-neu" onclick="closeModal('revokeModal')">취소</button>
-      <button class="btn btn-dan" onclick="confirmRevoke()">철회하기</button>
+      <button class="btn btn-dan" onclick="confirmRevoke()">동의 철회 · 해지</button>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="consentModal">
-  <div class="modal" style="width:460px">
-    <div class="m-head"><div class="m-title" id="consentTitle">데이터 연동 동의</div>
-      <button class="m-x" onclick="closeModal('consentModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+<!-- 전체 철회 = 회원 탈퇴 (CAPTURE-007) -->
+<div class="overlay" id="quitModal" data-capture="CAPTURE-007">
+  <div class="modal">
+    <div class="m-head"><div class="m-title">모든 동의를 철회하시겠어요?</div>
+      <button class="m-x" onclick="closeModal('quitModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
     <div class="m-body">
-      <span id="consentDesc"></span>
-      <label class="consent-item"><input type="checkbox" class="consent-chk" onchange="chkConsent()">
-        <span style="font-size:13px;line-height:1.5"><b>[필수]</b> 개인정보 수집·이용 동의<br><span style="color:var(--sub);font-size:12px">전송요구 대상 항목·보유 기간 안내 포함</span></span></label>
-      <label class="consent-item"><input type="checkbox" class="consent-chk" onchange="chkConsent()">
-        <span style="font-size:13px;line-height:1.5"><b>[필수]</b> 제3자 제공 및 전송요구 동의<br><span style="color:var(--sub);font-size:12px">보유 기관 → agriG 전송에 대한 동의</span></span></label>
-      <div style="background:var(--g50);border:1px solid #DCEBE2;border-radius:8px;padding:10px 14px;font-size:12px;color:#3E6B52;margin-top:10px;line-height:1.6">동의 내역과 데이터 수신 사실은 <b>데이터 영수증</b>에 기록되며, 마이페이지에서 언제든 철회할 수 있습니다.</div>
+      모든 필수 동의를 철회하면 agriG 서비스를 더 이상 이용할 수 없어, <b style="color:var(--red)">회원 탈퇴 절차로 이어집니다.</b><br><br>
+      탈퇴 시 처리되는 내용:<br>
+      · 연동된 모든 기관의 데이터 수집이 즉시 중단됩니다<br>
+      · 저장된 개인데이터는 파기됩니다 (법정 보존 항목 제외)<br>
+      · 이 기기에 보관 중인 서류는 직접 삭제하거나 내려받을 수 있습니다<br><br>
+      탈퇴 전에 <a href="#" onclick="closeModal('quitModal');openDownload();return false" style="font-weight:700">내 데이터 내려받기</a>를 먼저 해두시는 걸 권해요.
     </div>
     <div class="m-foot">
-      <button class="btn btn-neu" onclick="closeModal('consentModal')">취소</button>
-      <button class="btn btn-pri" id="consentOk" disabled onclick="confirmConsent()">동의하고 연동하기</button>
+      <button class="btn btn-neu" onclick="closeModal('quitModal')">취소</button>
+      <button class="btn btn-dan" onclick="closeModal('quitModal');toast('warn','회원 탈퇴 절차로 이동합니다 (시안 범위)')">전체 철회 후 탈퇴</button>
     </div>
   </div>
 </div>
 
-<script src="js/app.js?v=27"></script>
+<!-- 개인데이터 내려받기 (CAPTURE-008~009) -->
+<div class="overlay" id="dlModal" data-capture="CAPTURE-009">
+  <div class="modal md-modal">
+    <div class="m-head" style="padding-bottom:8px">
+      <div>
+        <div class="m-title" style="font-size:19px">내 데이터 내려받기</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px">받을 항목 · 기간 · 형식 · 방법을 골라주세요</div>
+      </div>
+      <button class="m-x" onclick="closeModal('dlModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="md-body" id="dlPick">
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">1. 받을 데이터 항목 <span style="color:var(--mut);font-weight:400">(여러 개 선택 가능)</span></div>
+        <div class="pick-grid" id="dlItems"></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">2. 기간</div>
+        <div class="metric-seg" id="dlPeriod">
+          <button onclick="segPick(this)">최근 1개월</button>
+          <button onclick="segPick(this)">최근 3개월</button>
+          <button class="on" onclick="segPick(this)">최근 1년</button>
+          <button onclick="segPick(this)">전체</button>
+        </div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px;display:flex;align-items:center;gap:6px">3. 파일 형식
+          <span class="help-q">?<span class="tip">CSV·JSON은 컴퓨터가 바로 읽을 수 있는 표준 형식이에요. 다른 서비스로 데이터를 옮길 때 사용합니다. PDF는 사람이 보기 편한 형식입니다.</span></span>
+        </div>
+        <div class="metric-seg" id="dlFormat">
+          <button class="on" onclick="segPick(this)">JSON</button>
+          <button onclick="segPick(this)">CSV</button>
+          <button onclick="segPick(this)">PDF</button>
+        </div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">4. 받는 방법</div>
+        <div class="metric-seg" id="dlMethod">
+          <button class="on" onclick="segPick(this)">이 기기에 저장</button>
+          <button onclick="segPick(this)">이메일로 받기</button>
+          <button onclick="segPick(this)">클라우드로 보내기</button>
+        </div>
+      </div>
+    </div>
+    <!-- 완료 화면 -->
+    <div class="md-body" id="dlDone" style="display:none;text-align:center;padding-top:14px">
+      <div class="done-mini"><svg width="26" height="26" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div style="font-size:18px;font-weight:900">내려받기 완료</div>
+      <div style="font-size:13px;color:var(--sub);line-height:1.7" id="dlDoneSum"></div>
+      <div style="font-size:12px;color:var(--sub);background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;text-align:left">이 내려받기는 <b>내려받기 영수증</b>으로 기록되었어요. 이용내역에서 언제든 확인할 수 있습니다.</div>
+    </div>
+    <div class="m-foot" id="dlFoot">
+      <button class="btn btn-neu" onclick="closeModal('dlModal')">취소</button>
+      <button class="btn btn-pri" id="dlGo" onclick="doDownload()">내려받기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 선별 공유 (CAPTURE-010~011) -->
+<div class="overlay" id="shareModal" data-capture="CAPTURE-011">
+  <div class="modal md-modal">
+    <div class="m-head" style="padding-bottom:8px">
+      <div>
+        <div class="m-title" style="font-size:19px">제3자 선별 공유</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px" id="shareStep">1단계 · 공유할 대상과 데이터를 골라주세요</div>
+      </div>
+      <button class="m-x" onclick="closeModal('shareModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <!-- 1단계: 선택 -->
+    <div class="md-body" id="shareStep1">
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">1. 누구에게 보낼까요?</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="shareOrgs"></div>
+        <div style="font-size:12.5px;color:var(--sub);background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;margin-top:8px;line-height:1.6">
+          찾는 기관이 없나요? 아직 연결할 수 없는 기관이에요. <b style="color:#24559E">연결 기관은 계속 추가될 예정입니다.</b>
+        </div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">2. 어떤 데이터를 보낼까요? <span style="color:var(--mut);font-weight:400">(선택한 것만 공유돼요)</span></div>
+        <div class="pick-grid" id="shareItems"></div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">3. 받은 곳에서 얼마나 보관하나요?</div>
+        <div class="metric-seg" id="sharePeriod">
+          <button onclick="segPick(this)">1개월</button>
+          <button class="on" onclick="segPick(this)">3개월</button>
+          <button onclick="segPick(this)">6개월</button>
+          <button onclick="segPick(this)">1년</button>
+        </div>
+      </div>
+    </div>
+    <!-- 2단계: 이동 승인 -->
+    <div class="md-body" id="shareStep2" style="display:none">
+      <div class="md-summary"><b>이대로 보낼까요?</b><p id="shareSum"></p></div>
+      <div class="md-rights">보관 기간이 지나면 받은 기관은 데이터를 파기해야 합니다. 공유 사실은 <b>공유 영수증</b>으로 기록되며, 이용내역에서 언제든 확인할 수 있습니다.</div>
+    </div>
+    <!-- 완료 -->
+    <div class="md-body" id="shareDone" style="display:none;text-align:center;padding-top:14px">
+      <div class="done-mini"><svg width="26" height="26" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div style="font-size:18px;font-weight:900">공유 완료</div>
+      <div style="font-size:13px;color:var(--sub);line-height:1.7;text-align:left;background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:12px 16px" id="shareDoneSum"></div>
+    </div>
+    <div class="m-foot" id="shareFoot">
+      <button class="btn btn-neu" id="shareBack" onclick="closeModal('shareModal')">취소</button>
+      <button class="btn btn-pri" id="shareGo" onclick="shareNext()">다음</button>
+    </div>
+  </div>
+</div>
+
+<!-- 영수증 상세 (CAPTURE-013) -->
+<div class="overlay" id="rcptModal" data-capture="CAPTURE-013">
+  <div class="modal" style="width:460px;max-height:calc(100vh - 100px);display:flex;flex-direction:column">
+    <div class="m-head">
+      <div>
+        <div class="m-title" id="rcptTitle">데이터 영수증</div>
+        <div class="rcpt-id" id="rcptId" style="margin-top:4px"></div>
+      </div>
+      <button class="m-x" onclick="closeModal('rcptModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="m-body" style="overflow-y:auto" id="rcptBody"></div>
+    <div class="m-foot" style="justify-content:space-between;align-items:center">
+      <span style="font-size:11.5px;color:var(--mut)">발행: agriG (㈜골든플래닛) · TSA 시점확인 적용</span>
+      <button class="btn btn-pri btn-sm" onclick="closeModal('rcptModal')">확인</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="js/app.js?v=30"></script>
 </body>
 </html>

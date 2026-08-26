@@ -162,67 +162,372 @@ document.querySelectorAll('.overlay').forEach(ov=>{
   ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('open'); });
 });
 
-/* ══════════ 마이페이지 — 데이터 연동 ══════════ */
+/* ══════════ 마이페이지 — 마이데이터 공통기능 (규약 준수) ══════════ */
+/* ── 데이터 모델: 기관별 동의 = 필수/선택 항목으로 구성 (목적·항목·보유기간 명시) ── */
 const CONNS = [
-  {id:'epis', name:'농정원 (EPIS)', items:'경영체 등록정보 · 교육 이수 이력 · 경락 시세', icon:'g', on:true, date:'2026-05-10'},
-  {id:'nts', name:'공공마이데이터 — 국세청', items:'사업자등록증명 · 소득금액증명 · 납세증명', icon:'b', on:true, date:'2026-06-02'},
-  {id:'mois', name:'공공마이데이터 — 행정안전부', items:'주민등록표 등·초본 · 지방세 납세증명', icon:'b', on:false, date:null},
-  {id:'kplus', name:'케이플러스 (금융·소비)', items:'법인 신용정보 · 카드 소비 패턴', icon:'o', on:true, date:'2026-06-20'}
+  {id:'epis', name:'농정원 (EPIS)', icon:'g', on:true, date:'2026-05-10',
+   easy:'농정원이 가진 내 경영체 정보와 교육 이력을 불러와서, 서류를 자동으로 채우고 내 품목에 맞는 시세·교육을 추천하는 데 써요.',
+   items:[
+     {k:'농업경영체 등록정보', req:true, on:true, purpose:'행정서류 자동 입력, 본인 농가 확인', fields:'경영체등록번호, 재배 품목·면적, 농지 소재지', period:'동의 철회 또는 회원 탈퇴 시까지'},
+     {k:'교육 이수 이력', req:true, on:true, purpose:'서류 첨부용 이수 확인, 의무교육 안내', fields:'교육 과정명, 이수일, 이수 여부', period:'동의 철회 또는 회원 탈퇴 시까지'},
+     {k:'경락 시세 이력', req:false, tag:'맞춤 추천', on:true, purpose:'내 품목 기준 시세·출하시점 맞춤 추천', fields:'출하 품목별 경락 가격·물량', period:'수집일로부터 1년'},
+   ]},
+  {id:'nts', name:'공공마이데이터 — 국세청', icon:'b', on:true, date:'2026-06-02',
+   easy:'국세청 증명서(사업자등록증명·소득금액증명 등)를 내 동의로 받아와, 정책자금 신청서에 자동으로 첨부해줘요.',
+   items:[
+     {k:'사업자등록증명', req:true, on:true, purpose:'행정서류 증빙 자동 첨부', fields:'사업자등록번호, 상호, 개업일', period:'서류 생성 시 1회 수신 후 즉시 파기'},
+     {k:'소득금액증명 · 납세증명', req:true, on:true, purpose:'정책자금 심사용 증빙 자동 첨부', fields:'연도별 소득금액, 납세 사실', period:'서류 생성 시 1회 수신 후 즉시 파기'},
+   ]},
+  {id:'mois', name:'공공마이데이터 — 행정안전부', icon:'b', on:false, date:null,
+   easy:'주민등록등본 같은 행정 증명서를 내 동의로 받아와, 서류에 자동으로 첨부해줘요.',
+   items:[
+     {k:'주민등록표 등·초본', req:true, on:false, purpose:'행정서류 증빙 자동 첨부', fields:'성명, 주소, 세대 구성', period:'서류 생성 시 1회 수신 후 즉시 파기'},
+     {k:'지방세 납세증명', req:false, tag:'서류 첨부', on:false, purpose:'일부 서식의 선택 증빙 첨부', fields:'지방세 납부 사실', period:'서류 생성 시 1회 수신 후 즉시 파기'},
+   ]},
+  {id:'kplus', name:'케이플러스 (금융·소비)', icon:'o', on:true, date:'2026-06-20',
+   easy:'법인 신용정보와 소비 패턴을 분석해, 경영 위험(원가 급증 등)을 미리 알려주는 데 써요.',
+   items:[
+     {k:'법인 신용정보', req:true, on:true, purpose:'경영 리스크 이상탐지 알림', fields:'신용등급, 연체 여부', period:'동의 철회 시까지 (분기별 갱신)'},
+     {k:'카드 소비 패턴', req:false, tag:'경영 분석', on:true, purpose:'원가 급증 감지 등 경영 분석 고도화', fields:'업종별 카드 지출 요약(개별 결제내역 제외)', period:'수집일로부터 6개월'},
+     {k:'분석 결과 통계 활용', req:false, tag:'통계·연구', on:false, purpose:'비식별 통계 작성, 서비스 개선 연구', fields:'비식별 처리된 경영 지표', period:'비식별 처리 후 3년'},
+   ]},
 ];
-let pendingConn = null;
 
-function renderConns(){
-  const box = document.getElementById('connList');
-  const ICON_BG = {g:'var(--g100)', b:'var(--blue-bg)', o:'var(--orange-bg)'};
-  const ICON_SVG = {
-    g:'<svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M10 17V9" stroke="#0E7A46" stroke-width="1.7" stroke-linecap="round"/><path d="M10 9C10 5.5 12.5 3 16 3C16 6.5 13.5 9 10 9Z" stroke="#0E7A46" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 12C10 9.5 8 7.5 5 7.5C5 10 7 12 10 12Z" stroke="#0E7A46" stroke-width="1.7" stroke-linejoin="round"/></svg>',
-    b:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="7" width="13" height="8.5" rx="1.5" stroke="#2E6BD6" stroke-width="1.5"/><path d="M9 2L15.5 7H2.5L9 2Z" stroke="#2E6BD6" stroke-width="1.5" stroke-linejoin="round"/></svg>',
-    o:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="4" width="13" height="10" rx="1.5" stroke="#E17A17" stroke-width="1.5"/><path d="M2.5 7.5H15.5" stroke="#E17A17" stroke-width="1.5"/></svg>'
-  };
-  box.innerHTML = CONNS.map(c=>`
-    <div class="conn">
-      <div class="conn-ic" style="background:${ICON_BG[c.icon]}">${ICON_SVG[c.icon]}</div>
+/* ── 영수증: 동의/수집이용/공유/내려받기 4유형 ── */
+const R_TYPE = {
+  consent:{n:'동의',   cls:'rt-consent'},
+  use:{n:'수집·이용', cls:'rt-use'},
+  share:{n:'공유',    cls:'rt-share'},
+  download:{n:'내려받기', cls:'rt-download'},
+};
+let rcptSeq = 20;
+let rcptFilter = 'all';
+const RECEIPTS = [
+  {id:'RCPT-U-260819-014', type:'use', date:'2026-08-19 14:02', title:'정책자금 신청서 증빙 자동 첨부',
+   rows:{'시작일':'2026-08-19','목적':'농업경영회생자금 신청서 자동 작성·첨부','개인데이터 항목':'농업경영체 등록확인서, 사업자등록증명, 소득금액증명','이용 기간':'서류 생성 시 1회 이용 후 파기','제공자':'공공마이데이터 (농식품부·국세청)','수신자':'agriG 행정서류 서비스'}, base:'RCPT-C-260602-002'},
+  {id:'RCPT-U-260819-013', type:'use', date:'2026-08-19 09:11', title:'AI 시세 예측 · 출하 추천',
+   rows:{'시작일':'2026-08-19','목적':'내 품목 기준 시세 예측·출하 시점 추천','개인데이터 항목':'경락 시세 이력, 재배 품목·면적','이용 기간':'추천 산출 시 이용','제공자':'농정원 (EPIS)','수신자':'agriG AI 추천 엔진'}, base:'RCPT-C-260510-001'},
+  {id:'RCPT-U-260818-012', type:'use', date:'2026-08-18 16:40', title:'AI 챗봇 답변 개인화',
+   rows:{'시작일':'2026-08-18','목적':'챗봇 답변에 내 교육 이수·품목 반영','개인데이터 항목':'교육 이수 이력, 재배 품목','이용 기간':'답변 생성 시 이용','제공자':'농정원 (농업교육포털)','수신자':'agriG AI 챗봇'}, base:'RCPT-C-260510-001'},
+  {id:'RCPT-C-260620-003', type:'consent', date:'2026-06-20 10:22', title:'케이플러스 데이터 연동 동의',
+   rows:{'동의 일시':'2026-06-20 10:22','동의 유형':'신규 동의','동의 항목':'법인 신용정보(필수), 카드 소비 패턴(선택)','수집·이용 목적':'경영 리스크 이상탐지, 경영 분석','보유·이용 기간':'동의 철회 시까지 / 수집일로부터 6개월','동의 방법':'본인 인증 후 화면 내 개별 동의'}, base:null},
+  {id:'RCPT-C-260602-002', type:'consent', date:'2026-06-02 14:05', title:'공공마이데이터(국세청) 연동 동의',
+   rows:{'동의 일시':'2026-06-02 14:05','동의 유형':'신규 동의','동의 항목':'사업자등록증명(필수), 소득금액증명·납세증명(필수)','수집·이용 목적':'행정서류 증빙 자동 첨부','보유·이용 기간':'서류 생성 시 1회 수신 후 즉시 파기','동의 방법':'본인 인증 후 화면 내 개별 동의'}, base:null},
+  {id:'RCPT-C-260510-001', type:'consent', date:'2026-05-10 09:30', title:'농정원(EPIS) 데이터 연동 동의',
+   rows:{'동의 일시':'2026-05-10 09:30','동의 유형':'신규 동의','동의 항목':'농업경영체 등록정보(필수), 교육 이수 이력(필수), 경락 시세 이력(선택)','수집·이용 목적':'행정서류 자동 입력, 맞춤 추천','보유·이용 기간':'동의 철회 시까지 / 시세 이력 1년','동의 방법':'본인 인증 후 화면 내 개별 동의'}, base:null},
+];
+function nowStamp(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+function issueReceipt(type, title, rows, base){
+  const d=new Date(),p=n=>String(n).padStart(2,'0');
+  const id = 'RCPT-'+{consent:'C',use:'U',share:'S',download:'D'}[type]+'-'+String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate())+'-'+String(++rcptSeq).padStart(3,'0');
+  RECEIPTS.unshift({id, type, date:nowStamp(), title, rows, base});
+  renderReceipts();
+  return id;
+}
+
+/* ── 이용내역: 요약 칩 + 필터 + 목록 + 상세 ── */
+function renderReceipts(){
+  const chips = document.getElementById('rcptChips');
+  if(!chips) return;
+  const cnt = t => RECEIPTS.filter(r=>r.type===t).length;
+  chips.innerHTML = [
+    ['all','전체', RECEIPTS.length], ['consent','동의', cnt('consent')], ['use','수집·이용', cnt('use')],
+    ['share','공유', cnt('share')], ['download','내려받기', cnt('download')]
+  ].map(([k,n,c])=>`<div class="rcpt-chip${rcptFilter===k?' sel':''}" onclick="rcptFilter='${k}';renderReceipts()"><b>${c}</b><span>${n}</span></div>`).join('');
+  const list = RECEIPTS.filter(r=>rcptFilter==='all'||r.type===rcptFilter);
+  document.getElementById('rcptList').innerHTML = list.length ? list.map(r=>`
+    <div class="rcpt-row" onclick="openReceipt('${r.id}')">
+      <span class="rt ${R_TYPE[r.type].cls}">${R_TYPE[r.type].n}</span>
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px"><b style="font-size:14px">${c.name}</b>
-          ${c.on ? '<span class="badge bg-ok">연동중</span>' : '<span class="badge bg-mut">미연동</span>'}</div>
-        <div style="font-size:12px;color:var(--sub);margin-top:3px">${c.items}${c.on&&c.date ? ' · 동의일 '+c.date : ''}</div>
+        <div style="font-size:13.5px;font-weight:700">${r.title}</div>
+        <div class="rcpt-id">${r.id}</div>
       </div>
-      ${c.on
-        ? `<button class="btn btn-dan-out btn-sm" onclick="askRevoke('${c.id}')">철회</button>`
-        : `<button class="btn btn-pri btn-sm" onclick="askConsent('${c.id}')">연동하기</button>`}
-    </div>`).join('');
+      <span style="font-size:12px;color:var(--sub);white-space:nowrap">${r.date}</span>
+      <svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>`).join('')
+    : '<div style="padding:26px;text-align:center;font-size:13px;color:var(--sub)">해당 유형의 영수증이 아직 없어요.</div>';
+}
+function openReceipt(id){
+  const r = RECEIPTS.find(x=>x.id===id); if(!r) return;
+  document.getElementById('rcptTitle').innerHTML = `<span class="rt ${R_TYPE[r.type].cls}" style="margin-right:8px;vertical-align:2px">${R_TYPE[r.type].n} 영수증</span>${r.title}`;
+  document.getElementById('rcptId').textContent = r.id + ' · 발행 ' + r.date;
+  let html = '<table class="md-detail" style="display:table;border:none;background:none;padding:0"><tbody>' +
+    Object.entries(r.rows).map(([k,v])=>`<tr><th style="width:110px">${k}</th><td>${v}</td></tr>`).join('') + '</tbody></table>';
+  if(r.base){
+    html += `<div style="margin-top:12px;font-size:12.5px;background:var(--g50);border:1px solid #DCEBE2;border-radius:10px;padding:10px 14px">이 이용의 근거가 된 동의: <a href="#" style="font-weight:700;font-family:Menlo,monospace;font-size:11.5px" onclick="openReceipt('${r.base}');return false">${r.base}</a></div>`;
+  }
+  document.getElementById('rcptBody').innerHTML = html;
+  openModal('rcptModal');
+}
+function dlReceipts(){
+  const blob = new Blob([JSON.stringify(RECEIPTS, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'agriG_이용내역_영수증.json'; a.click();
+  toast('ok','이용내역 전체를 JSON(기계가독형)으로 내려받았어요');
+}
+
+/* ── 동의 관리: 기관 카드 + 항목별 상태·토글 ── */
+const ICON_BG = {g:'var(--g100)', b:'var(--blue-bg)', o:'var(--orange-bg)'};
+const ICON_SVG = {
+  g:'<svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M10 17V9" stroke="#0E7A46" stroke-width="1.7" stroke-linecap="round"/><path d="M10 9C10 5.5 12.5 3 16 3C16 6.5 13.5 9 10 9Z" stroke="#0E7A46" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 12C10 9.5 8 7.5 5 7.5C5 10 7 12 10 12Z" stroke="#0E7A46" stroke-width="1.7" stroke-linejoin="round"/></svg>',
+  b:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="7" width="13" height="8.5" rx="1.5" stroke="#2E6BD6" stroke-width="1.5"/><path d="M9 2L15.5 7H2.5L9 2Z" stroke="#2E6BD6" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  o:'<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="4" width="13" height="10" rx="1.5" stroke="#E17A17" stroke-width="1.5"/><path d="M2.5 7.5H15.5" stroke="#E17A17" stroke-width="1.5"/></svg>'
+};
+let pendingConn = null;
+const connOpen = {};
+function renderConns(){
+  const box = document.getElementById('connList'); if(!box) return;
+  box.innerHTML = CONNS.map(c=>{
+    const onCnt = c.items.filter(i=>i.on).length;
+    const itemsHtml = c.items.map((it,ii)=>`
+      <div class="ci-row">
+        <span class="${it.req?'tag-req':'tag-opt'}" style="font-size:10px">${it.req?'필수':'선택'}</span>
+        <span class="nm">${it.k}${it.tag?` <span style="font-size:11px;color:var(--mut)">· ${it.tag}</span>`:''}</span>
+        <span class="${it.on?'st-on':'st-off'}">${it.on?'동의함':'철회됨'}</span>
+        <span class="toggle ${it.on?'on':''}" onclick="toggleItem('${c.id}',${ii})"></span>
+      </div>`).join('');
+    return `
+    <div class="conn" style="flex-direction:column;align-items:stretch">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div class="conn-ic" style="background:${ICON_BG[c.icon]}">${ICON_SVG[c.icon]}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px"><b style="font-size:14.5px">${c.name}</b>
+            ${c.on ? '<span class="badge bg-ok" style="font-size:11.5px">연동중</span>' : '<span class="badge bg-mut">미연동</span>'}</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:3px">${c.on&&c.date ? '동의일 '+c.date+' · ' : ''}동의 ${onCnt}/${c.items.length}개 항목</div>
+        </div>
+        ${c.on
+          ? `<button class="btn btn-neu btn-sm" onclick="connOpen['${c.id}']=!connOpen['${c.id}'];renderConns()">${connOpen[c.id]?'접기':'항목 관리'}</button>
+             <button class="btn btn-dan-out btn-sm" onclick="askRevoke('${c.id}')">전체 철회</button>`
+          : `<button class="btn btn-pri btn-sm" onclick="askConsent('${c.id}')">연동 동의</button>`}
+      </div>
+      ${c.on && connOpen[c.id] ? `<div class="conn-items">${itemsHtml}</div>` : ''}
+    </div>`;
+  }).join('');
   const n = CONNS.filter(c=>c.on).length;
   document.getElementById('connSummary').textContent = `${n} / ${CONNS.length} 기관 연동중`;
 }
-
-function askRevoke(id){
+/* 항목별 즉시 변경: 선택=바로 토글+영수증, 필수 철회=기관 해지 확인으로 연결 */
+function toggleItem(cid, ii){
+  const c = CONNS.find(x=>x.id===cid); const it = c.items[ii];
+  if(it.req && it.on){ askRevoke(cid, it.k); return; }
+  it.on = !it.on;
+  issueReceipt('consent', c.name+' — '+it.k+' '+(it.on?'재동의':'선택 동의 철회'), {
+    '동의 일시': nowStamp(), '동의 유형': it.on?'재동의':'동의 철회', '대상 항목': it.k+' ('+(it.req?'필수':'선택')+')',
+    '수집·이용 목적': it.purpose, '보유·이용 기간': it.period, '처리 결과': it.on?'수집·이용 재개':'수집 중단 및 기존 데이터 파기'
+  });
+  renderConns();
+  toast(it.on?'ok':'warn', '"'+it.k+'" 항목을 '+(it.on?'재동의했어요':'철회했어요 — 동의 영수증에 기록됩니다'));
+}
+function askRevoke(id, itemName){
   pendingConn = CONNS.find(c=>c.id===id);
   document.getElementById('revokeName').textContent = pendingConn.name;
+  document.getElementById('revokeDesc').textContent = (itemName ? ' — "'+itemName+'"은(는) 필수 동의 항목이라 개별 철회 대신 기관 연동 해지로 처리돼요. ' : ' ') +
+    '연동을 해지하면 필수 동의를 포함한 모든 동의가 철회되고, 관련 자동입력·추천 기능이 중단됩니다. 이미 생성된 서류에는 영향이 없으며, 철회 사실은 동의 영수증으로 기록됩니다.';
   openModal('revokeModal');
 }
 function confirmRevoke(){
   pendingConn.on = false; pendingConn.date = null;
+  pendingConn.items.forEach(i=>i.on=false);
+  issueReceipt('consent', pendingConn.name+' 연동 해지 (전체 동의 철회)', {
+    '철회 일시': nowStamp(), '동의 유형': '전체 동의 철회', '대상 항목': pendingConn.items.map(i=>i.k).join(', '),
+    '처리 결과': '데이터 수집 즉시 중단, 보유 데이터 파기(법정 보존 제외)'
+  });
   closeModal('revokeModal'); renderConns();
-  toast('warn', pendingConn.name + ' 연동이 철회되었습니다 — 철회 기록이 영수증에 남습니다');
+  toast('warn', pendingConn.name+' 연동이 해지되었어요 — 동의 영수증에 기록됩니다');
 }
+
+/* ── 알기 쉬운 동의 화면 ── */
 function askConsent(id){
   pendingConn = CONNS.find(c=>c.id===id);
   document.getElementById('consentTitle').textContent = pendingConn.name + ' 연동 동의';
-  document.getElementById('consentDesc').innerHTML = `<b style="color:var(--txt)">${pendingConn.items}</b> 데이터를 본인 동의로 불러옵니다. 아래 항목에 동의해주세요.`;
-  document.querySelectorAll('.consent-chk').forEach(c=>c.checked=false);
-  document.getElementById('consentOk').disabled = true;
+  document.getElementById('consentDesc').textContent = pendingConn.easy;
+  const mk = (it, ii) => `
+    <div class="md-item ${it.req?'req':'opt'}" id="mdi-${ii}">
+      <div class="md-item-head" onclick="mdItemCheck(${ii})">
+        <input type="checkbox" class="md-chk" data-req="${it.req?1:0}" onclick="event.stopPropagation();mdCheckState()">
+        <div class="t">${it.k}${it.tag?` <span class="tag-opt" style="margin-left:4px">${it.tag}</span>`:''}
+          <small>${it.purpose}</small></div>
+        <span class="md-terms" onclick="event.stopPropagation();showTerms('${pendingConn.id}',${ii})">약관 보기 ›</span>
+        <svg class="md-arrow" width="11" height="7" viewBox="0 0 10 6" fill="none" style="cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();document.getElementById('mdi-${ii}').classList.toggle('open')"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="md-detail">
+        <table>
+          <tr><th>수집·이용 목적</th><td><u>${it.purpose}</u></td></tr>
+          <tr><th>수집 항목</th><td>${it.fields}</td></tr>
+          <tr><th>보유·이용 기간</th><td><u>${it.period}</u></td></tr>
+        </table>
+      </div>
+    </div>`;
+  document.getElementById('reqItems').innerHTML = pendingConn.items.map((it,ii)=>it.req?mk(it,ii):'').join('');
+  document.getElementById('optItems').innerHTML = pendingConn.items.map((it,ii)=>!it.req?mk(it,ii):'').join('') ||
+    '<div style="font-size:12.5px;color:var(--mut);padding:4px 2px">이 기관에는 선택 동의 항목이 없어요.</div>';
+  document.getElementById('allChk').checked = false;
+  mdCheckState();
   openModal('consentModal');
 }
-function chkConsent(){
-  const all = [...document.querySelectorAll('.consent-chk')].every(c=>c.checked);
-  document.getElementById('consentOk').disabled = !all;
+function mdItemCheck(ii){
+  const el = document.querySelector('#mdi-'+ii+' .md-chk');
+  el.checked = !el.checked; mdCheckState();
+}
+function mdAllToggle(v){
+  document.querySelectorAll('#consentModal .md-chk').forEach(c=>c.checked=v);
+  mdCheckState();
+}
+function mdCheckState(){
+  const chks = [...document.querySelectorAll('#consentModal .md-chk')];
+  chks.forEach(c=>c.closest('.md-item').classList.toggle('checked', c.checked));
+  const reqOk = chks.filter(c=>c.dataset.req==='1').every(c=>c.checked);
+  document.getElementById('consentOk').disabled = !reqOk;
+  document.getElementById('allChk').checked = chks.every(c=>c.checked);
+}
+function mdDecline(){
+  closeModal('consentModal');
+  toast('info','동의하지 않으셨어요 — 서비스 이용에 불이익은 없으며, 언제든 다시 연동할 수 있습니다');
 }
 function confirmConsent(){
-  pendingConn.on = true; pendingConn.date = '2026-08-19';
+  const chks = [...document.querySelectorAll('#consentModal .md-chk')];
+  pendingConn.items.forEach((it,ii)=>{ it.on = chks[ii] ? chks[ii].checked : false; });
+  pendingConn.on = true;
+  pendingConn.date = nowStamp().slice(0,10);
+  const agreed = pendingConn.items.filter(i=>i.on);
+  issueReceipt('consent', pendingConn.name+' 데이터 연동 동의', {
+    '동의 일시': nowStamp(), '동의 유형': '신규 동의',
+    '동의 항목': agreed.map(i=>i.k+'('+(i.req?'필수':'선택')+')').join(', '),
+    '수집·이용 목적': [...new Set(agreed.map(i=>i.purpose))].join(' / '),
+    '보유·이용 기간': [...new Set(agreed.map(i=>i.period))].join(' / '),
+    '동의 방법': '본인 인증 후 화면 내 개별 동의'
+  });
   closeModal('consentModal'); renderConns();
-  toast('ok', pendingConn.name + ' 연동이 완료되었습니다 — 데이터 수신을 시작합니다');
+  toast('ok', pendingConn.name+' 연동이 완료되었어요 — 동의 영수증이 발행되었습니다');
 }
+function showTerms(cid, ii){
+  const c = CONNS.find(x=>x.id===cid); const it = c.items[ii];
+  document.getElementById('termsTitle').textContent = '['+(it.req?'필수':'선택')+'] '+it.k+' 수집·이용 동의 약관';
+  document.getElementById('termsBody').innerHTML = `
+    <div style="font-size:13.5px;line-height:1.8;color:#374151">
+      ㈜골든플래닛(agriG)은 「개인정보 보호법」 제15조·제22조에 따라 아래와 같이 개인데이터를 수집·이용하고자 합니다.<br><br>
+      <b style="font-size:15px">1. 수집·이용 목적</b><br>${it.purpose}<br><br>
+      <b style="font-size:15px">2. 수집 항목</b><br>${it.fields}<br><br>
+      <b style="font-size:15px">3. 보유 및 이용 기간</b><br><u style="text-decoration-color:var(--g400);text-underline-offset:3px">${it.period}</u><br><br>
+      <b style="font-size:15px">4. 동의를 거부할 권리 및 불이익</b><br>
+      귀하는 위 동의를 거부할 권리가 있습니다. ${it.req
+        ? '다만 이 항목은 서비스 제공에 꼭 필요해서, 동의하지 않으면 <b>'+c.name+' 데이터 연동 서비스</b>를 이용할 수 없습니다. agriG의 다른 기능 이용에는 제한이 없습니다.'
+        : '<b>이 항목은 선택 사항으로, 동의하지 않아도 어떤 불이익도 없습니다.</b>'}<br><br>
+      <span style="font-size:12px;color:var(--sub)">시행일 2026-05-01 · 문의 privacy@agrig.kr</span>
+    </div>`;
+  openModal('termsModal');
+}
+
+/* ── 공통: 세그/멀티 선택 ── */
+function segPick(btn){ btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b===btn)); }
+function segVal(id){ const b=document.querySelector('#'+id+' button.on'); return b?b.textContent.trim():''; }
+function togglePick(el){ el.classList.toggle('sel'); }
+function pickVals(id){ return [...document.querySelectorAll('#'+id+' .pick.sel')].map(e=>e.dataset.k); }
+
+/* ── 개인데이터 내려받기 ── */
+const DL_ITEMS = [
+  {k:'농업경영체 정보', d:'경영체번호 · 품목 · 면적'},
+  {k:'시세 · 출하 이력', d:'경락가, AI 추천 기록'},
+  {k:'작성한 행정서류', d:'서류 메타데이터 · PDF 목록'},
+  {k:'데이터 이용내역(영수증)', d:'동의·수집·공유 전체 기록'},
+];
+function openDownload(){
+  document.getElementById('dlItems').innerHTML = DL_ITEMS.map((it,i)=>`
+    <div class="pick${i<2?' sel':''}" data-k="${it.k}" onclick="togglePick(this)">
+      <input type="checkbox" style="pointer-events:none" ${i<2?'checked':''} onclick="return false">
+      <div><div>${it.k}</div><div style="font-size:11px;color:var(--mut);font-weight:400">${it.d}</div></div>
+    </div>`).join('');
+  document.getElementById('dlPick').style.display = '';
+  document.getElementById('dlDone').style.display = 'none';
+  document.getElementById('dlFoot').innerHTML = '<button class="btn btn-neu" onclick="closeModal(\'dlModal\')">취소</button><button class="btn btn-pri" onclick="doDownload()">내려받기</button>';
+  openModal('dlModal');
+}
+function doDownload(){
+  document.querySelectorAll('#dlItems .pick').forEach(p=>{ p.querySelector('input').checked = p.classList.contains('sel'); });
+  const items = pickVals('dlItems');
+  if(!items.length){ toast('err','받을 항목을 1개 이상 선택해주세요'); return; }
+  const period = segVal('dlPeriod'), fmt = segVal('dlFormat'), method = segVal('dlMethod');
+  if(method === '이 기기에 저장'){
+    const payload = {exported_at:nowStamp(), service:'agriG', period, items, format:fmt,
+      note:'기계가독형 개인데이터 내려받기 (마이데이터 공통기능)', data:{sample:'시안 데모 데이터'}};
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'agriG_내데이터_' + fmt.toLowerCase() + '.json'; a.click();
+  }
+  issueReceipt('download', '개인데이터 내려받기 ('+fmt+')', {
+    '내려받기 일시': nowStamp(), '항목': items.join(', '), '기간': period,
+    '형식': fmt+' (기계가독형)', '전송 방식': method, '수신자': '정보주체 본인 (김농가)'
+  });
+  document.getElementById('dlPick').style.display = 'none';
+  document.getElementById('dlDone').style.display = '';
+  document.getElementById('dlDoneSum').innerHTML = `<b>${items.length}개 항목</b> · ${period} · ${fmt} 형식<br>${method==='이 기기에 저장'?'이 기기에 저장되었어요':method+' 방식으로 전송을 시작했어요'}`;
+  document.getElementById('dlFoot').innerHTML = '<button class="btn btn-pri" style="width:100%" onclick="closeModal(\'dlModal\')">확인</button>';
+}
+
+/* ── 제3자 선별 공유 ── */
+const SHARE_ORGS = [
+  {k:'청송농협 조합원지원팀', d:'계약 출하 · 조합원 확인용', ic:'g'},
+  {k:'NH농협손해보험', d:'농작물 재해보험 가입 심사용', ic:'b'},
+  {k:'경상북도 정책자금 심사과', d:'정책자금 신청 심사 참고자료', ic:'o'},
+];
+const SHARE_ITEMS = [
+  {k:'농업경영체 정보', d:'경영체번호 · 품목 · 면적'},
+  {k:'출하 실적 요약', d:'연간 출하량 · 매출 요약'},
+  {k:'재무 요약 정보', d:'소득금액 · 신용등급 구간'},
+];
+let shareStage = 1;
+function openShare(){
+  shareStage = 1;
+  document.getElementById('shareOrgs').innerHTML = SHARE_ORGS.map((o,i)=>`
+    <div class="share-org${i===0?' sel':''}" data-k="${o.k}" onclick="document.querySelectorAll('#shareOrgs .share-org').forEach(e=>e.classList.remove('sel'));this.classList.add('sel')">
+      <div class="conn-ic" style="background:${ICON_BG[o.ic]};width:36px;height:36px">${ICON_SVG[o.ic]}</div>
+      <div style="flex:1"><div class="on">${o.k}</div><div class="od">${o.d}</div></div>
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#D6DBD8" stroke-width="1.5"/><path class="ck" d="M6 10.3L8.8 13L14 7.5" stroke="#0E7A46" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>`).join('');
+  document.getElementById('shareItems').innerHTML = SHARE_ITEMS.map((it,i)=>`
+    <div class="pick${i===0?' sel':''}" data-k="${it.k}" onclick="togglePick(this)">
+      <input type="checkbox" style="pointer-events:none" ${i===0?'checked':''} onclick="return false">
+      <div><div>${it.k}</div><div style="font-size:11px;color:var(--mut);font-weight:400">${it.d}</div></div>
+    </div>`).join('');
+  document.getElementById('shareStep1').style.display = '';
+  document.getElementById('shareStep2').style.display = 'none';
+  document.getElementById('shareDone').style.display = 'none';
+  document.getElementById('shareStep').textContent = '1단계 · 공유할 대상과 데이터를 골라주세요';
+  document.getElementById('shareFoot').innerHTML = '<button class="btn btn-neu" onclick="closeModal(\'shareModal\')">취소</button><button class="btn btn-pri" onclick="shareNext()">다음</button>';
+  openModal('shareModal');
+}
+function shareTarget(){ const e=document.querySelector('#shareOrgs .share-org.sel'); return e?e.dataset.k:null; }
+function shareNext(){
+  document.querySelectorAll('#shareItems .pick').forEach(p=>{ p.querySelector('input').checked = p.classList.contains('sel'); });
+  if(shareStage === 1){
+    const org = shareTarget(), items = pickVals('shareItems');
+    if(!org){ toast('err','공유 대상을 선택해주세요'); return; }
+    if(!items.length){ toast('err','공유할 데이터를 1개 이상 선택해주세요'); return; }
+    shareStage = 2;
+    document.getElementById('shareStep1').style.display = 'none';
+    document.getElementById('shareStep2').style.display = '';
+    document.getElementById('shareStep').textContent = '2단계 · 이동 승인';
+    document.getElementById('shareSum').innerHTML = `<b>${org}</b>에<br><b>${items.join(', ')}</b> 데이터를 보냅니다.<br>받은 곳 보관 기간: <b>${segVal('sharePeriod')}</b>`;
+    document.getElementById('shareFoot').innerHTML = '<button class="btn btn-neu" onclick="openShare()">이전</button><button class="btn btn-pri" style="flex:1" onclick="shareNext()">이동 승인</button>';
+    return;
+  }
+  const org = shareTarget(), items = pickVals('shareItems'), period = segVal('sharePeriod');
+  issueReceipt('share', org+'에 데이터 공유', {
+    '공유 일시': nowStamp(), '목적': (SHARE_ORGS.find(o=>o.k===org)||{}).d || '제3자 제공',
+    '제공자': '김농가 (agriG를 통해 전송)', '대상 기관': org,
+    '개인데이터 항목': items.join(', '), '보유·이용 기간': period+' (기간 만료 시 파기)',
+    '전송 방식': '표준 API · 기계가독형(JSON)'
+  });
+  document.getElementById('shareStep2').style.display = 'none';
+  document.getElementById('shareDone').style.display = '';
+  document.getElementById('shareStep').textContent = '공유가 완료되었어요';
+  document.getElementById('shareDoneSum').innerHTML = `<b>대상</b> — ${org}<br><b>항목</b> — ${items.join(', ')}<br><b>보관 기간</b> — ${period}<br><b>기록</b> — 공유 영수증 발행 완료 (이용내역에서 확인)`;
+  document.getElementById('shareFoot').innerHTML = '<button class="btn btn-pri" style="width:100%" onclick="closeModal(\'shareModal\')">확인</button>';
+  toast('ok','공유가 완료되었어요 — 공유 영수증이 발행되었습니다');
+}
+
 renderConns();
+renderReceipts();
 
 /* ══════════ 행정서류 — 내 서류함 + 4단계 위저드 ══════════ */
 const DOCS_KEY = 'agri_docs_v1';
@@ -1249,3 +1554,38 @@ function dsSeg(btn){
   btn.parentElement.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b === btn); });
   toast('info', '"' + btn.textContent.trim() + '" 선택됨');
 }
+
+/* ══════════ 증빙 캡처 모드 (#cap=CAPTURE-XXX) — 자가진단 증빙용 상태 연출 ══════════ */
+function capEnter(page){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('appShell').classList.add('on');
+  document.getElementById('fab').classList.remove('hidden');
+  document.getElementById('chatPanel').classList.remove('hidden');
+  nav(page||'mypage');
+}
+const CAPTURE_STATES = {
+  'CAPTURE-001': ()=>{ capEnter(); askConsent('mois'); },
+  'CAPTURE-002': ()=>{ capEnter(); askConsent('mois'); showTerms('mois',0); },
+  'CAPTURE-003': ()=>{ capEnter(); askConsent('mois'); document.querySelectorAll('#consentModal .md-item').forEach(e=>e.classList.add('open')); mdAllToggle(true); },
+  'CAPTURE-004': ()=>{ capEnter(); },
+  'CAPTURE-005': ()=>{ capEnter(); connOpen['epis']=true; connOpen['kplus']=true; CONNS.find(c=>c.id==='kplus').items[2].on=false; renderConns(); },
+  'CAPTURE-006': ()=>{ capEnter(); askRevoke('kplus','법인 신용정보'); },
+  'CAPTURE-007': ()=>{ capEnter(); openModal('quitModal'); },
+  'CAPTURE-008': ()=>{ capEnter(); const el=document.querySelector('[data-capture="CAPTURE-008"]'); if(el) el.scrollIntoView({block:'center'}); },
+  'CAPTURE-009': ()=>{ capEnter(); openDownload(); },
+  'CAPTURE-009B': ()=>{ capEnter(); openDownload(); setTimeout(()=>doDownload(), 300); },
+  'CAPTURE-010': ()=>{ capEnter(); openShare(); },
+  'CAPTURE-011': ()=>{ capEnter(); openShare(); setTimeout(()=>shareNext(), 300); },
+  'CAPTURE-011B': ()=>{ capEnter(); openShare(); setTimeout(()=>{ shareNext(); setTimeout(()=>shareNext(), 200); }, 300); },
+  'CAPTURE-012': ()=>{ capEnter(); const el=document.querySelector('[data-capture="CAPTURE-012"]'); if(el) el.scrollIntoView({block:'start'}); },
+  'CAPTURE-013': ()=>{ capEnter(); openReceipt('RCPT-U-260819-014'); },
+  'CAPTURE-001B': ()=>{ capEnter(); askConsent('kplus'); },
+  'CAPTURE-009C': ()=>{ capEnter(); openDownload(); setTimeout(()=>{ const h=document.querySelector('#dlModal .help-q'); if(h) h.classList.add('force'); }, 300); },
+};
+(function(){
+  const m = location.hash.match(/cap=([A-Z0-9-]+)/);
+  if(m && CAPTURE_STATES[m[1]]){
+    document.documentElement.classList.add('cap-mode');
+    setTimeout(()=>CAPTURE_STATES[m[1]](), 200);
+  }
+})();
