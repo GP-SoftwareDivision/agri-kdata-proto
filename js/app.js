@@ -1578,10 +1578,9 @@ const N_STYLE = {
 function renderNotifs(){
   document.getElementById('notifList').innerHTML = NOTIFS.map((n,i)=>`
     <div class="notif-item${n.unread?' unread':''}" onclick="openNotif(${i})">
-      <span class="dot"></span>
       <div class="notif-ic" style="background:${N_STYLE[n.type].bg}">${N_STYLE[n.type].svg}</div>
       <div style="flex:1;min-width:0">
-        <div class="notif-tt">${n.tt}</div>
+        <div class="notif-tt">${n.tt}<span class="dot"></span></div>
         <div class="notif-desc">${n.desc}</div>
         <div class="notif-time">${n.time}</div>
       </div>
