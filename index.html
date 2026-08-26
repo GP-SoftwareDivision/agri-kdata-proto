@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=51">
-<link rel="stylesheet" href="css/mobile.css?v=51">
+<link rel="stylesheet" href="css/style.css?v=54">
+<link rel="stylesheet" href="css/mobile.css?v=54">
 </head>
 <body>
 
@@ -548,6 +548,25 @@ docker run --rm -p 8080:8080 \
         </div>
       </div>
 
+      <!-- ═══ 뷰 L : 기능별 접근 제어 — 서류 생성 미동의 시 잠김 (ACC-01) ═══ -->
+      <div class="doc-view" id="dv-lock" data-capture="ACC-01">
+        <div class="card" style="max-width:640px;margin:0 auto;padding:34px 34px 28px;display:flex;flex-direction:column;gap:16px;text-align:center">
+          <div style="width:58px;height:58px;border-radius:50%;background:#EDF0EE;display:flex;align-items:center;justify-content:center;margin:0 auto">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="4.5" y="10" width="15" height="10.5" rx="2" stroke="#6E7681" stroke-width="1.8"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10" stroke="#6E7681" stroke-width="1.8"/></svg>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:900">서류 자동 작성은 아직 쓸 수 없습니다</div>
+            <div style="font-size:13px;color:var(--sub);margin-top:6px;line-height:1.65">이 기능은 <b style="color:var(--txt)">'② 정책자금 서류 생성용' 동의</b>가 있어야 열립니다.<br>서류에는 실명이 들어가야 해서 별도 동의를 받고 있습니다.</div>
+          </div>
+          <div style="text-align:left">
+            <div style="font-size:12.5px;font-weight:800;color:var(--sub);margin-bottom:8px">◎ 지금 상태</div>
+            <div style="display:flex;flex-direction:column;gap:8px" id="lockState"></div>
+          </div>
+          <div style="font-size:12.5px;color:#374151;background:var(--g50);border:1px solid #DCEBE2;border-radius:10px;padding:11px 15px;line-height:1.65;text-align:left"><b>동의하지 않아도 됩니다.</b> AI 상담은 그대로 이용하실 수 있고, 서류는 직접 작성해 제출할 수 있습니다.</div>
+          <button class="btn btn-pri btn-lg" style="width:100%" onclick="unlockDocPurpose()">'서류 생성용' 동의하러 가기</button>
+        </div>
+      </div>
+
       <!-- ═══ 뷰 1 : 서식 선택 ═══ -->
       <div class="doc-view" id="dv-s1">
         <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px;align-items:start">
@@ -636,6 +655,11 @@ docker run --rm -p 8080:8080 \
 
       <!-- ═══ 뷰 2 : 정보 확인 ═══ -->
       <div class="doc-view" id="dv-s2">
+        <!-- 실명 한시 사용 고지 (식별정보는 서류 생성 목적에 한정, 접근 이력 전부 기록) -->
+        <div class="card" data-capture="DOC-01" style="display:flex;align-items:flex-start;padding:12px 20px;gap:11px;background:var(--orange-bg);border-color:#F1DDBE">
+          <span class="pl pl-real" style="margin-top:2px">실명 한시 사용</span>
+          <div style="font-size:12.5px;color:#7A4A0B;line-height:1.6;flex:1;min-width:0">이 서류를 만드는 동안 <b>이름·주소를 잠시 사용</b>합니다. 사용 기록은 <a href="#" style="font-weight:800;color:#B25E0D" onclick="openRealname();return false">데이터 영수증 › 실명 사용 기록</a>에 남고, 서류 생성 동의를 취소하면 보관 중인 실명 정보를 즉시 없앱니다.</div>
+        </div>
         <div class="card" style="display:flex;align-items:center;padding:12px 20px;gap:14px;background:var(--g50);border-color:#DCEBE2">
           <div style="width:34px;height:34px;border-radius:8px;background:var(--g100);display:flex;align-items:center;justify-content:center">
             <svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M4 2.5H11L14.5 6V15.5H4V2.5Z" stroke="#0E7A46" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 9H11.5M6.5 12H11.5" stroke="#0E7A46" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -657,7 +681,7 @@ docker run --rm -p 8080:8080 \
               <span style="font-size:12px;color:var(--sub)">자동입력된 값도 수정할 수 있습니다</span>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 18px">
-              <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="lbl">성명 / 법인명</span><span class="badge bg-ok">자동 · 간편인증</span></div><div class="field-ro">김농가</div></div>
+              <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="lbl">성명 / 법인명</span><span class="badge bg-ok">자동 · 간편인증</span><span class="pl pl-real">실명</span></div><div class="field-ro">김농가</div></div>
               <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="lbl">농업경영체 등록번호</span><span class="badge bg-ok">자동 · 농정원</span></div><div class="field-ro">1234-5678-9012</div></div>
               <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="lbl">사업자등록번호</span><span class="badge bg-ok">자동 · 공공마이데이터</span></div><div class="field-ro">123-45-67890</div></div>
               <div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="lbl">주소 (농지 소재지)</span><span class="badge bg-ok">자동 · 농정원</span></div><div class="field-ro">경상북도 청송군 청송읍 ○○리 123</div></div>
@@ -809,6 +833,28 @@ docker run --rm -p 8080:8080 \
         <button class="btn btn-neu btn-sm" onclick="toast('info','내 정보 수정 — 시안 범위 외')">정보 수정</button>
       </div>
 
+      <!-- ①-0 전송요구 진입 (내 자료 가져오기) -->
+      <div class="card" style="padding:22px 26px;display:flex;align-items:center;gap:18px;flex-wrap:wrap" data-capture="CNS-01">
+        <div style="flex:1;min-width:240px">
+          <div class="sec-t">흩어져 있는 내 농사 자료를 한 곳에 모아 드립니다</div>
+          <div style="font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.6">모은 자료는 <b style="color:var(--txt)">① AI 상담</b>과 <b style="color:var(--txt)">② 서류 자동 작성</b> 딱 두 가지에만 씁니다. 3단계면 끝나요.</div>
+        </div>
+        <button class="btn btn-pri btn-lg" onclick="mdwOpen()">내 자료 가져오기</button>
+      </div>
+
+      <!-- ①-1 목적별 동의 관리 · 기능 접근 제어 (CMG-02) -->
+      <div class="card" data-capture="CMG-02">
+        <div style="padding:20px 26px 4px">
+          <div class="sec-t">자료를 쓰는 목적</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:3px">버튼을 누르면 <b style="color:var(--txt)">바로 반영</b>됩니다. 따로 저장할 필요가 없습니다.</div>
+        </div>
+        <div id="purList" style="padding:12px 26px 6px;display:flex;flex-direction:column;gap:10px"></div>
+        <div id="lockList" style="padding:0 26px 8px"></div>
+        <div style="padding:2px 26px 18px;display:flex;justify-content:flex-end">
+          <button style="font-size:12.5px;color:var(--sub);text-decoration:underline;text-underline-offset:3px" onclick="openWithdraw()">동의 취소(철회)하기</button>
+        </div>
+      </div>
+
       <!-- ② 동의 관리 -->
       <div class="card" data-capture="CAPTURE-004">
         <div style="padding:20px 26px 6px;display:flex;align-items:center;justify-content:space-between">
@@ -819,7 +865,26 @@ docker run --rm -p 8080:8080 \
           <span class="badge bg-ok" id="connSummary"></span>
         </div>
         <div id="connList" style="padding:8px 6px 4px"></div>
-        <div style="padding:6px 26px 18px;display:flex;justify-content:flex-end">
+        <!-- 연결된 기관에 할 수 있는 일 (연결 해제 · 데이터 삭제 · 실시간 갱신을 분리 제공) -->
+        <div style="padding:4px 26px 8px">
+          <div style="font-size:12px;font-weight:800;color:var(--sub);margin-bottom:7px">연결된 기관에 할 수 있는 일</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" class="conn-acts3">
+            <div class="lockrow" style="cursor:pointer;border-style:solid" onclick="connRefresh()">
+              <div class="lk" style="background:var(--g100)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.9 0 3.6 1 4.6 2.4" stroke="#0E7A46" stroke-width="1.6" stroke-linecap="round"/><path d="M13 2v3h-3" stroke="#0E7A46" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div><div class="lt">지금 자료 새로 받기</div><div class="ld">최신 자료로 갱신을 요구합니다</div></div>
+            </div>
+            <div class="lockrow" style="cursor:pointer;border-style:solid" onclick="connPurge()">
+              <div class="lk" style="background:var(--red-bg)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.7 8.5h5.6l.7-8.5" stroke="#D93025" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div><div class="lt">받아온 자료 지우기</div><div class="ld">보관 중인 자료를 즉시 없앱니다</div></div>
+            </div>
+            <div class="lockrow" style="cursor:pointer;border-style:solid" onclick="toast('info','연결을 끄면 그때부터 자료를 받지 않아요 — 위 기관 카드의 전체 철회로 진행됩니다')">
+              <div class="lk"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 10L10 6M5.5 8L3.8 9.7a2.5 2.5 0 0 0 3.5 3.5L9 11.5M10.5 8l1.7-1.7a2.5 2.5 0 0 0-3.5-3.5L7 4.5" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+              <div><div class="lt">연결 끊기</div><div class="ld">더 이상 자료를 받지 않습니다</div></div>
+            </div>
+          </div>
+          <div style="font-size:11.5px;color:var(--sub);background:#F5F8FD;border:1px solid #D8E4F5;border-radius:9px;padding:8px 12px;margin-top:8px;line-height:1.6">연결을 끄면 <b style="color:var(--txt)">그때부터 자료를 받지 않습니다.</b> 이미 받아둔 자료는 '받아온 자료 지우기'로 없앨 수 있습니다.</div>
+        </div>
+        <div style="padding:2px 26px 18px;display:flex;justify-content:flex-end">
           <button style="font-size:12.5px;color:var(--sub);text-decoration:underline;text-underline-offset:3px" onclick="openModal('quitModal')">모든 동의 철회 및 회원 탈퇴</button>
         </div>
       </div>
@@ -863,6 +928,17 @@ docker run --rm -p 8080:8080 \
         </div>
         <div style="padding:0 26px 8px" class="rcpt-chips" id="rcptChips"></div>
         <div id="rcptScroll" data-fade><div id="rcptList"></div></div>
+        <!-- 역추적·감사 진입 카드 (분석 신뢰도 근거 · 실명 사용 감사 증적) -->
+        <div style="padding:10px 26px 20px;display:grid;grid-template-columns:1fr 1fr;gap:8px" class="use-entries">
+          <div class="lockrow" style="cursor:pointer;border-style:solid" onclick="openTrace()">
+            <div class="lk" style="background:var(--blue-bg)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2.5 13.5V9M6.5 13.5V6M10.5 13.5V8M14 13.5V3.5" stroke="#2E6BD6" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+            <div><div class="lt">AI 상담 근거 보기</div><div class="ld">상담 답변이 어떤 자료에서 나왔는지 확인</div></div>
+          </div>
+          <div class="lockrow" style="cursor:pointer;border-style:solid" onclick="openRealname()">
+            <div class="lk" style="background:var(--orange-bg)"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="3" y="6.5" width="10" height="7" rx="1.5" stroke="#E17A17" stroke-width="1.5"/><path d="M5.5 6.5V5a2.5 2.5 0 0 1 5 0v1.5" stroke="#E17A17" stroke-width="1.5"/></svg></div>
+            <div><div class="lt">실명 사용 기록 보기</div><div class="ld">이름·주소를 언제 왜 꺼내 썼는지 확인</div></div>
+          </div>
+        </div>
       </div>
 
       <!-- 로그아웃 -->
@@ -1139,16 +1215,22 @@ docker run --rm -p 8080:8080 \
     <div class="m-head"><div class="m-title">모든 동의를 철회하시겠어요?</div>
       <button class="m-x" onclick="closeModal('quitModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
     <div class="m-body">
-      필수 동의를 모두 철회하면 <b style="color:var(--red)">회원 탈퇴 절차로 이어집니다.</b><br><br>
-      탈퇴 시 처리되는 내용:<br>
-      · 연동된 모든 기관의 데이터 수집이 즉시 중단됩니다<br>
-      · 저장된 개인데이터는 파기됩니다 (법정 보존분 제외)<br>
-      · 이 기기의 서류는 직접 삭제하거나 내려받을 수 있어요<br><br>
-      탈퇴 전에 <a href="#" onclick="closeModal('quitModal');openDownload();return false" style="font-weight:700">내 데이터 내려받기</a>를 먼저 해두시는 걸 권해요.
+      <div style="background:var(--red-bg);border:1px solid #F2C7C2;border-radius:10px;padding:10px 14px;font-size:12.5px;color:var(--red);font-weight:700;line-height:1.6;margin-bottom:14px">
+        전부 취소하면 서비스를 쓸 수 없습니다. 확인 후 탈퇴 절차로 넘어가며, 받아둔 자료는 즉시 없앱니다.</div>
+      <div style="font-size:13px;font-weight:800;margin-bottom:8px">취소하면 이렇게 처리됩니다</div>
+      <table class="purge-tbl">
+        <tr><th>이름 · 주소 등 실명 정보</th><td><b>즉시 파기</b> (서류 생성용으로 갖고 있던 것)</td></tr>
+        <tr><th>가명처리된 분석 자료</th><td>연결 키를 없애 <b>되살릴 수 없게</b> 처리</td></tr>
+        <tr><th>다른 곳에 보낸 자료</th><td>즉시 중단하고 받은 기관에 <b>파기 요청</b></td></tr>
+        <tr><th>발급받은 영수증</th><td>탈퇴 전에 내려받기를 권합니다 <span class="pl pl-need">확인 필요 · 보관 기간 법무 검토 중</span></td></tr>
+        <tr><th>다시 가입</th><td>언제든 가능 (이전 자료는 되살아나지 않음)</td></tr>
+      </table>
+      <div style="font-size:12.5px;background:var(--g50);border:1px solid #DCEBE2;border-radius:10px;padding:10px 14px;margin-top:12px;line-height:1.6">
+        탈퇴 전에 <a href="#" onclick="closeModal('quitModal');openDownload();return false" style="font-weight:800;color:var(--g700)">내 자료를 먼저 내려받으시겠어요? →</a></div>
     </div>
     <div class="m-foot">
-      <button class="btn btn-neu" onclick="closeModal('quitModal')">취소</button>
-      <button class="btn btn-dan" onclick="closeModal('quitModal');toast('warn','회원 탈퇴 절차로 이동합니다 (시안 범위)')">전체 철회 후 탈퇴</button>
+      <button class="btn btn-neu" onclick="closeModal('quitModal')">돌아가기</button>
+      <button class="btn btn-dan" onclick="closeModal('quitModal');toast('warn','회원 탈퇴 절차로 이동합니다 (시안 범위)')">탈퇴하기</button>
     </div>
   </div>
 </div>
@@ -1171,37 +1253,43 @@ docker run --rm -p 8080:8080 \
       <div>
         <div class="lbl" style="margin-bottom:8px;font-size:13px">2. 기간</div>
         <div class="metric-seg" id="dlPeriod">
-          <button onclick="segPick(this)">최근 1개월</button>
           <button onclick="segPick(this)">최근 3개월</button>
           <button class="on" onclick="segPick(this)">최근 1년</button>
-          <button onclick="segPick(this)">전체</button>
+          <button onclick="segPick(this)">전체 기간</button>
+          <button onclick="segPick(this)">직접 고르기</button>
         </div>
       </div>
       <div>
-        <div class="lbl" style="margin-bottom:8px;font-size:13px;display:flex;align-items:center;gap:6px">3. 파일 형식
-          <span class="help-q">?<span class="tip">CSV·JSON은 다른 서비스로 데이터를 옮길 때 쓰는 표준 형식이고, PDF는 사람이 보기 편한 형식이에요.</span></span>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px;display:flex;align-items:center;gap:6px">3. 어떤 파일로 받을까요
+          <span class="help-q">?<span class="tip">CSV·JSON·XML은 엑셀이나 다른 프로그램에서 바로 읽을 수 있는 형식이고, HTML은 인터넷 창에서 바로 볼 수 있어요.</span></span>
         </div>
         <div class="metric-seg" id="dlFormat">
-          <button class="on" onclick="segPick(this)">JSON</button>
-          <button onclick="segPick(this)">CSV</button>
-          <button onclick="segPick(this)">PDF</button>
+          <button class="on" onclick="segPick(this)">CSV (엑셀)</button>
+          <button onclick="segPick(this)">JSON</button>
+          <button onclick="segPick(this)">XML</button>
+          <button onclick="segPick(this)">HTML</button>
         </div>
       </div>
       <div>
-        <div class="lbl" style="margin-bottom:8px;font-size:13px">4. 받는 방법</div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">4. 어떻게 받을까요</div>
         <div class="metric-seg" id="dlMethod">
           <button class="on" onclick="segPick(this)">이 기기에 저장</button>
+          <button onclick="segPick(this)">문자로 받기</button>
           <button onclick="segPick(this)">이메일로 받기</button>
-          <button onclick="segPick(this)">클라우드로 보내기</button>
+          <button onclick="segPick(this)">클라우드에 저장</button>
         </div>
       </div>
     </div>
     <!-- 완료 화면 -->
     <div class="md-body" data-fade id="dlDone" style="display:none;text-align:center;padding-top:14px">
       <div class="done-mini"><svg width="26" height="26" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div style="font-size:18px;font-weight:900">내려받기 완료</div>
-      <div style="font-size:13px;color:var(--sub);line-height:1.7" id="dlDoneSum"></div>
-      <div style="font-size:12px;color:var(--sub);background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;text-align:left"><b>내려받기 영수증</b>으로 기록되어 이용내역에서 확인할 수 있어요.</div>
+      <div style="font-size:18px;font-weight:900">내려받기가 끝났습니다</div>
+      <div style="font-size:12.5px;color:var(--sub);line-height:1.7" id="dlDoneSum"></div>
+      <div style="text-align:left;margin-top:6px">
+        <div style="font-size:12.5px;font-weight:800;margin-bottom:6px">📄 내려받기 영수증</div>
+        <div style="border:1px solid var(--bd);border-radius:10px;padding:10px 14px"><table class="rcpt-tbl" id="dlRcptTbl"></table></div>
+      </div>
+      <div style="font-size:12px;color:#B25E0D;background:var(--orange-bg);border:1px solid #F1DDBE;border-radius:10px;padding:10px 14px;text-align:left;line-height:1.6">내려받은 파일에는 <b>내 경영 정보</b>가 담겨 있습니다. 안전한 곳에 보관해 주세요.</div>
     </div>
     <div class="m-foot" id="dlFoot">
       <button class="btn btn-neu" onclick="closeModal('dlModal')">취소</button>
@@ -1223,36 +1311,47 @@ docker run --rm -p 8080:8080 \
     <!-- 1단계: 선택 -->
     <div class="md-body" data-fade id="shareStep1">
       <div>
-        <div class="lbl" style="margin-bottom:8px;font-size:13px">1. 누구에게 보낼까요?</div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">1. 자료 보낼 곳 고르기 <span style="color:var(--mut);font-weight:400">(고른 곳에만 보냅니다)</span></div>
+        <input class="inp" id="shareSearch" placeholder="🔍 기관 이름을 검색하세요" oninput="shareSearchFilter(this.value)" style="margin-bottom:8px">
         <div style="display:flex;flex-direction:column;gap:8px" id="shareOrgs"></div>
-        <div style="font-size:12.5px;color:var(--sub);background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;margin-top:8px;line-height:1.6">
-          찾는 기관이 없나요? <b style="color:#24559E">연결 기관은 계속 추가될 예정이에요.</b>
+        <div id="shareEmpty" style="display:none;text-align:center;border:1.5px dashed var(--bd2);border-radius:12px;padding:20px 16px;margin-top:2px">
+          <div style="font-size:14px;font-weight:800">아직 연결할 수 없는 곳입니다</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:5px;line-height:1.6">찾으신 기관은 아직 자료를 받을 준비가 되지 않았습니다.<br>연결이 준비되면 <b style="color:var(--txt)">문자로</b> 알려드릴게요.</div>
+          <button style="font-size:12.5px;font-weight:700;color:var(--g700);text-decoration:underline;text-underline-offset:3px;margin-top:8px" onclick="toast('ok','연결 요청이 접수되었어요 — 준비되면 문자로 알려드립니다')">연결 요청하기</button>
         </div>
       </div>
       <div>
-        <div class="lbl" style="margin-bottom:8px;font-size:13px">2. 어떤 데이터를 보낼까요? <span style="color:var(--mut);font-weight:400">(선택한 것만 공유돼요)</span></div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">2. 보낼 자료 고르기 <span style="color:var(--mut);font-weight:400">(선택한 것만 공유돼요)</span></div>
         <div class="pick-grid" id="shareItems"></div>
       </div>
       <div>
-        <div class="lbl" style="margin-bottom:8px;font-size:13px">3. 받은 곳에서 얼마나 보관하나요?</div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">3. 받는 곳이 갖고 있을 기간</div>
         <div class="metric-seg" id="sharePeriod">
           <button onclick="segPick(this)">1개월</button>
-          <button class="on" onclick="segPick(this)">3개월</button>
-          <button onclick="segPick(this)">6개월</button>
+          <button class="on" onclick="segPick(this)">6개월</button>
           <button onclick="segPick(this)">1년</button>
+          <button onclick="segPick(this)">직접 고르기</button>
         </div>
+        <div style="font-size:12px;color:var(--sub);background:var(--g50);border:1px solid #DCEBE2;border-radius:9px;padding:9px 13px;margin-top:8px;line-height:1.6">고른 기간이 지나면 받은 곳은 <b style="color:var(--txt)">내 자료를 없애야 합니다.</b> 기간 안에도 언제든 보내기를 멈출 수 있습니다.</div>
       </div>
     </div>
-    <!-- 2단계: 이동 승인 -->
+    <!-- 2단계: 이동 승인 확인 -->
     <div class="md-body" data-fade id="shareStep2" style="display:none">
-      <div class="md-summary"><b>이대로 보낼까요?</b><p id="shareSum"></p></div>
-      <div class="md-rights">보관 기간이 지나면 받은 기관은 데이터를 파기해야 합니다.<br><b>공유 영수증</b>으로 기록되어 이용내역에서 확인할 수 있어요.</div>
+      <div style="font-size:13px;color:var(--sub)">아래 내용으로 자료를 보냅니다. 확인하고 눌러주세요.</div>
+      <div style="border:1px solid var(--bd);border-radius:12px;padding:12px 16px"><table class="rcpt-tbl" id="shareSumTbl"></table></div>
+      <div class="md-rights">누르면 <b>바로 전송</b>되며, 결과는 데이터 영수증에서 확인할 수 있습니다. 전 구간 암호화(TLS 1.3)로 전송됩니다.</div>
+      <div style="font-size:13px;font-weight:800;color:var(--g700);background:var(--g50);border:1px solid #DCEBE2;border-radius:10px;padding:11px 14px">내가 누르지 않으면 어떤 자료도 나가지 않습니다.</div>
     </div>
-    <!-- 완료 -->
+    <!-- 완료 · 공유 영수증 -->
     <div class="md-body" data-fade id="shareDone" style="display:none;text-align:center;padding-top:14px">
       <div class="done-mini"><svg width="26" height="26" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-      <div style="font-size:18px;font-weight:900">공유 완료</div>
-      <div style="font-size:13px;color:var(--sub);line-height:1.7;text-align:left;background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:12px 16px" id="shareDoneSum"></div>
+      <div style="font-size:18px;font-weight:900">자료를 보냈습니다</div>
+      <div style="font-size:12.5px;color:var(--sub)" id="shareDoneOrg"></div>
+      <div style="text-align:left;margin-top:6px">
+        <div style="font-size:12.5px;font-weight:800;margin-bottom:6px">📄 공유 영수증</div>
+        <div style="border:1px solid var(--bd);border-radius:10px;padding:10px 14px"><table class="rcpt-tbl" id="shareDoneTbl"></table></div>
+      </div>
+      <div style="font-size:12px;color:var(--sub);background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;text-align:left;line-height:1.6">보내기는 [데이터 영수증]에서 언제든 멈출 수 있습니다.</div>
     </div>
     <div class="m-foot" id="shareFoot">
       <button class="btn btn-neu" id="shareBack" onclick="closeModal('shareModal')">취소</button>
@@ -1283,7 +1382,194 @@ docker run --rm -p 8080:8080 \
 </div>
 
 
+<!-- ══════════ 전송요구 위저드 — 내 자료 가져오기 (CNS-01~07) ══════════ -->
+<div class="overlay" id="mdwModal" data-capture="CNS-01">
+  <div class="modal md-modal">
+    <div class="m-head" style="padding-bottom:8px">
+      <div style="flex:1;margin-right:12px">
+        <div class="m-title" style="font-size:19px" id="mdwTitle">내 자료 가져오기</div>
+        <div class="mdw-prog" style="margin-top:9px"><div class="bar"><i id="mdwBar" style="width:8%"></i></div><span class="stt" id="mdwStt">시작</span></div>
+      </div>
+      <button class="m-x" onclick="closeModal('mdwModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <!-- 0단계 · 안내 (CNS-01) -->
+    <div class="md-body" data-fade id="mdwS0">
+      <div style="text-align:center;padding:4px 0 2px">
+        <div class="done-mini" style="margin-bottom:8px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#0E7A46" stroke-width="2"/><path d="M6 6L18 18" stroke="#0E7A46" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div style="font-size:17px;font-weight:900;line-height:1.5">흩어져 있는 내 농사 자료를<br>한 곳에 모아 드립니다</div>
+        <div style="font-size:12.5px;color:var(--g700);font-weight:700;margin-top:6px">◎ 모은 자료는 딱 두 가지에만 씁니다</div>
+      </div>
+      <div class="mdw-flow">
+        <div class="fx"><b>내 자료 모으기</b><span>농정원 · 골든플래닛</span></div>
+        <div class="fa">›</div>
+        <div class="fx"><b>① AI 상담</b><span>출하시기 · 판로 추천</span></div>
+        <div class="fa">›</div>
+        <div class="fx"><b>② 서류 자동 작성</b><span>정부 서식 4종</span></div>
+      </div>
+      <div style="font-size:12.5px;color:#374151;background:var(--g50);border:1px solid #DCEBE2;border-radius:10px;padding:10px 14px;line-height:1.65">두 가지 중 <b>하나만 골라서 동의해도 됩니다.</b> 예를 들어 상담만 받고 서류 작성은 쓰지 않을 수 있습니다.</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;margin-bottom:2px">이렇게 진행됩니다</div>
+        <div class="mdw-step"><span class="sn">1</span><div class="sb"><b>본인 확인</b><div>휴대폰 간편인증으로 본인인지 확인합니다</div></div></div>
+        <div class="mdw-step"><span class="sn">2</span><div class="sb"><b>쓸 곳 고르기</b><div>AI 상담 / 서류 작성 중 필요한 것을 고릅니다</div></div></div>
+        <div class="mdw-step"><span class="sn">3</span><div class="sb"><b>자료 보내달라고 요구하기</b><div>고른 기관에만 전송을 요구합니다</div></div></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--sub);background:#F9FAF9;border:1px solid var(--bd);border-radius:9px;padding:9px 13px;line-height:1.6">'개인정보 보호법' 제35조의2 <b style="color:var(--txt)">전송요구권</b>에 근거합니다. 법인은 등기부등본상 대표이사가 동의 주체이며, 대리인 위임 절차는 <span class="pl pl-need">확인 필요</span> — 방식 확정 후 반영됩니다.</div>
+    </div>
+
+    <!-- 1단계 · 본인 확인 (CNS-02) -->
+    <div class="md-body" data-fade id="mdwS1" style="display:none">
+      <div style="font-size:13px;color:var(--sub);line-height:1.6">본인인지 확인해야 다른 기관에 있는 내 자료를 찾을 수 있습니다.</div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">확인 방법 고르기</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="mdwAuth">
+          <div class="auth-opt sel" onclick="authPick(this)"><input type="radio" name="mdwau" checked style="pointer-events:none"><div><div class="at">휴대폰 간편인증</div><div class="ad">가장 쉬운 방법입니다</div></div></div>
+          <div class="auth-opt" onclick="authPick(this)"><input type="radio" name="mdwau" style="pointer-events:none"><div><div class="at">법인 공동인증서</div><div class="ad">법인 대표이사 명의 인증서로 확인합니다 (법인 인감과 동일 효력)</div></div></div>
+          <div class="auth-opt" onclick="authPick(this)"><input type="radio" name="mdwau" style="pointer-events:none"><div><div class="at">공동인증서 (구 공인인증서)</div><div class="ad">이미 발급받은 인증서가 있을 때</div></div></div>
+        </div>
+        <div style="font-size:11.5px;background:#FFF8EC;border:1px solid #E8C48C;border-radius:9px;padding:8px 12px;margin-top:8px;color:#B25E0D;line-height:1.6"><b>확인 필요</b> · 채택할 간편인증 기관(민간인증서 · PASS 등)은 미확정입니다.</div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">🔒 확인되는 내용</div>
+        <div style="border:1px solid var(--bd);border-radius:11px;padding:10px 14px"><table class="rcpt-tbl">
+          <tr><th>본인확인 정보</th><td>이름 · 생년월일 · 휴대전화번호</td></tr>
+          <tr><th>연계정보 (CI)</th><td>기관 간 동일인 확인용 값</td></tr>
+          <tr><th>경영체 번호</th><td>농업경영체 등록번호 · 사업자등록번호</td></tr>
+        </table></div>
+        <div style="font-size:12px;color:#24559E;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:9px;padding:9px 13px;margin-top:8px;line-height:1.65">확인에 쓰인 정보는 <b>따로 잠긴 곳에 보관</b>합니다. AI 상담에는 이름을 지운 상태로만 쓰고, 서류를 만들 때만 잠깐 꺼내 씁니다.</div>
+      </div>
+    </div>
+
+    <!-- 2단계 · 쓸 곳 고르기 (CNS-03 목적 기반 정밀 동의) -->
+    <div class="md-body" data-fade id="mdwS2" style="display:none">
+      <div style="font-size:13px;color:var(--sub);line-height:1.6">자료를 어디에 쓸지 골라주세요. <b style="color:var(--txt)">목적마다 처리 방식이 다릅니다.</b></div>
+      <label class="md-allchk"><input type="checkbox" id="mdwAllPur" onchange="mdwPurAll(this.checked)"><b>두 가지 모두 동의합니다</b><span style="font-size:12px;color:var(--sub);margin-left:auto">필요한 것만 골라도 동의할 수 있습니다</span></label>
+      <div id="mdwPurs" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div style="font-size:12px;color:#374151;background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;line-height:1.65">둘 중 <b>하나만 동의해도 됩니다.</b> ①만 동의하면 상담만 받고 서류 자동 작성은 잠기고, ②만 동의하면 서류만 만들 수 있습니다.</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label class="md-allchk" style="margin:0"><input type="checkbox" class="mdw-terms" checked><span class="tag-req" style="font-size:10px">필수</span><b style="font-size:13px">서비스 이용약관</b><span class="md-terms" style="margin-left:auto" onclick="event.preventDefault();showTerms('epis',0)">보기</span></label>
+        <label class="md-allchk" style="margin:0"><input type="checkbox" class="mdw-terms" checked><span class="tag-req" style="font-size:10px">필수</span><b style="font-size:13px">개인정보 처리방침 동의</b><span class="md-terms" style="margin-left:auto" onclick="event.preventDefault();showTerms('epis',1)">보기</span></label>
+        <label class="md-allchk" style="margin:0"><input type="checkbox"><span class="tag-opt" style="font-size:10px">선택</span><b style="font-size:13px">새 소식 · 지원사업 알림 받기</b><span style="font-size:11.5px;color:var(--sub);margin-left:auto">이벤트·지원사업 안내</span></label>
+      </div>
+    </div>
+
+    <!-- 3단계 · 보유기관·전송 항목 선택 (CNS-06) -->
+    <div class="md-body" data-fade id="mdwS3" style="display:none">
+      <div style="font-size:13px;color:var(--sub);line-height:1.6">어느 기관에 어떤 자료를 보내달라고 할지 골라주세요.</div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">🏛 자료를 요구할 기관 고르기</div>
+        <div class="org-grid">
+          <div class="org-cell sel" onclick="this.classList.toggle('sel')"><b>농정원</b><span>경영체등록 · 교육 · 정책자금</span></div>
+          <div class="org-cell sel" onclick="this.classList.toggle('sel')"><b>K-Plus</b><span>신용·재무·소비 통계 (비식별)</span></div>
+          <div class="org-cell sel" onclick="this.classList.toggle('sel')"><b>골든플래닛</b><span>유통 시세 · 마켓 데이터</span></div>
+          <div class="org-cell" onclick="this.classList.toggle('sel')"><b>KAMIS-aT</b><span>경락가 · 소매가 · 반입량</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="lbl" style="margin-bottom:8px;font-size:13px">📄 농정원에서 받을 자료</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label class="md-allchk" style="margin:0"><input type="checkbox" checked><b style="font-size:13px">농업경영체 등록정보</b><span class="pl pl-real" style="margin-left:6px">실명 한시보유</span><span style="font-size:11.5px;color:var(--sub);margin-left:auto">경영체 번호, 재배 품목·면적, 소재지</span></label>
+          <label class="md-allchk" style="margin:0"><input type="checkbox" checked><b style="font-size:13px">교육 이수 이력</b><span style="font-size:11.5px;color:var(--sub);margin-left:auto">농업교육포털 수강 이력</span></label>
+          <label class="md-allchk" style="margin:0"><input type="checkbox" checked><b style="font-size:13px">유통 실적</b><span style="font-size:11.5px;color:var(--sub);margin-left:auto">출하처, 출하량, 정산 금액</span></label>
+          <label class="md-allchk" style="margin:0"><input type="checkbox" checked><b style="font-size:13px">정책자금 수혜 내역</b><span class="pl pl-real" style="margin-left:6px">실명 한시보유</span><span style="font-size:11.5px;color:var(--sub);margin-left:auto">지원사업명, 수혜일, 금액</span></label>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#374151;background:var(--orange-bg);border:1px solid #F1DDBE;border-radius:9px;padding:9px 13px;line-height:1.6"><span class="pl pl-real">실명 한시보유</span> 표시가 붙은 자료는 <b>서류를 만들 때만</b> 이름·주소가 그대로 쓰입니다. 상담에서는 이름을 지우고 씁니다.</div>
+      <div style="font-size:11.5px;background:#FFF8EC;border:1px solid #E8C48C;border-radius:9px;padding:8px 12px;color:#B25E0D;line-height:1.6"><b>확인 필요</b> · 농정원 표준 전송요구 API 규격이 정립 단계입니다. 실제 항목은 기관 협의 후 확정됩니다.</div>
+    </div>
+
+    <!-- 4단계 · 완료 · 동의 영수증 (CNS-07) -->
+    <div class="md-body" data-fade id="mdwS4" style="display:none;text-align:center;padding-top:10px">
+      <div class="done-mini"><svg width="26" height="26" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div style="font-size:18px;font-weight:900">자료 요구가 완료되었습니다</div>
+      <div style="font-size:12.5px;color:var(--sub);line-height:1.6">농정원 · 골든플래닛에 자료를 요구했습니다.<br>도착하면 문자로 알려드립니다. (보통 1~2일)</div>
+      <div style="text-align:left;margin-top:6px">
+        <div style="font-size:12.5px;font-weight:800;margin-bottom:6px">📄 동의 영수증</div>
+        <div style="border:1px solid var(--bd);border-radius:10px;padding:10px 14px"><table class="rcpt-tbl" id="mdwRcptTbl"></table></div>
+      </div>
+      <div style="font-size:12px;color:var(--sub);background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;text-align:left;line-height:1.6">이 동의 내역은 <b style="color:var(--txt)">고칠 수 없는 암호화 기록</b>으로 보관되어 나중에 다툼이 생겨도 근거가 됩니다.</div>
+    </div>
+
+    <div class="md-foot2" id="mdwFoot"></div>
+  </div>
+</div>
+
+<!-- ══════════ 동의서 상세 ①·② (CNS-04 · CNS-05) ══════════ -->
+<div class="overlay" id="purModal" data-capture="CNS-04">
+  <div class="modal" style="width:480px;max-height:calc(100vh - 100px);display:flex;flex-direction:column">
+    <div class="m-head">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px" id="purBadgeRow"></div>
+        <div class="m-title" id="purTitle" style="font-size:18px"></div>
+      </div>
+      <button class="m-x" onclick="closeModal('purModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="m-body" style="overflow-y:auto" id="purScrollBody" data-fade><div id="purBody"></div></div>
+    <div class="md-foot2">
+      <button class="btn-decline" onclick="closeModal('purModal')">동의하지 않음</button>
+      <button class="btn-accept" onclick="purAgree()">동의합니다</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 원클릭 동의 취소 (CMG-03) ══════════ -->
+<div class="overlay" id="wdModal" data-capture="CMG-03">
+  <div class="modal">
+    <div class="m-head"><div><div class="m-title">동의 취소</div>
+      <div style="font-size:12.5px;color:var(--sub);margin-top:3px">취소할 동의를 하나씩 골라서 끌 수 있습니다. 끄면 어떻게 되는지 함께 보여드립니다.</div></div>
+      <button class="m-x" onclick="closeModal('wdModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="m-body" id="wdBody"></div>
+    <div class="m-foot" style="flex-direction:column;gap:10px;align-items:stretch">
+      <div style="font-size:12px;color:var(--g700);background:var(--g50);border:1px solid #DCEBE2;border-radius:9px;padding:9px 13px;line-height:1.6">취소는 <b>동의할 때보다 간단합니다.</b> 고르고 한 번만 확인하면 끝납니다. 고객센터에 전화하지 않아도 됩니다.</div>
+      <button class="btn btn-dan" style="width:100%" onclick="confirmWithdraw()">고른 동의 취소하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ AI 상담 근거 역추적 (USE-04 · CHT-01) ══════════ -->
+<div class="overlay" id="traceModal" data-capture="USE-04">
+  <div class="modal" style="width:480px;max-height:calc(100vh - 100px);display:flex;flex-direction:column">
+    <div class="m-head"><div class="m-title">AI 상담 근거 역추적</div>
+      <button class="m-x" onclick="closeModal('traceModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="m-body" style="overflow-y:auto;display:flex;flex-direction:column;gap:10px" data-fade>
+      <div style="background:var(--g50);border:1px solid #DCEBE2;border-radius:12px;padding:13px 16px">
+        <div style="font-size:14px;font-weight:800;line-height:1.55">"양파는 9월 셋째 주에 출하하는 것이 유리합니다"</div>
+        <div style="font-size:11.5px;color:var(--sub);margin-top:4px">2026-08-26 · AI 상담 답변</div>
+      </div>
+      <div style="font-size:13px;font-weight:800">📊 이 답변은 이런 자료에서 나왔습니다</div>
+      <div class="trace-src"><span class="pl pl-pseudo">가명처리</span><div class="tn">내 출하 이력 (최근 3년)<small>농정원 · 영수증 RCPT-U-260819-013</small></div><svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="trace-src"><span class="pl pl-pseudo">가명처리</span><div class="tn">재배 품목 · 면적<small>농정원 · 경영체 등록정보</small></div><svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="trace-src"><span class="pl" style="background:#EDF0EE;color:var(--sub)">공공데이터</span><div class="tn">양파 경락 통계 (5개년)<small>KAMIS-aT · 공공데이터</small></div><svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="trace-src"><span class="pl" style="background:#EDF0EE;color:var(--sub)">비식별 통계</span><div class="tn">소비 통계<small>K-Plus · 품목·기간·지역 단위 통계</small></div><svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      <div class="trace-note" style="background:#F5F8FD;border:1px solid #D8E4F5"><b>내 이름과 주소는 쓰이지 않았습니다.</b> 분석에는 이름을 지운 자료만 사용합니다.</div>
+      <div class="trace-note" style="background:#F9FAF9;border:1px solid var(--bd)"><b>K-Plus 자료는 개인 단위가 아닙니다.</b> 개인정보를 뺀 통계만 사용합니다.</div>
+      <div class="trace-note" style="background:#F9FAF9;border:1px solid var(--bd)">답변을 만들 때 <b>내 경영 자료 원문은 밖으로 나가지 않았습니다.</b> 요약한 숫자만 사용했습니다. (폐쇄형 원칙)</div>
+    </div>
+    <div class="m-foot"><button class="btn btn-pri" style="width:100%" onclick="closeModal('traceModal')">확인</button></div>
+  </div>
+</div>
+
+<!-- ══════════ 실명(식별정보) 사용 기록 · 감사 증적 (USE-05) ══════════ -->
+<div class="overlay" id="rnModal" data-capture="USE-05">
+  <div class="modal" style="width:480px;max-height:calc(100vh - 100px);display:flex;flex-direction:column">
+    <div class="m-head"><div class="m-title">실명 사용 기록 · 감사 증적</div>
+      <button class="m-x" onclick="closeModal('rnModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="m-body" style="overflow-y:auto;display:flex;flex-direction:column;gap:10px" data-fade>
+      <div style="font-size:12.5px;color:#B25E0D;background:var(--orange-bg);border:1px solid #F1DDBE;border-radius:10px;padding:10px 14px;line-height:1.65">이름·주소 같은 <b>실명 정보는 서류를 만들 때만</b> 꺼내 씁니다. 꺼내 쓸 때마다 아래에 기록이 남습니다.</div>
+      <div class="metric-seg"><button class="on" onclick="segPick(this)">전체 기간</button><button onclick="segPick(this)">1개월</button><button onclick="segPick(this)">특정 일자</button></div>
+      <div style="font-size:13px;font-weight:800">🔒 실명 사용 기록</div>
+      <div class="rn-row"><span class="pl pl-real">실명</span><div style="flex:1;min-width:0"><div class="rn-t">정책자금 사업계획서 작성</div><div class="rn-d">2026-08-19 16:10 · 대표자명, 사업장 주소<br>목적: 서류 자동 기입 · 사용 후 화면에서만 표시</div></div></div>
+      <div class="rn-row"><span class="pl pl-real">실명</span><div style="flex:1;min-width:0"><div class="rn-t">농업경영체 등록확인서 발급</div><div class="rn-d">2026-08-12 11:24 · 대표자명, 경영체 주소<br>목적: 서류 자동 기입</div></div></div>
+      <div class="rn-row"><span class="pl pl-real">실명</span><div style="flex:1;min-width:0"><div class="rn-t">유통 실적 증명서 발급</div><div class="rn-d">2026-07-30 09:05 · 대표자명<br>목적: 서류 자동 기입</div></div></div>
+      <div style="font-size:13px;font-weight:800;margin-top:2px">👁 관리자 열람 기록</div>
+      <div class="rn-row" style="border-style:dashed"><div style="flex:1"><div class="rn-t" style="color:var(--sub)">열람 기록 없음</div><div class="rn-d">관리자는 개별 경영체의 상세 분석 결과에 접근할 수 없습니다</div></div></div>
+      <div class="trace-note" style="background:var(--g50);border:1px solid #DCEBE2">서류 생성 동의를 취소하면 <b>보관 중인 이름·주소를 즉시 없앱니다.</b></div>
+    </div>
+    <div class="m-foot"><button class="btn btn-pri" style="width:100%" onclick="closeModal('rnModal')">확인</button></div>
+  </div>
+</div>
+
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=51"></script>
+<script src="js/app.js?v=54"></script>
 </body>
 </html>

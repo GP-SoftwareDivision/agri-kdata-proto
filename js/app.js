@@ -594,20 +594,30 @@ function doDownload(){
   const items = pickVals('dlItems');
   if(!items.length){ toast('err','받을 항목을 1개 이상 선택해주세요'); return; }
   const period = segVal('dlPeriod'), fmt = segVal('dlFormat'), method = segVal('dlMethod');
+  const fmtShort = fmt.split(' ')[0];
   if(method === '이 기기에 저장'){
-    const payload = {exported_at:nowStamp(), service:'agriG', period, items, format:fmt,
+    const payload = {exported_at:nowStamp(), service:'agriG', period, items, format:fmtShort,
       note:'기계가독형 개인데이터 내려받기 (마이데이터 공통기능)', data:{sample:'시안 데모 데이터'}};
     const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'agriG_내데이터_' + fmt.toLowerCase() + '.json'; a.click();
+    a.download = 'agriG_내데이터_' + fmtShort.toLowerCase() + '.json'; a.click();
   }
-  issueReceipt('download', '개인데이터 내려받기 ('+fmt+')', {
+  const rid = issueReceipt('download', '개인데이터 내려받기 ('+fmtShort+')', {
     '내려받기 일시': nowStamp(), '항목': items.join(', '), '기간': period,
-    '형식': fmt+' (기계가독형)', '전송 방식': method, '수신자': '정보주체 본인 (김농가)'
+    '형식': fmtShort+' (기계가독형)', '전송 방식': method, '수신자': '정보주체 본인 (김농가)'
   });
   document.getElementById('dlPick').style.display = 'none';
   document.getElementById('dlDone').style.display = '';
-  document.getElementById('dlDoneSum').innerHTML = `<b>${items.length}개 항목</b> · ${period} · ${fmt} 형식<br>${method==='이 기기에 저장'?'이 기기에 저장되었어요':method+' 방식으로 전송을 시작했어요'}`;
+  document.getElementById('dlDoneSum').innerHTML = `${method==='이 기기에 저장'?'이 기기의 내려받기 폴더에 저장했습니다':method+' 방식으로 전송을 시작했습니다'} · ${items.length}개 항목`;
+  /* 내려받기 영수증 — 필수 표기 6항목 (M6) */
+  document.getElementById('dlRcptTbl').innerHTML = [
+    ['영수증 ID', `<span class="rcpt-id" style="font-size:11.5px;color:var(--txt)">${rid}</span>`],
+    ['처리 일시', nowStamp()],
+    ['대상 기관', '제공자: agriG(골든플래닛) / 받는 자: 본인'],
+    ['데이터 항목', items.join(', ')],
+    ['활용 목적', '정보주체 본인 보관'],
+    ['파일 형식', fmtShort+' (UTF-8) · 엑셀 등에서 열 수 있음'],
+  ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
   document.getElementById('dlFoot').innerHTML = '<button class="btn btn-pri" style="width:100%" onclick="closeModal(\'dlModal\')">확인</button>';
 }
 
@@ -639,6 +649,7 @@ function openShare(){
   document.getElementById('shareStep1').style.display = '';
   document.getElementById('shareStep2').style.display = 'none';
   document.getElementById('shareDone').style.display = 'none';
+  const ss = document.getElementById('shareSearch'); if(ss){ ss.value=''; shareSearchFilter(''); }
   document.getElementById('shareStep').textContent = '1단계 · 공유할 대상과 데이터를 골라주세요';
   document.getElementById('shareFoot').innerHTML = '<button class="btn btn-neu" onclick="closeModal(\'shareModal\')">취소</button><button class="btn btn-pri" onclick="shareNext()">다음</button>';
   openModal('shareModal');
@@ -653,13 +664,21 @@ function shareNext(){
     shareStage = 2;
     document.getElementById('shareStep1').style.display = 'none';
     document.getElementById('shareStep2').style.display = '';
-    document.getElementById('shareStep').textContent = '2단계 · 이동 승인';
-    document.getElementById('shareSum').innerHTML = `<b>${org}</b>에<br><b>${items.join(', ')}</b> 데이터를 보냅니다.<br>받은 곳 보관 기간: <b>${segVal('sharePeriod')}</b>`;
-    document.getElementById('shareFoot').innerHTML = '<button class="btn btn-neu" onclick="openShare()">이전</button><button class="btn btn-pri" style="flex:1" onclick="shareNext()">이동 승인</button>';
+    document.getElementById('shareStep').textContent = '2단계 · 이동 승인 확인';
+    /* 승인 전 요약 — 보내는 사람/받는 곳/목적/자료/기간/방법 (SHR-03) */
+    document.getElementById('shareSumTbl').innerHTML = [
+      ['보내는 사람', '청송농원 · 김농가 (나)'],
+      ['받는 곳', '<b>'+org+'</b>'],
+      ['보내는 목적', (SHARE_ORGS.find(o=>o.k===org)||{}).d || '제3자 제공'],
+      ['보내는 자료', items.join(', ')],
+      ['갖고 있을 기간', '<u style="text-underline-offset:3px;text-decoration-color:var(--g400)"><b>보낸 날부터 '+segVal('sharePeriod')+'</b></u>'],
+      ['보내는 방법', '표준 연계 규격 전송 (전 구간 암호화 · TLS 1.3)'],
+    ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+    document.getElementById('shareFoot').innerHTML = '<button class="btn btn-neu" onclick="openShare()">이전</button><button class="btn btn-pri" style="flex:1" onclick="shareNext()">보내기</button>';
     return;
   }
   const org = shareTarget(), items = pickVals('shareItems'), period = segVal('sharePeriod');
-  issueReceipt('share', org+'에 데이터 공유', {
+  const rid = issueReceipt('share', org+'에 데이터 공유', {
     '공유 일시': nowStamp(), '목적': (SHARE_ORGS.find(o=>o.k===org)||{}).d || '제3자 제공',
     '제공자': '김농가 (agriG를 통해 전송)', '대상 기관': org,
     '개인데이터 항목': items.join(', '), '보유·이용 기간': period+' (기간 만료 시 파기)',
@@ -668,13 +687,316 @@ function shareNext(){
   document.getElementById('shareStep2').style.display = 'none';
   document.getElementById('shareDone').style.display = '';
   document.getElementById('shareStep').textContent = '공유가 완료되었어요';
-  document.getElementById('shareDoneSum').innerHTML = `<b>대상</b> — ${org}<br><b>항목</b> — ${items.join(', ')}<br><b>보관 기간</b> — ${period}<br><b>기록</b> — 공유 영수증 발행 완료 (이용내역에서 확인)`;
+  document.getElementById('shareDoneOrg').textContent = org+'에 안전하게 전달되었습니다.';
+  /* 공유 영수증 — 필수 표기 6항목 + 근거 동의 연결 (SHR-04) */
+  document.getElementById('shareDoneTbl').innerHTML = [
+    ['영수증 ID', `<span class="rcpt-id" style="font-size:11.5px;color:var(--txt)">${rid}</span>`],
+    ['처리 일시', nowStamp()],
+    ['대상 기관', '제공자: 김농가 / 받는 자: '+org],
+    ['데이터 항목', items.join(', ')],
+    ['활용 목적', (SHARE_ORGS.find(o=>o.k===org)||{}).d || '제3자 제공'],
+    ['보유 및 이용 기간', '보낸 날부터 '+period],
+    ['근거 동의 영수증', `<a href="#" class="rcpt-id" style="font-size:11.5px;color:var(--g700);font-weight:700" onclick="closeModal('shareModal');openReceipt('RCPT-C-260510-001');return false">RCPT-C-260510-001 ›</a>`],
+  ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
   document.getElementById('shareFoot').innerHTML = '<button class="btn btn-pri" style="width:100%" onclick="closeModal(\'shareModal\')">확인</button>';
   toast('ok','공유가 완료되었어요 — 공유 영수증이 발행되었습니다');
 }
+/* 공유 대상 검색: 일치 기관만 표시, 없으면 '아직 연결할 수 없는 곳' 안내 (SHR-01) */
+function shareSearchFilter(q){
+  q = (q||'').trim();
+  let visible = 0;
+  document.querySelectorAll('#shareOrgs .share-org').forEach(el=>{
+    const hit = !q || el.dataset.k.includes(q);
+    el.style.display = hit ? '' : 'none';
+    if(hit) visible++;
+  });
+  document.getElementById('shareEmpty').style.display = visible ? 'none' : '';
+}
+
+/* ══════════ 목적 기반 정밀 동의 — 소비처 2축 모듈 (화면설계서 v3.0) ══════════
+   마이데이터의 소비처는 ① AI 상담(가명처리) ② 행정 서류 생성(실명 한시보유) 둘뿐이며,
+   동의·관리·영수증·역추적이 모두 이 2개 목적 모듈을 기준으로 동작한다. */
+const PURPOSES = [
+  {id:'p1', no:'①', name:'출하 단가 분석용', proc:'가명처리', cls:'pl-pseudo', on:true, since:'2026-08-26',
+   easy:'내 농사 자료로 언제 얼마에 팔면 좋을지 계산해 상담해 드립니다. 이때 이름과 주소는 지우고 씁니다.',
+   data:'재배 품목·면적·물량, 소재지, 출하 실적, 교육 이수 이력',
+   org:'농정원 · 골든플래닛',
+   how:'<u>이름·상세주소·생년월일을 지우고</u> 가상 번호로 바꿔 사용 (개인정보 보호법 제28조의2 가명처리)',
+   period:'<u>서비스 이용 종료 시까지</u> · 사업 종료(2027-12-31) 후 6개월 이내 파기',
+   where:'AI 상담 (출하 시기·단가 분석, 판로 추천, 경영 리스크 진단)',
+   offNote:'끄면 AI 상담이 일반 시세 안내로만 동작합니다',
+   locks:[['AI 상담 개인화','①번에 동의하면 열립니다']]},
+  {id:'p2', no:'②', name:'정책자금 서류 생성용', proc:'실명 한시보유', cls:'pl-real', on:true, since:'2026-08-26',
+   easy:'농협에 흩어져 있는 내 경영체 자료를 받아와 정부 서식을 대신 채워 드립니다. 서류에는 실명이 들어가야 해서 이 목적에서만 이름·주소를 그대로 씁니다.',
+   data:'경영체 등록정보(경영체번호·대표자·주소), 교육 이수 이력, 유통 실적, 재무 정보',
+   org:'농림수산식품교육문화정보원 (농정원)',
+   how:'<u>서류를 만드는 동안만 이름·주소를 유지</u>하고, 그 외 용도로는 쓰지 않음 · 열람 이력 전부 기록',
+   period:'<u>서비스 이용 종료 시까지</u> · 사업 종료(2027-12-31) 후 6개월 이내 파기',
+   where:'행정 서류 자동 작성 (정부 표준 서식 4종 자동 기입 · PDF 초안 생성)',
+   offNote:'끄면 서류 자동 작성이 잠기고, 보관 중인 이름·주소를 즉시 없앱니다',
+   locks:[['행정 서류 자동 작성','②번에 동의하면 열립니다'],['정책자금 신청서 미리 채우기','②번에 동의하면 열립니다']]},
+];
+let etcConsent = {news:false};   /* 그 밖의 동의 (새 소식 알림) */
+function purposeOn(id){ const p = PURPOSES.find(x=>x.id===id); return p ? p.on : false; }
+
+/* CMG-02 목적별 동의 관리: 토글 즉시 반영 + 미동의 목적의 기능은 '잠김'으로 노출 */
+function renderPurposes(){
+  const box = document.getElementById('purList'); if(!box) return;
+  box.innerHTML = PURPOSES.map((p,i)=>`
+    <div class="pur${p.on?' on':''}">
+      <div class="pur-h">
+        <span style="font-size:14px;font-weight:900;color:var(--g700)">${p.no}</span>
+        <span class="pn">${p.name}</span>
+        <span class="pl ${p.cls}">${p.proc}</span>
+        <span class="pl ${p.on?'pl-on':'pl-off'}">${p.on?'동의 중':'동의 안 함'}</span>
+        <span class="toggle ${p.on?'on':''}" onclick="togglePurpose(${i})"></span>
+      </div>
+      <div class="pur-d">${p.on ? p.easy+' · '+(p.since?p.since+' 동의':'') : p.offNote+'. 동의하면 바로 쓸 수 있습니다.'}
+        <a href="#" style="font-weight:700;color:var(--g700);margin-left:4px" onclick="purOpen(${i});return false">동의서 자세히 보기 ›</a></div>
+    </div>`).join('') + `
+    <div class="pur" style="border-style:dashed">
+      <div class="pur-h">
+        <span class="pn" style="font-size:13.5px">새 소식 · 지원사업 알림 받기</span>
+        <span class="pl ${etcConsent.news?'pl-on':'pl-off'}">${etcConsent.news?'동의 중':'동의 안 함'}</span>
+        <span class="toggle ${etcConsent.news?'on':''}" onclick="etcConsent.news=!etcConsent.news;renderPurposes()"></span>
+      </div>
+    </div>`;
+  /* 잠긴 기능 노출 (기능 접근 제어) */
+  const locks = PURPOSES.filter(p=>!p.on).flatMap(p=>p.locks.map(l=>[p.no, ...l]));
+  document.getElementById('lockList').innerHTML = locks.length ? `
+    <div style="font-size:12px;font-weight:800;color:var(--sub);margin:2px 0 7px">🔒 지금 쓸 수 없는 기능</div>
+    <div style="display:flex;flex-direction:column;gap:7px">${locks.map(([no,t,d])=>`
+      <div class="lockrow">
+        <div class="lk"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="3" y="6.5" width="10" height="7" rx="1.5" stroke="#6E7681" stroke-width="1.5"/><path d="M5.5 6.5V5a2.5 2.5 0 0 1 5 0v1.5" stroke="#6E7681" stroke-width="1.5"/></svg></div>
+        <div style="flex:1"><div class="lt">${t}</div><div class="ld">잠김 · ${no}번에 동의하면 열립니다</div></div>
+        <button class="btn btn-out btn-sm" onclick="purOpen(${no==='①'?0:1})">동의하러 가기</button>
+      </div>`).join('')}</div>
+    <div style="font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.6">①②를 모두 끄면 서비스를 쓸 수 없어 탈퇴 절차로 넘어갑니다.</div>` : '';
+  if(typeof renderDocLockState === 'function') renderDocLockState();
+}
+function togglePurpose(i){
+  const p = PURPOSES[i];
+  if(p.on){
+    p.on = false;
+    issueReceipt('consent', p.no+' '+p.name+' 동의 철회', {
+      '철회 일시': nowStamp(), '동의 유형': '목적 동의 철회', '대상 목적': p.no+' '+p.name+' ('+p.proc+')',
+      '처리 결과': p.id==='p2' ? '서류 자동 작성 잠김 · 보관 중인 식별정보(이름·주소) 즉시 파기' : 'AI 상담 개인화 중단 (일반 시세 안내만 동작)'
+    });
+    toast('warn', p.no+' '+p.name+' 동의를 철회했어요 — 동의 영수증에 기록됩니다');
+    renderPurposes();
+  } else {
+    purOpen(i);   /* 재동의는 동의서 상세를 확인한 뒤 진행 */
+  }
+}
+
+/* CNS-04·05 동의서 상세 — 이용 목적/제공 항목/보유 기관/처리 방식/보유·이용 기간 5요소 표 */
+let purIdx = 0, purAfter = null;
+function purOpen(i, after){
+  purIdx = i; purAfter = after || null;
+  const p = PURPOSES[i];
+  document.getElementById('purBadgeRow').innerHTML =
+    `<span class="tag-req" style="background:${i?'var(--orange)':'var(--blue)'};font-size:10.5px">${p.no} ${i?'서류 생성':'분석용'}</span><span class="pl ${p.cls}">${p.proc}</span><span style="font-size:11px;color:var(--sub)">${i?'행정 서류 작성에 사용':'AI 상담에 사용'}</span>`;
+  document.getElementById('purTitle').textContent = '동의서 상세 '+p.no+' '+p.name;
+  document.getElementById('purBody').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="md-summary"><b style="font-size:14px">한 줄 요약</b><p>${p.easy}</p></div>
+      <div>
+        <div style="font-size:13px;font-weight:800;margin-bottom:6px">📋 무엇에 동의하나요?</div>
+        <div style="border:1px solid var(--bd);border-radius:11px;padding:11px 15px"><table class="pur-tbl" style="margin-top:0">
+          <tr><th>무엇에 쓰나요<br><small style="font-weight:400;color:var(--mut)">(이용 목적)</small></th><td>${p.where}</td></tr>
+          <tr><th>어떤 자료를 받나요<br><small style="font-weight:400;color:var(--mut)">(제공 항목)</small></th><td>${p.data}</td></tr>
+          <tr><th>어디에서 받나요<br><small style="font-weight:400;color:var(--mut)">(보유 기관)</small></th><td>${p.org}</td></tr>
+          <tr><th>어떻게 처리하나요<br><small style="font-weight:400;color:var(--mut)">(처리 방식)</small></th><td style="font-weight:700">${p.how}</td></tr>
+          <tr><th>얼마나 갖고 있나요<br><small style="font-weight:400;color:var(--mut)">(보유·이용 기간)</small></th><td>${p.period}</td></tr>
+        </table></div>
+        <div style="font-size:10.5px;color:var(--mut);margin-top:5px">※ 위 항목 중 핵심 문구는 본문보다 20% 크게·굵게 표기했습니다.</div>
+      </div>
+      ${i===1 ? `
+      <div style="font-size:12px;background:var(--orange-bg);border:1px solid #F1DDBE;border-radius:10px;padding:10px 14px;line-height:1.65;color:#7A4A0B">
+        <b>①번(출하 단가 분석)과 다른 점</b><br>① 분석에는 이름을 지우고 쓰지만, ② 서류에는 <b>실명이 있어야 서류가 성립</b>하므로 그 목적에서만 이름·주소를 유지합니다. 서류 만들기 외에는 쓰이지 않습니다.</div>
+      <div style="font-size:12px;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;line-height:1.65;color:#24559E">이름·주소를 꺼내 쓸 때마다 <b>기록이 남습니다.</b> [데이터 영수증 › 실명 사용 기록]에서 직접 확인할 수 있습니다.</div>` : `
+      <div style="font-size:12px;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;line-height:1.65;color:#24559E">상담 답변을 만들 때 <b>내 경영 자료 원문은 밖으로 나가지 않습니다.</b> 요약한 숫자만 사용합니다. (폐쇄형 원칙)</div>`}
+      <div class="md-rights"><b class="md-rights-lead">동의하지 않아도 됩니다.</b><br>${i===1?'동의하지 않으면 서류 자동 작성만 잠기고, AI 상담 등 다른 기능은 그대로 쓸 수 있습니다. 서류는 직접 작성해 제출할 수도 있습니다.':'동의하지 않으면 AI 상담이 내 조건을 반영한 답을 드리지 못하고 일반 시세 정보만 안내합니다. 다른 기능 이용에는 제한이 없습니다.'}</div>
+    </div>`;
+  openModal('purModal');
+}
+function purAgree(){
+  const p = PURPOSES[purIdx];
+  if(!p.on){
+    p.on = true; p.since = nowStamp().slice(0,10);
+    issueReceipt('consent', p.no+' '+p.name+' 동의', {
+      '동의 일시': nowStamp(), '동의 유형': '목적 동의 (재동의 포함)', '대상 목적': p.no+' '+p.name,
+      '처리 방식': p.proc, '제공 항목': p.data, '보유 기관': p.org.replace(/<[^>]+>/g,''),
+      '보유·이용 기간': p.period.replace(/<[^>]+>/g,''), '동의 방법': '본인 인증 후 동의서 상세 확인 · 화면 내 동의'
+    });
+    toast('ok', p.no+' '+p.name+' 동의가 완료되었어요 — 동의 영수증이 발행되었습니다');
+  }
+  renderPurposes();
+  closeModal('purModal');
+  if(purAfter === 'doc'){ purAfter=null; goDocView('s1'); }
+}
+
+/* CMG-03 원클릭 동의 취소 — 목적/그 밖의 동의 개별 선택 철회 */
+function openWithdraw(){
+  const rows = [];
+  rows.push('<div style="font-size:12.5px;font-weight:800;color:var(--sub);margin-bottom:8px">◎ 자료를 쓰는 목적 취소</div>');
+  PURPOSES.forEach((p,i)=>{
+    rows.push(`<label class="md-allchk" style="margin:0 0 8px;${p.on?'':'opacity:.45'}">
+      <input type="checkbox" class="wd-chk" data-i="${i}" ${p.on?'':'disabled'}>
+      <span class="pl ${p.cls}">${p.proc}</span><b style="font-size:13px;white-space:nowrap">${p.no} ${p.name}</b>
+      <span style="font-size:11px;color:var(--sub);margin-left:auto;text-align:right;line-height:1.5">${p.on?p.offNote:'이미 꺼져 있음'}</span></label>`);
+  });
+  rows.push('<div style="font-size:12.5px;font-weight:800;color:var(--sub);margin:10px 0 8px">◎ 그 밖의 동의 취소</div>');
+  rows.push(`<label class="md-allchk" style="margin:0 0 8px;${etcConsent.news?'':'opacity:.45'}">
+    <input type="checkbox" class="wd-chk" data-i="news" ${etcConsent.news?'':'disabled'}>
+    <b style="font-size:13px">새 소식 · 지원사업 알림</b>
+    <span style="font-size:11px;color:var(--sub);margin-left:auto">끄면 알림이 오지 않습니다</span></label>`);
+  document.getElementById('wdBody').innerHTML = rows.join('');
+  openModal('wdModal');
+}
+function confirmWithdraw(){
+  const sel = [...document.querySelectorAll('#wdModal .wd-chk:checked')];
+  if(!sel.length){ toast('err','취소할 동의를 1개 이상 골라주세요'); return; }
+  sel.forEach(c=>{
+    if(c.dataset.i === 'news'){ etcConsent.news = false; return; }
+    const p = PURPOSES[+c.dataset.i];
+    p.on = false;
+    issueReceipt('consent', p.no+' '+p.name+' 동의 철회 (원클릭)', {
+      '철회 일시': nowStamp(), '동의 유형': '목적 동의 철회', '대상 목적': p.no+' '+p.name+' ('+p.proc+')',
+      '처리 결과': p.id==='p2' ? '보관 중인 식별정보(이름·주소) 즉시 파기' : '가명 데이터 연결 키 파기 (복원 불가)'
+    });
+  });
+  renderPurposes();
+  closeModal('wdModal');
+  toast('warn','고른 동의를 취소했어요 — 처리 결과는 동의 영수증에 기록됩니다');
+}
+
+/* CMG-01 연결 대시보드 — 실시간 갱신 요청 · 데이터 삭제 */
+function connRefresh(){
+  CONNS.filter(c=>c.on).forEach(c=>c.last = nowStamp());
+  renderConns();
+  toast('ok','연결된 기관에 최신 자료 갱신을 요구했어요 — 도착하면 알려드립니다');
+}
+function connPurge(){
+  issueReceipt('use', '받아온 자료 즉시 삭제', {
+    '처리 일시': nowStamp(), '목적': '정보주체 요청에 따른 보관 데이터 삭제',
+    '대상': '연결 기관에서 받아 보관 중이던 전체 자료', '처리 결과': '즉시 삭제 완료 (연결 상태는 유지 — 다음 갱신부터 다시 수신)'
+  });
+  toast('warn','받아온 자료를 즉시 삭제했어요 — 처리 결과가 영수증에 기록됩니다');
+}
+
+/* USE-04 · USE-05 — 역추적/감사 화면 */
+function openTrace(){ openModal('traceModal'); }
+function openRealname(){ openModal('rnModal'); }
+
+/* ── 전송요구 위저드 (CNS-01~07): 고령 사용자 대응 3단계 축약 + 진행 상태 상시 표시 ── */
+let mdwStep = 0, mdwRid = null;
+const MDW_STT = ['시작', '1 / 3 단계', '2 / 3 단계', '3 / 3 단계', '완료'];
+const MDW_TITLE = ['내 자료 가져오기', '본인 확인', '쓸 곳 고르기', '자료 요구하기', '요구 완료'];
+function mdwOpen(){ mdwStep = 0; mdwRid = null; mdwRender(); openModal('mdwModal'); }
+function mdwGo(n){
+  if(n === 3 && mdwStep === 2){
+    /* 목적 최소 1개 + 필수 약관 검증 */
+    const purs = [...document.querySelectorAll('#mdwPurs .mdw-pur-chk')];
+    if(!purs.some(c=>c.checked)){ toast('err','①② 중 최소 하나의 목적에 동의해주세요'); return; }
+    if(![...document.querySelectorAll('#mdwModal .mdw-terms')].every(c=>c.checked)){ toast('err','필수 약관에 동의해주세요'); return; }
+  }
+  if(n === 4) mdwIssue();
+  mdwStep = n; mdwRender();
+}
+function mdwDecline(){
+  closeModal('mdwModal');
+  toast('info','동의하지 않으셨어요 — 불이익은 없으며, 언제든 다시 시작할 수 있습니다');
+}
+function mdwIssue(){
+  if(mdwRid) return;
+  const purs = PURPOSES.filter((p,i)=>{ const c = document.querySelector('#mdwPurs .mdw-pur-chk[data-i="'+i+'"]'); return c ? c.checked : true; });
+  purs.forEach(p=>{ p.on = true; p.since = nowStamp().slice(0,10); });
+  renderPurposes();
+  mdwRid = issueReceipt('consent', '마이데이터 전송요구 동의 (자료 가져오기)', {
+    '동의 일시': nowStamp(), '동의 유형': '신규 전송요구 동의',
+    '동의 주체': '청송농원 · 김농가',
+    '대상 기관': '제공자: 농정원 · 골든플래닛 / 제공받는 자: agriG',
+    '데이터 항목': '농업경영체 등록정보, 교육 이수 이력, 유통 실적, 정책자금 수혜 내역',
+    '활용 목적': purs.map(p=>p.no+' '+p.name+' ('+p.proc+')').join(' · '),
+    '보유 및 이용 기간': '서비스 이용 종료 시까지 (사업 종료 후 6개월 이내 파기)'
+  });
+  document.getElementById('mdwRcptTbl').innerHTML = [
+    ['영수증 ID', `<span class="rcpt-id" style="font-size:11.5px;color:var(--txt)">${mdwRid}</span>`],
+    ['처리 일시', nowStamp()],
+    ['동의 주체', '청송농원 · 김농가'],
+    ['대상 기관', '제공자: 농정원·골든플래닛 / 제공받는 자: agriG'],
+    ['데이터 항목', '경영체 등록정보, 교육 이수 이력, 유통 실적, 정책자금 수혜 내역'],
+    ['활용 목적', purs.map(p=>p.no+' '+p.name+' <span class="pl '+p.cls+'">'+p.proc+'</span>').join('<br>')],
+    ['보유 및 이용 기간', '서비스 이용 종료 시까지 (사업 종료 후 6개월 이내 파기)'],
+  ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+}
+function mdwRender(){
+  for(let i=0;i<=4;i++){ const el = document.getElementById('mdwS'+i); if(el) el.style.display = i===mdwStep ? '' : 'none'; }
+  document.getElementById('mdwBar').style.width = [8,33,58,83,100][mdwStep]+'%';
+  document.getElementById('mdwStt').textContent = MDW_STT[mdwStep];
+  document.getElementById('mdwTitle').textContent = MDW_TITLE[mdwStep];
+  if(mdwStep === 2) mdwRenderPurs();
+  const foot = document.getElementById('mdwFoot');
+  if(mdwStep === 0) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(1)">시작하기</button>';
+  else if(mdwStep === 1) foot.innerHTML = '<button class="btn-decline" onclick="mdwGo(0)">이전</button><button class="btn-accept" onclick="mdwGo(2)">휴대폰으로 확인하기</button>';
+  else if(mdwStep === 2) foot.innerHTML = '<button class="btn-decline" onclick="mdwDecline()">동의하지 않음</button><button class="btn-accept" onclick="mdwGo(3)">동의합니다</button>';
+  else if(mdwStep === 3) foot.innerHTML = '<button class="btn-decline" onclick="mdwGo(2)">이전</button><button class="btn-accept" onclick="mdwGo(4)">전송 요구하기</button>';
+  else foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="closeModal(\'mdwModal\')">확인</button>';
+}
+function mdwRenderPurs(){
+  document.getElementById('mdwPurs').innerHTML = PURPOSES.map((p,i)=>`
+    <div class="pur${p.on?' on':''}" id="mdwPur${i}">
+      <div class="pur-h" style="cursor:pointer" onclick="mdwPurToggle(${i})">
+        <input type="checkbox" class="mdw-pur-chk" data-i="${i}" ${p.on?'checked':''} onclick="event.stopPropagation();mdwPurSync()">
+        <span style="font-size:13.5px;font-weight:900;color:var(--g700)">${p.no}</span>
+        <span class="pn" style="font-size:14px">${p.name}</span>
+        <span class="pl ${p.cls}">${p.proc}</span>
+      </div>
+      <div class="pur-d">${p.easy}</div>
+      <table class="pur-tbl">
+        <tr><th>쓰는 자료</th><td>${p.data}</td></tr>
+        <tr><th>자료 주는 곳</th><td>${p.org}</td></tr>
+        <tr><th>처리 방식</th><td>${p.how}</td></tr>
+        <tr><th>쓰는 곳</th><td>${p.where}</td></tr>
+      </table>
+      <div style="margin-top:8px"><a href="#" style="font-size:12px;font-weight:800;color:var(--g700)" onclick="event.stopPropagation();purOpen(${i});return false">동의서 자세히 보기 ›</a></div>
+    </div>`).join('');
+  mdwPurSync();
+}
+function mdwPurToggle(i){
+  const c = document.querySelector('#mdwPurs .mdw-pur-chk[data-i="'+i+'"]');
+  if(c){ c.checked = !c.checked; mdwPurSync(); }
+}
+function mdwPurSync(){
+  const chks = [...document.querySelectorAll('#mdwPurs .mdw-pur-chk')];
+  chks.forEach((c,i)=>{ const card = document.getElementById('mdwPur'+i); if(card) card.classList.toggle('on', c.checked); });
+  const all = document.getElementById('mdwAllPur'); if(all) all.checked = chks.every(c=>c.checked);
+}
+function mdwPurAll(v){
+  document.querySelectorAll('#mdwPurs .mdw-pur-chk').forEach(c=>c.checked=v);
+  mdwPurSync();
+}
+function authPick(el){
+  el.parentElement.querySelectorAll('.auth-opt').forEach(o=>{ o.classList.toggle('sel', o===el); o.querySelector('input').checked = (o===el); });
+}
+
+/* ACC-01 기능별 접근 제어 — 서류 자동 작성은 ② 동의가 있어야 열림 */
+function renderDocLockState(){
+  const box = document.getElementById('lockState'); if(!box) return;
+  box.innerHTML = PURPOSES.map(p=>`
+    <div class="lockrow" style="border-style:solid">
+      <span class="pl ${p.cls}">${p.proc}</span>
+      <div style="flex:1"><div class="lt">${p.no} ${p.name}</div>
+        <div class="ld">${p.on ? (p.id==='p1'?'AI 상담은 지금도 쓸 수 있습니다':'동의 중') : '동의 안 함 · 동의하면 서류 자동 작성이 바로 열립니다'}</div></div>
+      <span class="pl ${p.on?'pl-on':'pl-off'}">${p.on?'동의 중':'동의 안 함'}</span>
+    </div>`).join('');
+}
+function unlockDocPurpose(){ purOpen(1, 'doc'); }
 
 renderConns();
 renderReceipts();
+renderPurposes();
 renderThreads();
 
 /* ══════════ 행정서류 — 내 서류함 + 4단계 위저드 ══════════ */
@@ -708,10 +1030,16 @@ const DOC_SUBTITLES = {
   s1:'표준 서식을 고르거나, 갖고 있는 서식 파일을 올려 웹 양식으로 변환하세요.',
   s2:'마이데이터로 자동입력된 값을 확인하고, 비어 있는 항목만 채워주세요.',
   s3:'실제 서식 그대로 미리 확인합니다. 초록 배경이 자동입력된 항목입니다.',
-  s4:'생성된 서류는 내 서류함(이 기기)에 보관됩니다.'
+  s4:'생성된 서류는 내 서류함(이 기기)에 보관됩니다.',
+  lock:'서류 자동 작성은 \'② 정책자금 서류 생성용\' 동의가 있어야 열립니다.'
 };
 
 function goDocView(v){
+  /* 기능별 접근 제어: ② 서류 생성용 미동의 시 작성 플로우 대신 잠김 화면 (ACC-01) */
+  if(['s1','s2','s3'].includes(v) && typeof purposeOn === 'function' && !purposeOn('p2')){
+    v = 'lock';
+    if(typeof renderDocLockState === 'function') renderDocLockState();
+  }
   document.querySelectorAll('.doc-view').forEach(el=>el.classList.remove('on'));
   const el = document.getElementById('dv-'+v);
   if(!el) return;
@@ -1720,6 +2048,18 @@ function capEnter(page){
   /* 본문만 스크롤되는 구조이므로 캡처 시 활성 페이지를 상단으로 되돌린다 */
   osScrollTop(document.querySelector('.page.active'), 0);
 }
+/* scrollIntoView 는 이 환경(OverlayScrollbars 뷰포트)에서 어긋나므로 뷰포트 scrollTop 을 직접 계산 */
+function capScroll(sel, align){
+  setTimeout(()=>{
+    const el = document.querySelector(sel); if(!el) return;
+    const page = document.querySelector('.page.active');
+    const OS = osApi(); const inst = OS && OS(page);
+    const vp = inst ? inst.elements().viewport : page;
+    let y = el.getBoundingClientRect().top - vp.getBoundingClientRect().top + vp.scrollTop;
+    if(align === 'center') y -= Math.max(0, (vp.clientHeight - el.offsetHeight)/2);
+    vp.scrollTop = Math.max(0, y - 12);
+  }, 380);
+}
 const CAPTURE_STATES = {
   'CAPTURE-001': ()=>{ capEnter(); askConsent('mois'); },
   'CAPTURE-002': ()=>{ capEnter(); askConsent('mois'); showTerms('mois',0); },
@@ -1738,6 +2078,31 @@ const CAPTURE_STATES = {
   'CAPTURE-013': ()=>{ capEnter(); openReceipt('RCPT-U-260819-014'); },
   'CAPTURE-001B': ()=>{ capEnter(); askConsent('kplus'); },
   'CAPTURE-009C': ()=>{ capEnter(); openDownload(); setTimeout(()=>{ const h=document.querySelector('#dlModal .help-q'); if(h){ h.classList.add('force'); positionHelpTip(h); } }, 300); },
+  /* ── 화면설계서 v3.0 화면 ID 기준 증빙 상태 ── */
+  'CNS-01': ()=>{ capEnter(); mdwOpen(); },
+  'CNS-02': ()=>{ capEnter(); mdwOpen(); mdwGo(1); },
+  'CNS-03': ()=>{ capEnter(); mdwOpen(); mdwGo(2); },
+  'CNS-04': ()=>{ capEnter(); purOpen(0); },
+  'CNS-05': ()=>{ capEnter(); purOpen(1); },
+  'CNS-06': ()=>{ capEnter(); mdwOpen(); mdwStep=2; mdwRender(); mdwStep=3; mdwRender(); },
+  'CNS-07': ()=>{ capEnter(); mdwOpen(); mdwGo(4); },
+  'CMG-01': ()=>{ capEnter(); capScroll('[data-capture="CAPTURE-004"]'); },
+  'CMG-02': ()=>{ capEnter(); PURPOSES[1].on=false; renderPurposes(); capScroll('[data-capture="CMG-02"]'); },
+  'CMG-03': ()=>{ capEnter(); openWithdraw(); setTimeout(()=>{ const c=document.querySelector('#wdModal .wd-chk'); if(c) c.checked=true; }, 250); },
+  'CMG-04': ()=>{ capEnter(); openModal('quitModal'); },
+  'DLD-01': ()=>{ capEnter(); capScroll('[data-capture="CAPTURE-008"]','center'); },
+  'DLD-02': ()=>{ capEnter(); openDownload(); },
+  'DLD-03': ()=>{ capEnter(); openDownload(); setTimeout(()=>doDownload(), 300); },
+  'SHR-01': ()=>{ capEnter(); openShare(); },
+  'SHR-03': ()=>{ capEnter(); openShare(); setTimeout(()=>shareNext(), 300); },
+  'SHR-04': ()=>{ capEnter(); openShare(); setTimeout(()=>{ shareNext(); setTimeout(()=>shareNext(), 200); }, 300); },
+  'USE-01': ()=>{ capEnter(); capScroll('[data-capture="CAPTURE-012"]'); },
+  'USE-02': ()=>{ capEnter(); rcptFilter='consent'; renderReceipts(); capScroll('[data-capture="CAPTURE-012"]'); },
+  'USE-03': ()=>{ capEnter(); openReceipt('RCPT-U-260819-014'); },
+  'USE-04': ()=>{ capEnter(); openTrace(); },
+  'USE-05': ()=>{ capEnter(); openRealname(); },
+  'DOC-01': ()=>{ capEnter('docs'); goDocView('s2'); },
+  'ACC-01': ()=>{ PURPOSES[1].on=false; capEnter('docs'); goDocView('s1'); },
 };
 (function(){
   const m = location.hash.match(/cap=([A-Z0-9-]+)/);
