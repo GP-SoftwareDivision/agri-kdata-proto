@@ -35,7 +35,7 @@ function nav(id){
   }, 180);
   if(typeof closeNotif === 'function') closeNotif();
   if(id !== 'map' && $mapTip) $mapTip.classList.remove('show');
-  window.scrollTo({top:0});
+  if(typeof osScrollTop === 'function') osScrollTop(pg, 0);
 }
 
 /* ══════════ amCharts 시세 차트 ══════════ */
@@ -166,26 +166,26 @@ document.querySelectorAll('.overlay').forEach(ov=>{
 /* ── 데이터 모델: 기관별 동의 = 필수/선택 항목으로 구성 (목적·항목·보유기간 명시) ── */
 const CONNS = [
   {id:'epis', name:'농정원 (EPIS)', icon:'g', on:true, date:'2026-05-10',
-   easy:'농정원이 가진 내 경영체 정보와 교육 이력을 불러와서, 서류를 자동으로 채우고 내 품목에 맞는 시세·교육을 추천하는 데 써요.',
+   easy:'경영체 정보와 교육 이력으로 서류를 자동으로 채우고, 내 품목 시세를 추천해요.',
    items:[
      {k:'농업경영체 등록정보', req:true, on:true, purpose:'행정서류 자동 입력, 본인 농가 확인', fields:'경영체등록번호, 재배 품목·면적, 농지 소재지', period:'동의 철회 또는 회원 탈퇴 시까지'},
      {k:'교육 이수 이력', req:true, on:true, purpose:'서류 첨부용 이수 확인, 의무교육 안내', fields:'교육 과정명, 이수일, 이수 여부', period:'동의 철회 또는 회원 탈퇴 시까지'},
      {k:'경락 시세 이력', req:false, tag:'맞춤 추천', on:true, purpose:'내 품목 기준 시세·출하시점 맞춤 추천', fields:'출하 품목별 경락 가격·물량', period:'수집일로부터 1년'},
    ]},
   {id:'nts', name:'공공마이데이터 — 국세청', icon:'b', on:true, date:'2026-06-02',
-   easy:'국세청 증명서(사업자등록증명·소득금액증명 등)를 내 동의로 받아와, 정책자금 신청서에 자동으로 첨부해줘요.',
+   easy:'사업자등록증명 등 국세청 증명서를 정책자금 신청서에 자동으로 첨부해요.',
    items:[
      {k:'사업자등록증명', req:true, on:true, purpose:'행정서류 증빙 자동 첨부', fields:'사업자등록번호, 상호, 개업일', period:'서류 생성 시 1회 수신 후 즉시 파기'},
      {k:'소득금액증명 · 납세증명', req:true, on:true, purpose:'정책자금 심사용 증빙 자동 첨부', fields:'연도별 소득금액, 납세 사실', period:'서류 생성 시 1회 수신 후 즉시 파기'},
    ]},
   {id:'mois', name:'공공마이데이터 — 행정안전부', icon:'b', on:false, date:null,
-   easy:'주민등록등본 같은 행정 증명서를 내 동의로 받아와, 서류에 자동으로 첨부해줘요.',
+   easy:'주민등록등본 등 행정 증명서를 서류에 자동으로 첨부해요.',
    items:[
      {k:'주민등록표 등·초본', req:true, on:false, purpose:'행정서류 증빙 자동 첨부', fields:'성명, 주소, 세대 구성', period:'서류 생성 시 1회 수신 후 즉시 파기'},
      {k:'지방세 납세증명', req:false, tag:'서류 첨부', on:false, purpose:'일부 서식의 선택 증빙 첨부', fields:'지방세 납부 사실', period:'서류 생성 시 1회 수신 후 즉시 파기'},
    ]},
   {id:'kplus', name:'케이플러스 (금융·소비)', icon:'o', on:true, date:'2026-06-20',
-   easy:'법인 신용정보와 소비 패턴을 분석해, 경영 위험(원가 급증 등)을 미리 알려주는 데 써요.',
+   easy:'신용정보와 소비 패턴을 분석해 경영 위험을 미리 알려드려요.',
    items:[
      {k:'법인 신용정보', req:true, on:true, purpose:'경영 리스크 이상탐지 알림', fields:'신용등급, 연체 여부', period:'동의 철회 시까지 (분기별 갱신)'},
      {k:'카드 소비 패턴', req:false, tag:'경영 분석', on:true, purpose:'원가 급증 감지 등 경영 분석 고도화', fields:'업종별 카드 지출 요약(개별 결제내역 제외)', period:'수집일로부터 6개월'},
@@ -239,20 +239,24 @@ function renderReceipts(){
     <div class="rcpt-row" onclick="openReceipt('${r.id}')">
       <span class="rt ${R_TYPE[r.type].cls}">${R_TYPE[r.type].n}</span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13.5px;font-weight:700">${r.title}</div>
+        <div class="rrt" style="font-size:13.5px;font-weight:700">${r.title}</div>
         <div class="rcpt-id">${r.id}</div>
       </div>
       <span style="font-size:12px;color:var(--sub);white-space:nowrap">${r.date}</span>
       <svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.5" stroke-linecap="round"/></svg>
     </div>`).join('')
-    : '<div style="padding:26px;text-align:center;font-size:13px;color:var(--sub)">해당 유형의 영수증이 아직 없어요.</div>';
+    : '<div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:var(--sub)">해당 유형의 영수증이 아직 없어요.</div>';
 }
 function openReceipt(id){
   const r = RECEIPTS.find(x=>x.id===id); if(!r) return;
-  document.getElementById('rcptTitle').innerHTML = `<span class="rt ${R_TYPE[r.type].cls}" style="margin-right:8px;vertical-align:2px">${R_TYPE[r.type].n} 영수증</span>${r.title}`;
-  document.getElementById('rcptId').textContent = r.id + ' · 발행 ' + r.date;
-  let html = '<table class="md-detail" style="display:table;border:none;background:none;padding:0"><tbody>' +
-    Object.entries(r.rows).map(([k,v])=>`<tr><th style="width:110px">${k}</th><td>${v}</td></tr>`).join('') + '</tbody></table>';
+  const badge = document.getElementById('rcptBadge');
+  badge.className = 'rt ' + R_TYPE[r.type].cls;
+  badge.textContent = R_TYPE[r.type].n + ' 영수증';
+  document.getElementById('rcptId').textContent = r.id;
+  document.getElementById('rcptTitle').textContent = r.title;
+  const rows = Object.assign({'발행 일시': r.date}, r.rows);
+  let html = '<table class="rcpt-tbl"><tbody>' +
+    Object.entries(rows).map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('') + '</tbody></table>';
   if(r.base){
     html += `<div style="margin-top:12px;font-size:12.5px;background:var(--g50);border:1px solid #DCEBE2;border-radius:10px;padding:10px 14px">이 이용의 근거가 된 동의: <a href="#" style="font-weight:700;font-family:Menlo,monospace;font-size:11.5px" onclick="openReceipt('${r.base}');return false">${r.base}</a></div>`;
   }
@@ -275,38 +279,64 @@ const ICON_SVG = {
 };
 let pendingConn = null;
 const connOpen = {};
+function connMetaText(c){
+  const onCnt = c.items.filter(i=>i.on).length;
+  return `${c.on&&c.date ? '동의일 '+c.date+' · ' : ''}동의 ${onCnt}/${c.items.length}개 항목`;
+}
 function renderConns(){
   const box = document.getElementById('connList'); if(!box) return;
   box.innerHTML = CONNS.map(c=>{
-    const onCnt = c.items.filter(i=>i.on).length;
     const itemsHtml = c.items.map((it,ii)=>`
       <div class="ci-row">
         <span class="${it.req?'tag-req':'tag-opt'}" style="font-size:10px">${it.req?'필수':'선택'}</span>
         <span class="nm">${it.k}${it.tag?` <span style="font-size:11px;color:var(--mut)">· ${it.tag}</span>`:''}</span>
-        <span class="${it.on?'st-on':'st-off'}">${it.on?'동의함':'철회됨'}</span>
-        <span class="toggle ${it.on?'on':''}" onclick="toggleItem('${c.id}',${ii})"></span>
+        <span class="${it.on?'st-on':'st-off'}" id="st-${c.id}-${ii}">${it.on?'동의함':'철회됨'}</span>
+        <span class="toggle ${it.on?'on':''}" id="tg-${c.id}-${ii}" onclick="toggleItem('${c.id}',${ii})"></span>
       </div>`).join('');
     return `
-    <div class="conn" style="flex-direction:column;align-items:stretch">
+    <div class="dconn" style="flex-direction:column;align-items:stretch">
       <div style="display:flex;align-items:center;gap:16px">
         <div class="conn-ic" style="background:${ICON_BG[c.icon]}">${ICON_SVG[c.icon]}</div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:8px"><b style="font-size:14.5px">${c.name}</b>
             ${c.on ? '<span class="badge bg-ok" style="font-size:11.5px">연동중</span>' : '<span class="badge bg-mut">미연동</span>'}</div>
-          <div style="font-size:12px;color:var(--sub);margin-top:3px">${c.on&&c.date ? '동의일 '+c.date+' · ' : ''}동의 ${onCnt}/${c.items.length}개 항목</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:3px" id="meta-${c.id}">${connMetaText(c)}</div>
         </div>
         ${c.on
-          ? `<button class="btn btn-neu btn-sm" onclick="connOpen['${c.id}']=!connOpen['${c.id}'];renderConns()">${connOpen[c.id]?'접기':'항목 관리'}</button>
+          ? `<button class="btn btn-neu btn-sm" id="cbtn-${c.id}" onclick="toggleConnItems('${c.id}')">${connOpen[c.id]?'접기':'항목 관리'}</button>
              <button class="btn btn-dan-out btn-sm" onclick="askRevoke('${c.id}')">전체 철회</button>`
           : `<button class="btn btn-pri btn-sm" onclick="askConsent('${c.id}')">연동 동의</button>`}
       </div>
-      ${c.on && connOpen[c.id] ? `<div class="conn-items">${itemsHtml}</div>` : ''}
+      ${c.on ? `<div class="conn-items" id="ci-${c.id}"><div class="ci-inner">${itemsHtml}</div></div>` : ''}
     </div>`;
   }).join('');
   const n = CONNS.filter(c=>c.on).length;
   document.getElementById('connSummary').textContent = `${n} / ${CONNS.length} 기관 연동중`;
+  /* 이전에 열려 있던 항목 패널은 트랜지션 없이 즉시 해당 높이로 복원 */
+  CONNS.forEach(c=>{
+    if(c.on && connOpen[c.id]){
+      const el = document.getElementById('ci-'+c.id);
+      if(el) el.style.maxHeight = el.scrollHeight + 'px';
+    }
+  });
 }
-/* 항목별 즉시 변경: 선택=바로 토글+영수증, 필수 철회=기관 해지 확인으로 연결 */
+/* 항목 관리 아코디언: 부드러운 펼침·접힘 (전체 재렌더 없이 해당 패널만 애니메이션) */
+function toggleConnItems(id){
+  connOpen[id] = !connOpen[id];
+  const box = document.getElementById('ci-'+id);
+  const btn = document.getElementById('cbtn-'+id);
+  if(btn) btn.textContent = connOpen[id] ? '접기' : '항목 관리';
+  if(!box) return;
+  if(connOpen[id]){
+    box.style.maxHeight = box.scrollHeight + 'px';
+  } else {
+    box.style.maxHeight = box.scrollHeight + 'px';
+    void box.offsetHeight;              /* 강제 리플로우로 시작값 확정 후 닫기 */
+    box.style.maxHeight = '0px';
+  }
+}
+/* 항목별 즉시 변경: 선택=바로 토글+영수증, 필수 철회=기관 해지 확인으로 연결
+   전체 재렌더 대신 해당 토글·상태 텍스트만 갱신해 토글 애니메이션과 아코디언 상태를 그대로 유지 */
 function toggleItem(cid, ii){
   const c = CONNS.find(x=>x.id===cid); const it = c.items[ii];
   if(it.req && it.on){ askRevoke(cid, it.k); return; }
@@ -315,7 +345,12 @@ function toggleItem(cid, ii){
     '동의 일시': nowStamp(), '동의 유형': it.on?'재동의':'동의 철회', '대상 항목': it.k+' ('+(it.req?'필수':'선택')+')',
     '수집·이용 목적': it.purpose, '보유·이용 기간': it.period, '처리 결과': it.on?'수집·이용 재개':'수집 중단 및 기존 데이터 파기'
   });
-  renderConns();
+  const tgEl = document.getElementById('tg-'+cid+'-'+ii);
+  const stEl = document.getElementById('st-'+cid+'-'+ii);
+  if(tgEl) tgEl.classList.toggle('on', it.on);
+  if(stEl){ stEl.textContent = it.on?'동의함':'철회됨'; stEl.className = it.on?'st-on':'st-off'; }
+  const metaEl = document.getElementById('meta-'+cid);
+  if(metaEl) metaEl.textContent = connMetaText(c);
   toast(it.on?'ok':'warn', '"'+it.k+'" 항목을 '+(it.on?'재동의했어요':'철회했어요 — 동의 영수증에 기록됩니다'));
 }
 function askRevoke(id, itemName){
@@ -347,15 +382,18 @@ function askConsent(id){
         <input type="checkbox" class="md-chk" data-req="${it.req?1:0}" onclick="event.stopPropagation();mdCheckState()">
         <div class="t">${it.k}${it.tag?` <span class="tag-opt" style="margin-left:4px">${it.tag}</span>`:''}
           <small>${it.purpose}</small></div>
-        <span class="md-terms" onclick="event.stopPropagation();showTerms('${pendingConn.id}',${ii})">약관 보기 ›</span>
-        <svg class="md-arrow" width="11" height="7" viewBox="0 0 10 6" fill="none" style="cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();document.getElementById('mdi-${ii}').classList.toggle('open')"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="md-terms" onclick="event.stopPropagation();mdToggleDetail(${ii})">펼치기</span>
+        <svg class="md-arrow" width="11" height="7" viewBox="0 0 10 6" fill="none" style="cursor:pointer;flex-shrink:0" onclick="event.stopPropagation();mdToggleDetail(${ii})"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg>
       </div>
-      <div class="md-detail">
-        <table>
-          <tr><th>수집·이용 목적</th><td><u>${it.purpose}</u></td></tr>
-          <tr><th>수집 항목</th><td>${it.fields}</td></tr>
-          <tr><th>보유·이용 기간</th><td><u>${it.period}</u></td></tr>
-        </table>
+      <div class="md-detail" id="mdd-${ii}">
+        <div class="md-detail-in">
+          <span class="md-terms-link" onclick="event.stopPropagation();showTerms('${pendingConn.id}',${ii})">약관 상세보기 ›</span>
+          <table>
+            <tr><th>수집·이용 목적</th><td><u>${it.purpose}</u></td></tr>
+            <tr><th>수집 항목</th><td>${it.fields}</td></tr>
+            <tr><th>보유·이용 기간</th><td><u>${it.period}</u></td></tr>
+          </table>
+        </div>
       </div>
     </div>`;
   document.getElementById('reqItems').innerHTML = pendingConn.items.map((it,ii)=>it.req?mk(it,ii):'').join('');
@@ -364,6 +402,23 @@ function askConsent(id){
   document.getElementById('allChk').checked = false;
   mdCheckState();
   openModal('consentModal');
+}
+/* 동의 항목 상세 아코디언: 부드러운 펼침·접힘 */
+function mdToggleDetail(ii){
+  const item = document.getElementById('mdi-'+ii);
+  const box = document.getElementById('mdd-'+ii);
+  if(!item || !box) return;
+  const willOpen = !item.classList.contains('open');
+  item.classList.toggle('open', willOpen);
+  const label = item.querySelector('.md-terms');
+  if(label) label.textContent = willOpen ? '접기' : '펼치기';
+  if(willOpen){
+    box.style.maxHeight = box.scrollHeight + 'px';
+  } else {
+    box.style.maxHeight = box.scrollHeight + 'px';
+    void box.offsetHeight;              /* 강제 리플로우로 시작값 확정 후 닫기 */
+    box.style.maxHeight = '0px';
+  }
 }
 function mdItemCheck(ii){
   const el = document.querySelector('#mdi-'+ii+' .md-chk');
@@ -576,7 +631,7 @@ function goDocView(v){
   if(v==='home') renderDocList();
   if(v==='s1') renderTpls();
   if(v==='s3') buildPreview();
-  window.scrollTo({top:0});
+  if(typeof osScrollTop === 'function') osScrollTop(document.getElementById('page-docs'), 0);
 }
 function openDocs(v){ nav('docs'); goDocView(v); }
 
@@ -778,6 +833,8 @@ function widgetOptions(extra){
     apiBase: apiBase(),
     tenantId: 'demo-tenant',
     userName: '김농가',
+    title: '알농이',
+    subtitle: '시세 · 판로 · 행정 상담',
     assetsBase: 'vendor/agri-chat/assets/',
     theme: {accent:'#0E7A46', 'accent-ink':'#ffffff'},
     colorScheme: 'light',
@@ -1562,6 +1619,8 @@ function capEnter(page){
   document.getElementById('fab').classList.remove('hidden');
   document.getElementById('chatPanel').classList.remove('hidden');
   nav(page||'mypage');
+  /* 본문만 스크롤되는 구조이므로 캡처 시 활성 페이지를 상단으로 되돌린다 */
+  osScrollTop(document.querySelector('.page.active'), 0);
 }
 const CAPTURE_STATES = {
   'CAPTURE-001': ()=>{ capEnter(); askConsent('mois'); },
@@ -1589,3 +1648,73 @@ const CAPTURE_STATES = {
     setTimeout(()=>CAPTURE_STATES[m[1]](), 200);
   }
 })();
+
+/* ══════════ 오버레이 스크롤바 ══════════
+   네이티브 스크롤바는 표시될 때 가로 폭을 잠식해 레이아웃이 흔들린다.
+   OverlayScrollbars 로 콘텐츠 위에 겹쳐 그려 폭 변화를 없애고,
+   스크롤 중 또는 스크롤바 영역 hover 시에만 보이게 한다. */
+const OS_OPT = {
+  scrollbars:{ theme:'os-theme-agri', autoHide:'never', clickScroll:true },
+  overflow:{ x:'hidden', y:'scroll' }
+};
+const OS_HIDE_DELAY = 900;   /* 스크롤이 멈춘 뒤 숨기기까지 */
+const OS_EDGE = 22;          /* 스크롤바로 인식하는 우측 가장자리 폭(px) */
+/* 브라우저 번들은 OverlayScrollbarsGlobal 네임스페이스로 노출된다 */
+function osApi(){
+  const g = window.OverlayScrollbarsGlobal;
+  return (g && g.OverlayScrollbars) || window.OverlayScrollbars || null;
+}
+function osInit(el, opt){
+  const OS = osApi();
+  if(!el || !OS) return null;
+  if(OS(el)) return OS(el);                                 /* 중복 초기화 방지 */
+  const inst = OS(el, opt || OS_OPT);
+  osBindReveal(el, inst);
+  return inst;
+}
+/* 스크롤 중 또는 스크롤바 영역 hover 시에만 스크롤바를 노출한다 */
+function osBindReveal(host, inst){
+  const els = inst.elements();
+  const vp = els.viewport;
+  const bars = [els.scrollbarVertical, els.scrollbarHorizontal]
+    .filter(Boolean).map(b=>b.scrollbar).filter(Boolean);
+  if(!bars.length) return;
+  let hideTimer = 0, nearEdge = false;
+  const show = ()=>bars.forEach(b=>b.classList.add('is-shown'));
+  const hide = ()=>{ if(!nearEdge) bars.forEach(b=>b.classList.remove('is-shown')); };
+  const flash = ()=>{ show(); clearTimeout(hideTimer); hideTimer = setTimeout(hide, OS_HIDE_DELAY); };
+  vp.addEventListener('scroll', flash, {passive:true});
+  if(els.scrollEventElement && els.scrollEventElement !== vp) els.scrollEventElement.addEventListener('scroll', flash, {passive:true});
+  if(typeof inst.on === 'function') inst.on('scroll', flash);   /* 라이브러리 이벤트로 보강 */
+  host.addEventListener('mousemove', e=>{
+    const r = host.getBoundingClientRect();
+    const near = (r.right - e.clientX) <= OS_EDGE;
+    if(near === nearEdge) return;
+    nearEdge = near;
+    if(near){ clearTimeout(hideTimer); show(); }
+    else { clearTimeout(hideTimer); hideTimer = setTimeout(hide, 200); }
+  });
+  host.addEventListener('mouseleave', ()=>{ nearEdge = false; clearTimeout(hideTimer); hideTimer = setTimeout(hide, 200); });
+  /* 스크롤바 자체에 커서가 올라가 있는 동안은 계속 표시 */
+  bars.forEach(b=>{
+    b.addEventListener('mouseenter', ()=>{ nearEdge = true; clearTimeout(hideTimer); show(); });
+    b.addEventListener('mouseleave', ()=>{ nearEdge = false; hideTimer = setTimeout(hide, 200); });
+  });
+}
+/* 실제 스크롤되는 엘리먼트 (OverlayScrollbars 적용 시 내부 viewport) */
+function osScroller(el){
+  if(!el) return null;
+  const OS = osApi();
+  const inst = OS && OS(el);
+  return inst ? inst.elements().viewport : el;
+}
+function osScrollTop(el, v){ const s = osScroller(el); if(s) s.scrollTop = v; }
+function initScrollAreas(){
+  if(!osApi()) return;
+  document.querySelectorAll('.page').forEach(p=>osInit(p));
+  /* innerHTML 이 통째로 교체되는 영역은 바깥 래퍼를 스크롤 호스트로 삼는다
+     (호스트를 직접 교체하면 라이브러리가 만든 viewport 구조가 사라진다) */
+  ['rcptScroll','rankScroll','termsScrollBody','rcptScrollBody','notifScroll'].forEach(id=>osInit(document.getElementById(id)));
+  document.querySelectorAll('.md-body').forEach(el=>osInit(el));
+}
+initScrollAreas();
