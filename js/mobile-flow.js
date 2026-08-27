@@ -1,0 +1,377 @@
+/* ═══════════════════════════════════════════════════════════════
+   agriG 모바일 UX Flow 프로토타입 (html.m 전용)
+   - 목적: 실기능이 아니라 "모바일에서의 입력 순서·화면 전환·정보 노출" 검증
+   - 데이터는 전부 Mock + 로컬 state. PC 플로우(app.js)는 건드리지 않는다.
+   구성:
+   ① 전체 메뉴 — 탭바 '전체' → 바둑판 그리드 (사이드바 대체)
+   ② 몰입 모드 — 프로세스 진행 중 헤더·탭바 숨김, 좌상단 취소/이전
+   ③ 행정서류 작성 6단계 플로우 (한 화면 = 한 질문)
+   ④ 내려받기·공유 바텀시트의 단계형 분할 (Progressive Disclosure)
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+var M = document.documentElement.classList.contains('m');
+var CAP = document.documentElement.classList.contains('cap-mode');
+if(!M) return;   /* PC에는 아무 영향도 주지 않는다 */
+
+/* ══════════ ① 전체 메뉴 (바둑판) ══════════ */
+var AM_SVC = [
+  {nav:'dashboard', n:'대시보드',   d:'시세 · 예측 · 오늘 할 일', bg:'var(--g100)',    ic:'<rect x="2.5" y="2.5" width="5.5" height="7" rx="1.2"/><rect x="10" y="2.5" width="5.5" height="4.5" rx="1.2"/><rect x="10" y="9" width="5.5" height="6.5" rx="1.2"/><rect x="2.5" y="11.5" width="5.5" height="4" rx="1.2"/>', c:'#0E7A46'},
+  {nav:'chatbot',   n:'AI 챗봇',    d:'출하 시기 · 판로 상담', bg:'var(--blue-bg)', ic:'<path d="M9 2.5C5.1 2.5 2 5 2 8.2C2 10.2 3.2 12 5.1 13L4.4 15.7C4.3 16 4.6 16.2 4.9 16L8.2 13.9C8.5 13.9 8.7 14 9 14C12.9 14 16 11.4 16 8.2C16 5 12.9 2.5 9 2.5Z"/>', c:'#2E6BD6'},
+  {nav:'map',       n:'판로 지도',  d:'전국 경락가 · 판로 찾기', bg:'var(--orange-bg)', ic:'<path d="M9 16C9 16 14.5 11.5 14.5 7.5C14.5 4.5 12 2 9 2C6 2 3.5 4.5 3.5 7.5C3.5 11.5 9 16 9 16Z"/><circle cx="9" cy="7.5" r="2"/>', c:'#E17A17'},
+  {nav:'docs',      n:'행정서류',   d:'서식 자동 작성 · 내 서류함', bg:'var(--g100)', ic:'<path d="M4 2.5H11L14.5 6V15.5H4V2.5Z"/><path d="M11 2.5V6H14.5"/><path d="M6.5 9.5H12M6.5 12H12"/>', c:'#0E7A46'},
+  {nav:'mypage',    n:'내 데이터 관리', d:'동의 · 영수증 · 내려받기', bg:'var(--blue-bg)', ic:'<circle cx="9" cy="6" r="3"/><path d="M3.5 15.5C3.5 12.7 6 11 9 11C12 11 14.5 12.7 14.5 15.5"/>', c:'#2E6BD6'},
+  {nav:'design',    n:'디자인시스템', d:'컴포넌트 데모', bg:'#EFEAFB', ic:'<circle cx="9" cy="9" r="6.5"/><path d="M9 2.5C9 2.5 11.5 5.5 11.5 9C11.5 12.5 9 15.5 9 15.5"/><path d="M2.8 7H15.2M2.8 11H15.2"/>', c:'#6D4FC4'},
+];
+var AM_QUICK = [
+  {fn:'mdwOpen',      n:'내 자료 가져오기', d:'마이데이터 전송요구'},
+  {fn:'amRcpt',       n:'데이터 영수증',    d:'이용내역 확인'},
+  {fn:'openDownload', n:'내 데이터 내려받기', d:'파일로 저장'},
+  {fn:'openShare',    n:'제3자 선별 공유',  d:'원하는 곳에만 보내기'},
+  {fn:'openRealname', n:'실명 사용 기록',   d:'이름·주소 사용 내역'},
+  {fn:'openTrace',    n:'AI 상담 근거',     d:'답변 근거 역추적'},
+];
+function svgWrap(paths, color){
+  return '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">'+paths+'</svg>';
+}
+function renderAllMenu(){
+  var svc = document.getElementById('amSvc'); if(!svc) return;
+  svc.innerHTML = AM_SVC.map(function(s){
+    return '<button class="am-cell" data-nav="'+s.nav+'" onclick="amGo(\''+s.nav+'\')">'
+      +'<div class="ic" style="background:'+s.bg+'">'+svgWrap(s.ic, s.c)+'</div>'
+      +'<b>'+s.n+'</b><span>'+s.d+'</span></button>';
+  }).join('');
+  document.getElementById('amQuick').innerHTML = AM_QUICK.map(function(q){
+    return '<button class="am-cell" onclick="amRun(\''+q.fn+'\')">'
+      +'<b>'+q.n+'</b><span>'+q.d+'</span></button>';
+  }).join('');
+}
+window.toggleAllMenu = function(force){
+  var el = document.getElementById('allMenu');
+  var open = (force === undefined) ? !el.classList.contains('open') : !!force;
+  el.classList.toggle('open', open);
+  /* '전체' 탭 활성 표시 — 닫으면 현재 페이지 탭으로 복원 */
+  document.getElementById('tbAll').classList.toggle('active', open);
+  if(open){
+    renderAllMenu();
+    document.querySelectorAll('#amSvc .am-cell').forEach(function(c){
+      c.classList.toggle('now', c.dataset.nav === window.currentPage);
+    });
+    document.querySelectorAll('.tb-item[data-nav]').forEach(function(b){ b.classList.remove('active'); });
+  } else {
+    document.querySelectorAll('.tb-item[data-nav]').forEach(function(b){
+      b.classList.toggle('active', b.dataset.nav === window.currentPage);
+    });
+  }
+};
+window.amGo = function(page){ toggleAllMenu(false); nav(page); };
+window.amRun = function(fn){
+  toggleAllMenu(false);
+  if(fn === 'amRcpt'){ nav('mypage'); if(typeof capScroll === 'function') capScroll('[data-capture="CAPTURE-012"]'); return; }
+  if(typeof window[fn] === 'function') window[fn]();
+};
+/* 탭으로 페이지 이동 시 전체 메뉴가 열려 있으면 닫는다 */
+var _nav = window.nav;
+window.nav = function(id){
+  var am = document.getElementById('allMenu');
+  if(am && am.classList.contains('open')) toggleAllMenu(false);
+  _nav(id);
+};
+
+/* ══════════ ② 몰입 모드 ══════════ */
+function focusOn(){ document.documentElement.classList.add('focus'); }
+function focusOff(){ document.documentElement.classList.remove('focus'); }
+
+/* ══════════ ③ 행정서류 작성 — 몰입형 6단계 플로우 ══════════ */
+/* Mock 데이터 — 실데이터·API 없이 로컬 state로만 동작 */
+var MDOC_TPLS = [
+  {n:'농업경영회생자금 신청서', org:'농림축산식품부', auto:'7/8 자동'},
+  {n:'면세유 배정 신청서',      org:'지역 농협',       auto:'6/7 자동'},
+  {n:'농업경영체 변경 신고서',  org:'국립농산물품질관리원', auto:'8/9 자동'},
+  {n:'재해보험 가입 신청서',    org:'지역 농협 · NH손해보험', auto:'5/8 자동'},
+];
+var MDOC_LOADS = ['간편인증 본인 확인', '농정원 경영체 정보 조회', '국세청 증빙 서류 수신', '서식에 자동 기입'];
+var MDOC_FIELDS = [
+  {l:'성명 / 법인명',       v:'김농가',                     src:'자동 · 간편인증', real:true},
+  {l:'농업경영체 등록번호', v:'1234-5678-9012',             src:'자동 · 농정원'},
+  {l:'사업자등록번호',      v:'123-45-67890',               src:'자동 · 공공마이데이터'},
+  {l:'주소 (농지 소재지)',  v:'경상북도 청송군 청송읍 ○○리 123', src:'자동 · 농정원', real:true},
+  {l:'재배 품목 · 면적',    v:'양파 · 1.2 ha (노지)',       src:'자동 · 농정원'},
+  {l:'전년도 출하 실적',    v:'96톤 · 118,400천원',         src:'자동 · 유통 데이터'},
+  {l:'의무교육 이수 여부',  v:'이수 완료 (2026-03-14)',     src:'자동 · 농업교육포털'},
+];
+var MDOC_EVID = [
+  {n:'농업경영체 등록확인서', org:'공공마이데이터 (농림축산식품부)', ok:true},
+  {n:'사업자등록증명',        org:'공공마이데이터 (국세청)', ok:true},
+  {n:'소득금액증명',          org:'공공마이데이터 (국세청)', ok:true},
+  {n:'교육 이수증',           org:'농정원 (농업교육포털)', ok:false},
+];
+var mdoc = {step:0, tpl:-1, phone:'', loaded:false};
+var MDOC_TITLES = ['서식 고르기','내 자료 불러오기','자동입력 확인','연락처 입력','증빙 서류 확인','최종 확인','완료'];
+
+window.mdocStart = function(){
+  mdoc = {step:0, tpl:-1, phone:'', loaded:false};
+  document.getElementById('mdoc').classList.add('on');
+  focusOn();
+  mdocRender();
+};
+window.mdocExit = function(){
+  document.getElementById('mdoc').classList.remove('on');
+  focusOff();
+  if(mdoc.step < 6) toast('info','서류 작성을 중단했어요 — 언제든 다시 시작할 수 있습니다');
+  /* 종료 후 기본 UI(행정서류 홈)로 복귀 */
+  if(window.currentPage === 'docs' && typeof goDocView === 'function') _goDocView('home');
+};
+window.mdocPrev = function(){
+  if(mdoc.step <= 0) return;
+  if(mdoc.step === 2) mdoc.loaded = false;   /* 불러오기 화면은 처음부터 다시 */
+  mdoc.step--;
+  mdocRender();
+};
+window.mdocNext = function(){
+  /* 단계별 검증 (프로토타입 — 최소한만) */
+  if(mdoc.step === 0 && mdoc.tpl < 0){ toast('err','서식을 하나 골라주세요'); return; }
+  if(mdoc.step === 3){
+    var v = (document.getElementById('mdocPhone')||{}).value || '';
+    if(v.replace(/[^0-9]/g,'').length < 10){ toast('err','휴대전화 번호를 확인해주세요'); return; }
+    mdoc.phone = v;
+  }
+  mdoc.step++;
+  mdocRender();
+};
+window.mdocPickTpl = function(i){
+  mdoc.tpl = i;
+  document.querySelectorAll('#mdocBody .mtpl').forEach(function(el,j){ el.classList.toggle('sel', j===i); });
+  /* 선택 즉시 다음 단계로 — 탭 수 최소화 */
+  setTimeout(mdocNext, 220);
+};
+function mdocRender(){
+  var s = mdoc.step;
+  var tplName = mdoc.tpl >= 0 ? MDOC_TPLS[mdoc.tpl].n : '';
+  document.getElementById('mdocTitle').textContent = s >= 6 ? (tplName || MDOC_TITLES[s]) : MDOC_TITLES[s];
+  document.getElementById('mdocStep').textContent = s >= 6 ? '완료' : (s+1)+' / 6';
+  document.getElementById('mdocBar').style.width = s >= 6 ? '100%' : Math.round((s+1)/6*100)+'%';
+  document.getElementById('mdocBack').classList.toggle('hidden', s===0 || s>=6);
+  document.getElementById('mdocX').classList.toggle('hidden', s>=6);
+  var body = document.getElementById('mdocBody');
+  var foot = document.getElementById('mdocFoot');
+  var h = '';
+
+  if(s === 0){
+    h = '<div class="mstep-in"><div class="mq">어떤 서류를 만들까요?</div>'
+      + '<div class="mq-sub">자주 쓰는 정부 표준서식입니다. 고르면 내 자료로 자동으로 채워 드립니다.</div>'
+      + MDOC_TPLS.map(function(t,i){
+          return '<button class="mtpl'+(mdoc.tpl===i?' sel':'')+'" onclick="mdocPickTpl('+i+')">'
+            + '<div style="width:40px;height:40px;border-radius:11px;background:var(--g100);display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+            + svgWrap('<path d="M4 2.5H11L14.5 6V15.5H4V2.5Z"/><path d="M6.5 9.5H12M6.5 12H12"/>', '#0E7A46') + '</div>'
+            + '<div style="flex:1;min-width:0"><b>'+t.n+'</b><span>'+t.org+'</span></div>'
+            + '<span class="badge bg-ok" style="flex-shrink:0">'+t.auto+'</span></button>';
+        }).join('')
+      + '<div style="font-size:12px;color:var(--sub);background:#fff;border:1px dashed var(--bd2);border-radius:12px;padding:12px 14px;margin-top:4px;line-height:1.6">목록에 없는 서식은 <b style="color:var(--txt)">PC에서 파일 업로드 → AI 변환</b>으로 만들 수 있어요. (모바일은 추후 지원)</div></div>';
+    foot.innerHTML = '';
+  }
+
+  else if(s === 1){
+    h = '<div class="mstep-in"><div class="mq">내 자료를 불러올게요</div>'
+      + '<div class="mq-sub"><b style="color:var(--txt)">'+tplName+'</b>에 필요한 자료만 실시간으로 조회합니다. 서버에 저장하지 않아요.</div>'
+      + '<div style="background:#fff;border:1px solid var(--bd);border-radius:14px;padding:10px 16px" id="mdocLoads">'
+      + MDOC_LOADS.map(function(t,i){
+          return '<div class="mload" id="mload'+i+'"><span class="dot"></span>'+t+'</div>';
+        }).join('')
+      + '</div>'
+      + '<div style="display:flex;align-items:flex-start;gap:9px;background:var(--orange-bg);border:1px solid #F1DDBE;border-radius:12px;padding:12px 14px;margin-top:14px">'
+      + '<span class="pl pl-real" style="margin-top:1px;flex-shrink:0">실명 한시 사용</span>'
+      + '<div style="font-size:12px;color:#7A4A0B;line-height:1.6">서류를 만드는 동안만 이름·주소를 잠시 사용하고, 기록은 [데이터 영수증 › 실명 사용 기록]에 남습니다.</div></div></div>';
+    foot.innerHTML = '<button class="btn btn-pri" id="mdocLoadBtn" disabled>불러오는 중…</button>';
+  }
+
+  else if(s === 2){
+    h = '<div class="mstep-in"><div class="mq">자동으로 채운 내용이 맞나요?</div>'
+      + '<div class="mq-sub">'+MDOC_FIELDS.length+'개 항목을 내 자료로 채웠습니다. 값은 다음 단계에서도 수정할 수 있어요.</div>'
+      + MDOC_FIELDS.map(function(f){
+          return '<div class="mfield"><div class="fl">'+f.l
+            + ' <span class="badge bg-ok" style="font-size:10px">'+f.src+'</span>'
+            + (f.real?' <span class="pl pl-real" style="font-size:9.5px">실명</span>':'')
+            + '</div><div class="fv">'+f.v+'</div></div>';
+        }).join('') + '</div>';
+    foot.innerHTML = '<button class="btn btn-pri" onclick="mdocNext()">맞아요, 다음</button>';
+  }
+
+  else if(s === 3){
+    h = '<div class="mstep-in"><div class="mq">연락처를 입력해주세요</div>'
+      + '<div class="mq-sub">자동으로 채우지 못한 <b style="color:var(--txt)">마지막 1개 항목</b>입니다. 심사 결과 안내에 쓰여요.</div>'
+      + '<div class="mfield" style="border:1.5px solid var(--g400)">'
+      + '<div class="fl">연락처 <span class="badge bg-warn" style="font-size:10px">직접 입력</span></div>'
+      + '<input class="inp" id="mdocPhone" type="tel" inputmode="numeric" placeholder="010-0000-0000" value="'+mdoc.phone+'" style="border:none;padding:4px 0;font-size:17px;font-weight:700;height:auto;background:transparent">'
+      + '</div>'
+      + '<div style="font-size:12px;color:var(--sub);line-height:1.6;margin-top:10px">입력한 번호는 이 서류에만 쓰이고 저장되지 않습니다.</div></div>';
+    foot.innerHTML = '<button class="btn btn-pri" onclick="mdocNext()">다음</button>';
+    setTimeout(function(){ var i=document.getElementById('mdocPhone'); if(i) i.focus(); }, 350);
+  }
+
+  else if(s === 4){
+    h = '<div class="mstep-in"><div class="mq">증빙 서류는 자동으로 첨부돼요</div>'
+      + '<div class="mq-sub">본인 동의로 기관에서 직접 받아왔습니다. 대기 중인 서류는 도착하는 대로 자동 첨부됩니다.</div>'
+      + MDOC_EVID.map(function(e){
+          return '<div class="mfield" style="'+(e.ok?'':'background:var(--orange-bg);border-color:#F1DDBE')+'">'
+            + '<div class="fl">'+e.org+'</div>'
+            + '<div style="display:flex;align-items:center;gap:8px"><div class="fv" style="flex:1;min-width:0">'+e.n+'</div>'
+            + (e.ok
+               ? '<span style="display:flex;align-items:center;gap:4px;color:var(--g700);font-size:12.5px;font-weight:800;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.8 9L10 3.5" stroke="#0A5C36" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>수신 완료</span>'
+               : '<span style="color:var(--orange-t);font-size:12.5px;font-weight:800;flex-shrink:0">수신 대기</span>')
+            + '</div></div>';
+        }).join('') + '</div>';
+    foot.innerHTML = '<button class="btn btn-pri" onclick="mdocNext()">확인했어요, 다음</button>';
+  }
+
+  else if(s === 5){
+    h = '<div class="mstep-in"><div class="mq">이대로 서류를 만들까요?</div>'
+      + '<div class="mq-sub">확정하면 PDF가 생성되고 시점확인(TSA)과 전자서명이 적용됩니다.</div>'
+      + '<div style="background:#fff;border:1px solid var(--bd);border-radius:14px;padding:16px 18px">'
+      + '<table class="rcpt-tbl">'
+      + '<tr><th>서류</th><td><b>'+tplName+'</b></td></tr>'
+      + '<tr><th>자동입력</th><td>'+MDOC_FIELDS.length+'개 항목 (마이데이터 실시간 조회)</td></tr>'
+      + '<tr><th>직접 입력</th><td>연락처 '+ (mdoc.phone||'010-****-0000') +'</td></tr>'
+      + '<tr><th>증빙 첨부</th><td>3부 첨부 · 1부 수신 시 자동 첨부</td></tr>'
+      + '<tr><th>보관 위치</th><td>내 서류함 — 이 기기에만 저장</td></tr>'
+      + '</table></div>'
+      + '<div style="font-size:12px;color:var(--sub);background:#fff;border:1px solid var(--bd);border-radius:12px;padding:11px 14px;margin-top:10px;line-height:1.6">이번 작성에 활용된 마이데이터 내역은 <b style="color:var(--txt)">데이터 영수증</b>에 기록됩니다.</div></div>';
+    foot.innerHTML = '<button class="btn btn-pri" onclick="mdocNext()">확정하고 PDF 만들기</button>';
+  }
+
+  else {
+    var now = new Date(); var p = function(n){ return String(n).padStart(2,'0'); };
+    var stamp = now.getFullYear()+'-'+p(now.getMonth()+1)+'-'+p(now.getDate())+' '+p(now.getHours())+':'+p(now.getMinutes());
+    h = '<div class="mstep-in" style="text-align:center;padding-top:26px">'
+      + '<div class="done-mini" style="width:64px;height:64px"><svg width="30" height="30" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
+      + '<div style="font-size:21px;font-weight:900;margin-top:8px">서류가 생성되었습니다</div>'
+      + '<div style="font-size:13px;color:var(--sub);margin-top:5px">'+tplName+'</div>'
+      + '<div style="background:#fff;border:1px solid var(--bd);border-radius:14px;padding:14px 18px;margin-top:18px;text-align:left">'
+      + '<table class="rcpt-tbl">'
+      + '<tr><th>문서 번호</th><td>DOC-'+now.getFullYear()+p(now.getMonth()+1)+p(now.getDate())+'-0001</td></tr>'
+      + '<tr><th>생성 시각</th><td>'+stamp+'</td></tr>'
+      + '<tr><th>시점확인</th><td style="color:var(--g700);font-weight:700">TSA 적용 · 검증 가능</td></tr>'
+      + '<tr><th>전자서명</th><td>시스템 서명 (PAdES)</td></tr>'
+      + '</table></div>'
+      + '<div style="font-size:12px;color:var(--sub);margin-top:14px;line-height:1.7">제출은 접수기관 방문·우편 또는 온라인 접수처에서 진행해주세요.</div></div>';
+    foot.innerHTML = '<button class="btn btn-neu" onclick="toast(\'ok\',\'보안 링크가 복사되었습니다 — 7일 후 만료\')">보안 링크</button>'
+      + '<button class="btn btn-pri" style="flex:1.6" onclick="mdocExit()">내 서류함으로</button>';
+  }
+
+  body.innerHTML = h;
+  body.scrollTop = 0;
+  if(s === 1) mdocLoadPlay();
+}
+/* 자료 불러오기 연출 — 순차 체크 후 버튼 활성화 (Mock, 실제 조회 없음) */
+function mdocLoadPlay(){
+  var i = 0;
+  function tick(){
+    if(mdoc.step !== 1) return;                    /* 이전으로 나가면 중단 */
+    var rows = document.querySelectorAll('#mdocLoads .mload');
+    if(i > 0 && rows[i-1]){ rows[i-1].classList.remove('now'); rows[i-1].classList.add('done');
+      rows[i-1].querySelector('.dot').innerHTML = '<svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.8 9L10 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+    if(i < rows.length){ rows[i].classList.add('now'); i++; setTimeout(tick, CAP?60:520); }
+    else {
+      mdoc.loaded = true;
+      var b = document.getElementById('mdocLoadBtn');
+      if(b){ b.disabled = false; b.textContent = '다 가져왔어요 — 확인하러 가기'; b.onclick = mdocNext; }
+    }
+  }
+  tick();
+}
+
+/* 행정서류 진입 후킹: 모바일에서 '새 서류 작성'/'이어쓰기'는 몰입형 플로우로.
+   잠김(② 미동의)·캡처 모드는 기존 PC 플로우 로직을 그대로 태운다. */
+var _goDocView = window.goDocView;
+window.goDocView = function(v){
+  if((v==='s1' || v==='s2') && !CAP
+     && typeof purposeOn === 'function' && purposeOn('p2')){
+    mdocStart();
+    return;
+  }
+  _goDocView(v);
+};
+
+/* ══════════ ④ 바텀시트 단계형 분할 (내려받기 · 공유) ══════════ */
+/* 시트 안의 섹션 div 를 한 번에 하나씩 보여주고 [이전/다음] 으로 잇는다 */
+/* data-fade 컨테이너는 OverlayScrollbars 가 자식을 뷰포트로 감싸므로,
+   실제 콘텐츠 섹션은 뷰포트 안에서 찾는다 */
+function sheetSections(host){
+  var vp = host.querySelector('[data-overlayscrollbars-viewport]');
+  var root = vp || host;
+  return Array.prototype.filter.call(root.children, function(el){
+    return !/(^|\s)os-/.test(el.className || '');
+  });
+}
+function sheetSteps(cfg){
+  var secs = cfg.sections, i = 0;
+  function show(){
+    secs.forEach(function(el, j){ el.style.display = j===i ? '' : 'none'; });
+    if(cfg.stepLabel) cfg.stepLabel.textContent = cfg.labelPrefix + ' · ' + (i+1) + ' / ' + secs.length;
+    cfg.foot.innerHTML =
+      '<button class="btn btn-neu" id="'+cfg.key+'Prev"></button>' +
+      '<button class="btn btn-pri" style="flex:1.4" id="'+cfg.key+'Next"></button>';
+    var prev = document.getElementById(cfg.key+'Prev');
+    var next = document.getElementById(cfg.key+'Next');
+    prev.textContent = i===0 ? '취소' : '이전';
+    prev.onclick = function(){ if(i===0){ cfg.cancel(); } else { i--; show(); } };
+    next.textContent = i===secs.length-1 ? cfg.doneLabel : '다음';
+    next.onclick = function(){
+      if(cfg.validate && !cfg.validate(i)) return;
+      if(i===secs.length-1){ cfg.done(); } else { i++; show(); }
+    };
+  }
+  show();
+}
+
+/* 내려받기: 항목 → 기간 → 형식 → 받는 방법 (4단계) */
+var _openDownload = window.openDownload;
+window.openDownload = function(){
+  _openDownload();
+  var pick = document.getElementById('dlPick');
+  sheetSteps({
+    key:'dl',
+    sections: sheetSections(pick),
+    foot: document.getElementById('dlFoot'),
+    stepLabel: document.querySelector('#dlModal .m-head div > div:nth-child(2)'),
+    labelPrefix: '하나씩 고르면 돼요',
+    doneLabel: '내려받기',
+    validate: function(i){
+      if(i===0 && !pickVals('dlItems').length){ toast('err','받을 항목을 1개 이상 선택해주세요'); return false; }
+      return true;
+    },
+    cancel: function(){ closeModal('dlModal'); },
+    done: function(){ doDownload(); },
+  });
+};
+
+/* 공유: 보낼 곳 → 보낼 자료 → 보관 기간 (3단계) → 기존 승인·완료 단계로 연결 */
+var _openShare = window.openShare;
+window.openShare = function(){
+  _openShare();
+  var s1 = document.getElementById('shareStep1');
+  sheetSteps({
+    key:'sh',
+    sections: sheetSections(s1),
+    foot: document.getElementById('shareFoot'),
+    stepLabel: document.getElementById('shareStep'),
+    labelPrefix: '1단계 · 고르기',
+    doneLabel: '다음 (승인 확인)',
+    validate: function(i){
+      if(i===0 && !shareTarget()){ toast('err','공유 대상을 선택해주세요'); return false; }
+      if(i===1 && !pickVals('shareItems').length){ toast('err','공유할 데이터를 1개 이상 선택해주세요'); return false; }
+      return true;
+    },
+    cancel: function(){ closeModal('shareModal'); },
+    done: function(){
+      /* 다음 단계(승인 확인)로 넘어가기 전에 섹션 전체를 복원 — shareNext 검증이 DOM 을 읽는다 */
+      sheetSections(s1).forEach(function(el){ el.style.display = ''; });
+      shareNext();
+    },
+  });
+};
+
+/* 캡처 모드(#cap=)에서는 시트 단계 분할을 걷어내 기존 증빙 화면 그대로 재현 */
+if(CAP){ window.openDownload = _openDownload; window.openShare = _openShare; window.goDocView = _goDocView; }
+
+})();
