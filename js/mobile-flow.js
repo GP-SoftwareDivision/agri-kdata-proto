@@ -269,10 +269,11 @@ function mdocRender(){
 }
 /* 자료 불러오기 연출 — 스피너 → 체크 순차 전환, 완료 시 제목·버튼 전환 (Mock) */
 var CHECK_ROW = '<span class="tchk"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.8 9L10 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+var mdocLoadSeq = 0;   /* 재진입 시 이전 타이머가 이어 돌지 않도록 세션 토큰 */
 function mdocLoadPlay(){
-  var i = 0;
+  var i = 0, seq = ++mdocLoadSeq;
   function tick(){
-    if(mdoc.step !== 1) return;                    /* 이전으로 나가면 중단 */
+    if(mdoc.step !== 1 || seq !== mdocLoadSeq) return;   /* 이전으로 나가거나 재시작되면 중단 */
     var rows = document.querySelectorAll('#mdocLoads .trow');
     if(i > 0 && rows[i-1]){
       rows[i-1].querySelector('.tr').innerHTML = CHECK_ROW;
