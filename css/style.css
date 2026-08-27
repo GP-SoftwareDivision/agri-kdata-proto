@@ -717,3 +717,5 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .pur-more{margin-left:auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;flex-shrink:0}
 .pur-more:active{background:var(--bg)}
 .trow-chk{gap:9px}
+/* Easy to Answer: 시트 안 질문형 섹션 라벨 */
+.q-lbl{font-size:17px;font-weight:900;letter-spacing:-.3px;margin-bottom:10px;line-height:1.4}

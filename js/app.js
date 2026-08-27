@@ -529,7 +529,7 @@ function mdCheckState(){
 }
 function mdDecline(){
   closeModal('consentModal');
-  toast('info','동의하지 않으셨어요 — 서비스 이용에 불이익은 없으며, 언제든 다시 연동할 수 있어요');
+  toast('info','동의하지 않았어요 — 서비스 이용에 불이익은 없으며, 언제든 다시 연동할 수 있어요');
 }
 function confirmConsent(){
   const chks = [...document.querySelectorAll('#consentModal .md-chk')];
@@ -892,8 +892,8 @@ function openRealname(){ openModal('rnModal'); }
 
 /* ── 전송요구 위저드 (CNS-01~07): 고령 사용자 대응 3단계 축약 + 진행 상태 상시 표시 ── */
 let mdwStep = 0, mdwRid = null;
-const MDW_STT = ['시작', '1', '2', '3', '4', '완료'];
-const MDW_TITLE = ['내 자료 가져오기', '본인 확인', '사용할 곳', '약관 동의', '자료 요구하기', '요구 완료'];
+const MDW_STT = ['시작', '1', '2', '3', '4', '5', '완료'];
+const MDW_TITLE = ['내 자료 가져오기', '본인 확인', '사용할 곳', '약관 동의', '자료 받을 기관', '받을 자료', '요구 완료'];
 function mdwOpen(){ mdwStep = 0; mdwRid = null; mdwRender(); openModal('mdwModal'); }
 function mdwGo(n){
   /* 전진 검증: 목적 동의(2→3)와 약관 동의(3→4)는 별도 프로세스 */
@@ -904,17 +904,20 @@ function mdwGo(n){
   if(n === 4 && mdwStep === 3){
     if(![...document.querySelectorAll('#mdwModal .mdw-terms')].every(c=>c.checked)){ toast('err','필수 약관에 동의해주세요'); return; }
   }
-  if(n === 5) mdwIssue();
+  if(n === 5 && mdwStep === 4){
+    if(!document.querySelector('#mdwS4 .org-cell.sel')){ toast('err','자료를 받아올 기관을 1곳 이상 골라주세요'); return; }
+  }
+  if(n === 6) mdwIssue();
   mdwStep = n; mdwRender();
 }
 /* 좌상단 ← : 이전 단계로, 첫 화면에서는 닫기 */
 function mdwBack(){
-  if(mdwStep > 0 && mdwStep < 5){ mdwStep--; mdwRender(); }
+  if(mdwStep > 0 && mdwStep < 6){ mdwStep--; mdwRender(); }
   else closeModal('mdwModal');
 }
 function mdwDecline(){
   closeModal('mdwModal');
-  toast('info','동의하지 않으셨어요 — 불이익은 없으며, 언제든 다시 시작할 수 있어요');
+  toast('info','동의하지 않았어요 — 불이익은 없으며, 언제든 다시 시작할 수 있어요');
 }
 function mdwIssue(){
   if(mdwRid) return;
@@ -940,8 +943,8 @@ function mdwIssue(){
   ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 }
 function mdwRender(){
-  for(let i=0;i<=5;i++){ const el = document.getElementById('mdwS'+i); if(el) el.style.display = i===mdwStep ? '' : 'none'; }
-  document.getElementById('mdwBar').style.width = [8,24,42,60,80,100][mdwStep]+'%';
+  for(let i=0;i<=6;i++){ const el = document.getElementById('mdwS'+i); if(el) el.style.display = i===mdwStep ? '' : 'none'; }
+  document.getElementById('mdwBar').style.width = [8,20,36,52,68,84,100][mdwStep]+'%';
   var mdwSttEl = document.getElementById('mdwStt');            /* 진행 표시는 프로그레스바로 통일 — 텍스트는 남아 있을 때만 */
   if(mdwSttEl) mdwSttEl.textContent = MDW_STT[mdwStep];
   document.getElementById('mdwTitle').textContent = MDW_TITLE[mdwStep];
@@ -951,7 +954,8 @@ function mdwRender(){
   else if(mdwStep === 1) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(2)">휴대폰으로 확인하기</button>';
   else if(mdwStep === 2) foot.innerHTML = '<button class="btn-decline" onclick="mdwDecline()">동의하지 않음</button><button class="btn-accept" onclick="mdwGo(3)">동의합니다</button>';
   else if(mdwStep === 3) foot.innerHTML = '<button class="btn-decline" onclick="mdwDecline()">동의하지 않음</button><button class="btn-accept" onclick="mdwGo(4)">동의하고 계속</button>';
-  else if(mdwStep === 4) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(5)">전송 요구하기</button>';
+  else if(mdwStep === 4) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(5)">다음</button>';
+  else if(mdwStep === 5) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(6)">전송 요구하기</button>';
   else foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="closeModal(\'mdwModal\')">확인</button>';
 }
 function mdwRenderPurs(){
@@ -1286,7 +1290,7 @@ function hostAction(e){
   const kind = e && e.kind, label = (e && e.label) || '';
   if(kind === 'document-vault'){ openDocs('home'); return; }
   if(kind === 'channel-cta'){ nav('map'); toast('info', label + ' — 판로 지도에서 확인하세요'); return; }
-  if(kind === 'contact'){ toast('info', label + ' — 전화 연결은 시안 범위 외이에요'); return; }
+  if(kind === 'contact'){ toast('info', label + ' — 전화 연결은 시안 범위 외예요'); return; }
   toast('info', label + ' — 시안 범위 외 동작이에요');
 }
 
@@ -2100,8 +2104,8 @@ const CAPTURE_STATES = {
   'CNS-03': ()=>{ capEnter(); mdwOpen(); mdwGo(2); },
   'CNS-04': ()=>{ capEnter(); purOpen(0); },
   'CNS-05': ()=>{ capEnter(); purOpen(1); },
-  'CNS-06': ()=>{ capEnter(); mdwOpen(); mdwStep=4; mdwRender(); },
-  'CNS-07': ()=>{ capEnter(); mdwOpen(); mdwGo(5); },
+  'CNS-06': ()=>{ capEnter(); mdwOpen(); mdwStep=5; mdwRender(); },
+  'CNS-07': ()=>{ capEnter(); mdwOpen(); mdwGo(6); },
   'CMG-01': ()=>{ capEnter(); capScroll('[data-capture="CAPTURE-004"]'); },
   'CMG-02': ()=>{ capEnter(); PURPOSES[1].on=false; renderPurposes(); capScroll('[data-capture="CMG-02"]'); },
   'CMG-03': ()=>{ capEnter(); openWithdraw(); setTimeout(()=>{ const c=document.querySelector('#wdModal .wd-chk'); if(c) c.checked=true; }, 250); },
