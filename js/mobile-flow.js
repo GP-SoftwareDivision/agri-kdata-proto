@@ -20,7 +20,7 @@ var AM_SVC = [
   {nav:'chatbot',   n:'AI 챗봇',    d:'출하 시기 · 판로 상담', bg:'var(--blue-bg)', ic:'<path d="M9 2.5C5.1 2.5 2 5 2 8.2C2 10.2 3.2 12 5.1 13L4.4 15.7C4.3 16 4.6 16.2 4.9 16L8.2 13.9C8.5 13.9 8.7 14 9 14C12.9 14 16 11.4 16 8.2C16 5 12.9 2.5 9 2.5Z"/>', c:'#2E6BD6'},
   {nav:'map',       n:'판로 지도',  d:'전국 경락가 · 판로 찾기', bg:'var(--orange-bg)', ic:'<path d="M9 16C9 16 14.5 11.5 14.5 7.5C14.5 4.5 12 2 9 2C6 2 3.5 4.5 3.5 7.5C3.5 11.5 9 16 9 16Z"/><circle cx="9" cy="7.5" r="2"/>', c:'#E17A17'},
   {nav:'docs',      n:'행정서류',   d:'서식 자동 작성 · 내 서류함', bg:'var(--g100)', ic:'<path d="M4 2.5H11L14.5 6V15.5H4V2.5Z"/><path d="M11 2.5V6H14.5"/><path d="M6.5 9.5H12M6.5 12H12"/>', c:'#0E7A46'},
-  {nav:'mypage',    n:'내 데이터 관리', d:'동의 · 영수증 · 내려받기', bg:'var(--blue-bg)', ic:'<circle cx="9" cy="6" r="3"/><path d="M3.5 15.5C3.5 12.7 6 11 9 11C12 11 14.5 12.7 14.5 15.5"/>', c:'#2E6BD6'},
+  {nav:'mypage',    n:'마이페이지', d:'동의 · 영수증 · 내려받기', bg:'var(--blue-bg)', ic:'<circle cx="9" cy="6" r="3"/><path d="M3.5 15.5C3.5 12.7 6 11 9 11C12 11 14.5 12.7 14.5 15.5"/>', c:'#2E6BD6'},
   {nav:'design',    n:'디자인시스템', d:'컴포넌트 데모', bg:'#EFEAFB', ic:'<circle cx="9" cy="9" r="6.5"/><path d="M9 2.5C9 2.5 11.5 5.5 11.5 9C11.5 12.5 9 15.5 9 15.5"/><path d="M2.8 7H15.2M2.8 11H15.2"/>', c:'#6D4FC4'},
 ];
 var AM_QUICK = [
@@ -41,9 +41,13 @@ function renderAllMenu(){
       +'<div class="ic" style="background:'+s.bg+'">'+svgWrap(s.ic, s.c)+'</div>'
       +'<b>'+s.n+'</b><span>'+s.d+'</span></button>';
   }).join('');
-  document.getElementById('amQuick').innerHTML = AM_QUICK.map(function(q){
-    return '<button class="am-cell" onclick="amRun(\''+q.fn+'\')">'
-      +'<b>'+q.n+'</b><span>'+q.d+'</span></button>';
+  /* 자주 쓰는 기능은 바둑판이 아니라 ROW 리스트로 */
+  var qk = document.getElementById('amQuick');
+  qk.className = 'am-rows';
+  qk.innerHTML = AM_QUICK.map(function(q){
+    return '<button class="am-row" onclick="amRun(\''+q.fn+'\')">'
+      +'<b>'+q.n+'</b><span>'+q.d+'</span>'
+      +'<svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#C2C9C4" stroke-width="1.6" stroke-linecap="round"/></svg></button>';
   }).join('');
 }
 window.toggleAllMenu = function(force){
@@ -67,7 +71,7 @@ window.toggleAllMenu = function(force){
 window.amGo = function(page){ toggleAllMenu(false); nav(page); };
 window.amRun = function(fn){
   toggleAllMenu(false);
-  if(fn === 'amRcpt'){ nav('mypage'); if(typeof capScroll === 'function') capScroll('[data-capture="CAPTURE-012"]'); return; }
+  if(fn === 'amRcpt'){ nav('mypage'); msubOpen('rcpt'); return; }
   if(typeof window[fn] === 'function') window[fn]();
 };
 /* 탭으로 페이지 이동 시 전체 메뉴가 열려 있으면 닫는다 */
@@ -84,7 +88,7 @@ window.nav = function(id){
 function syncFocus(){
   var busy = document.querySelector('.overlay.open')
     || document.querySelector('.chat-panel.open')
-    || document.getElementById('mdoc').classList.contains('on');
+    || document.querySelector('.mdoc.on');            /* 몰입 플로우 + 기능 서브페이지 */
   document.documentElement.classList.toggle('focus', !!busy);
 }
 function focusOn(){ syncFocus(); }
@@ -400,6 +404,116 @@ window.openShare = function(){
     },
   });
 };
+
+/* ══════════ ⑤ 모바일 IA v3 — 기능은 전부 '페이지 전체'로 ══════════ */
+if(!CAP){
+
+/* ①-a 주요 기능 시트를 풀스크린으로 (CSS .fullpage 스코프) */
+['consentModal','termsModal','mdwModal','purModal','wdModal','dlModal','shareModal','rcptModal','traceModal','rnModal']
+  .forEach(function(id){ var e = document.getElementById(id); if(e) e.classList.add('fullpage'); });
+
+/* ⑤-a 기능 서브페이지(#msub): 마이페이지의 카드를 통째로 옮겨 와 전체 화면으로 보여준다 */
+var msubEl = null, msubPh = null, msubCard = null;
+var MSUB_MAP = {
+  conn:['데이터 연동 · 동의 관리', '[data-capture="CAPTURE-004"]'],
+  rcpt:['데이터 이용내역 · 영수증', '[data-capture="CAPTURE-012"]'],
+};
+function ensureMsub(){
+  if(msubEl) return;
+  msubEl = document.createElement('div');
+  msubEl.className = 'mdoc'; msubEl.id = 'msub';
+  msubEl.innerHTML =
+    '<div class="mdoc-top">'
+    + '<button class="mdoc-x" onclick="msubClose()" aria-label="뒤로">'
+    + '<svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+    + '<div class="mdoc-title" id="msubTitle"></div></div>'
+    + '<div class="mdoc-body" id="msubBody"></div>';
+  document.body.appendChild(msubEl);
+}
+window.msubOpen = function(key){
+  ensureMsub();
+  var m = MSUB_MAP[key]; if(!m) return;
+  var card = document.querySelector(m[1]); if(!card) return;
+  if(msubCard) msubClose();
+  msubPh = document.createComment('msub-ph');
+  card.parentNode.insertBefore(msubPh, card);
+  card.classList.remove('m-hide');
+  document.getElementById('msubBody').appendChild(card);
+  msubCard = card;
+  document.getElementById('msubTitle').textContent = m[0];
+  document.getElementById('msubBody').scrollTop = 0;
+  msubEl.classList.add('on');
+  syncFocus();
+};
+window.msubClose = function(){
+  if(msubCard && msubPh){
+    msubCard.classList.add('m-hide');            /* 루트에서는 계속 숨김 */
+    msubPh.parentNode.insertBefore(msubCard, msubPh);
+    msubPh.remove();
+  }
+  msubCard = null; msubPh = null;
+  msubEl.classList.remove('on');
+  syncFocus();
+};
+
+/* ⑤-b 마이페이지 루트 재구성: 메인 기능 1개(자료를 쓰는 목적)만 남기고
+   나머지 기능은 네비게이터 리스트 → depth 로 진입 */
+(function(){
+  var mp = document.getElementById('page-mypage'); if(!mp) return;
+  var head = mp.querySelector('.wrap>div:first-child');
+  if(head){
+    var t = head.querySelector('div:first-child');
+    var st = head.querySelector('div:nth-child(2)');
+    if(t) t.textContent = '마이페이지';
+    if(st) st.textContent = '내 데이터가 어떻게 쓰이는지 확인하고 직접 관리해요.';
+  }
+  var hero = mp.querySelector('[data-capture="CNS-01"]');
+  var conn = mp.querySelector('[data-capture="CAPTURE-004"]');
+  var rcpt = mp.querySelector('[data-capture="CAPTURE-012"]');
+  var dl   = mp.querySelector('[data-capture="CAPTURE-008"]');
+  [hero, conn, rcpt, dl && dl.parentElement].forEach(function(el){ if(el) el.classList.add('m-hide'); });
+  var CHEV = '<svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#C2C9C4" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  var rows = [
+    ['내 자료 가져오기', "mdwOpen()", '전송요구'],
+    ['데이터 연동 · 동의 관리', "msubOpen('conn')", '3 / 4 기관'],
+    ['데이터 이용내역 · 영수증', "msubOpen('rcpt')", ''],
+    ['내 데이터 내려받기', "openDownload()", ''],
+    ['제3자 선별 공유', "openShare()", ''],
+    ['실명 사용 기록', "openRealname()", ''],
+    ['AI 상담 근거 보기', "openTrace()", ''],
+  ];
+  var nav = document.createElement('div');
+  nav.className = 'card'; nav.id = 'mpNav';
+  nav.innerHTML = '<div style="padding:4px 20px 6px">'
+    + rows.map(function(r){
+        return '<button class="mnav-row" onclick="'+r[1]+'"><b>'+r[0]+'</b>'
+          + (r[2] ? '<span class="mv">'+r[2]+'</span>' : '') + CHEV + '</button>';
+      }).join('') + '</div>';
+  var main = mp.querySelector('[data-capture="CMG-02"]');
+  if(main) main.after(nav);
+})();
+
+/* ④ 행정서류 홈: [내 서류함 + ⓘ] → [서류 목록] → [새 서류 작성 버튼] 3블록 */
+(function(){
+  var home = document.getElementById('dv-home'); if(!home) return;
+  var card = home.querySelector('.card');
+  var head = card && card.querySelector(':scope>div:first-child');
+  var btn  = head && head.querySelector('.btn');
+  var ttl  = head && head.querySelector('.sec-t');
+  if(!btn || !ttl) return;
+  btn.innerHTML = '새 서류 작성';                       /* '+' 아이콘 제거 */
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'padding:6px 16px 18px';
+  btn.style.width = '100%';
+  wrap.appendChild(btn);
+  card.appendChild(wrap);                               /* 목록 아래 3번째 블록으로 */
+  var info = document.createElement('button');
+  info.className = 'ihelp'; info.textContent = 'i'; info.setAttribute('aria-label','내 서류함 도움말');
+  info.onclick = function(){ toast('info','완성 서류와 변환한 서식은 이 기기(브라우저)에만 저장돼요. 개인정보 원본은 서버에 보관하지 않고, 작성할 때마다 마이데이터를 실시간 조회해 최신 값으로 채워요.'); };
+  ttl.after(info);
+})();
+
+}
 
 /* 캡처 모드(#cap=)에서는 시트 단계 분할을 걷어내 기존 증빙 화면 그대로 재현 */
 if(CAP){ window.openDownload = _openDownload; window.openShare = _openShare; window.goDocView = _goDocView; }
