@@ -419,7 +419,7 @@ html.m .sheet-prog{height:4px;background:#EDF0EE;flex-shrink:0}
 html.m .sheet-prog i{display:block;height:100%;background:var(--g600);width:0;transition:width .3s var(--ease)}
 /* 풀스크린 프로세스의 상단 버튼은 좌측 ← 로 통일 */
 html.m .overlay.fullpage .m-head{align-items:center;gap:4px;padding:12px 16px 10px 8px}
-html.m .overlay.fullpage .m-head .m-x{order:-1;position:static}
+html.m .overlay.fullpage .m-head .m-x{position:static}
 /* 풀스크린 풋터: 단일 버튼도 가로 끝까지 */
 html.m .overlay.fullpage .md-foot2{display:flex;gap:8px}
 html.m .overlay.fullpage .md-foot2 .btn-accept,
@@ -438,3 +438,7 @@ html.m #dlModal .metric-seg button.on, html.m #shareModal .metric-seg button.on{
 /* 실명 기록·근거 행: 인라인 dashed 등 어떤 보더도 헤어라인만 남게 */
 html.m .rn-row, html.m .trace-src{border:none !important;border-bottom:1px solid #F1F3F2 !important}
 html.m .rn-row:last-of-type, html.m .trace-src:last-of-type{border-bottom:none !important}
+
+/* 목적 행의 › 는 항상 우측 끝 (배지 order 규칙보다 뒤) */
+html.m .pur-h .pur-more{order:9;margin-left:0}
+html.m .pur-h{gap:8px}

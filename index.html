@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=79">
-<link rel="stylesheet" href="css/mobile.css?v=79">
+<link rel="stylesheet" href="css/style.css?v=81">
+<link rel="stylesheet" href="css/mobile.css?v=81">
 </head>
 <body>
 
@@ -234,14 +234,14 @@
   <!-- ── 모바일: 몰입형 프로세스 (행정서류 작성) — 헤더·탭바 없이 단독 진행 ── -->
   <div class="mdoc" id="mdoc">
     <div class="mdoc-top">
-      <button class="mdoc-x" id="mdocX" onclick="mdocExit()" aria-label="취소">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round"/></svg>
-      </button>
-      <button class="mdoc-x" id="mdocBack" onclick="mdocPrev()" aria-label="이전">
+      <button class="mdoc-x" id="mdocBack" onclick="mdocBackTap()" aria-label="이전">
         <svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <div class="mdoc-title" id="mdocTitle">서류 만들기</div>
       <div class="mdoc-step" id="mdocStep">1 / 6</div>
+      <button class="mdoc-x" id="mdocX" onclick="mdocExit()" aria-label="닫기">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
     </div>
     <div class="mdoc-prog"><i id="mdocBar"></i></div>
     <div class="mdoc-body" id="mdocBody"></div>
@@ -1429,9 +1429,10 @@ docker run --rm -p 8080:8080 \
 <!-- ══════════ 전송요구 위저드 — 내 자료 가져오기 (CNS-01~07) ══════════ -->
 <div class="overlay" id="mdwModal" data-capture="CNS-01">
   <div class="modal md-modal">
-    <div class="m-head mdw-head" style="padding:12px 16px 10px 8px;align-items:center;gap:4px">
-      <button class="m-x" style="position:static" onclick="closeModal('mdwModal')" aria-label="뒤로"><svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="m-head mdw-head" style="padding:12px 10px 10px 8px;align-items:center;gap:4px">
+      <button class="m-x" style="position:static" onclick="mdwBack()" aria-label="뒤로"><svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="m-title" style="font-size:16.5px;flex:1" id="mdwTitle">내 자료 가져오기</div>
+      <button class="m-x" style="position:static" onclick="closeModal('mdwModal')" aria-label="닫기"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
     </div>
     <div class="mdw-prog mdw-prog-full"><div class="bar"><i id="mdwBar" style="width:8%"></i></div></div>
 
@@ -1482,21 +1483,33 @@ docker run --rm -p 8080:8080 \
       </div>
     </div>
 
-    <!-- 2단계 · 쓸 곳 고르기 (CNS-03 목적 기반 정밀 동의) -->
+    <!-- 2단계 · 사용할 곳 (CNS-03 목적 기반 정밀 동의) — 상세는 › 로 진입 -->
     <div class="md-body" data-fade id="mdwS2" style="display:none">
-      <div style="font-size:13px;color:var(--sub);line-height:1.6">자료를 어디에 쓸지 골라주세요. <b style="color:var(--txt)">목적마다 처리 방식이 달라요.</b></div>
-      <label class="md-allchk"><input type="checkbox" id="mdwAllPur" onchange="mdwPurAll(this.checked)"><b>두 가지 모두 동의합니다</b><span style="font-size:12px;color:var(--sub);margin-left:auto">필요한 것만 골라도 동의할 수 있어요</span></label>
+      <div>
+        <div class="mq">자료를 어디에 쓸지<br>골라주세요</div>
+        <div class="mq-sub" style="margin-bottom:0">목적마다 처리 방식이 달라요. 자세한 내용은 › 를 눌러 확인해요.</div>
+      </div>
+      <label class="md-allchk"><input type="checkbox" id="mdwAllPur" onchange="mdwPurAll(this.checked)"><b>두 가지 모두 동의합니다</b></label>
       <div id="mdwPurs" style="display:flex;flex-direction:column;gap:10px"></div>
       <div style="font-size:12px;color:#374151;background:#F9FAF9;border:1px solid var(--bd);border-radius:10px;padding:10px 14px;line-height:1.65">둘 중 <b>하나만 동의해도 돼요.</b> ①만 동의하면 상담만 받고 서류 자동 작성은 잠기고, ②만 동의하면 서류만 만들 수 있어요.</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <label class="md-allchk" style="margin:0"><input type="checkbox" class="mdw-terms" checked><span class="tag-req" style="font-size:10px">필수</span><b style="font-size:13px">서비스 이용약관</b><span class="md-terms" style="margin-left:auto" onclick="event.preventDefault();showTerms('epis',0)">보기</span></label>
-        <label class="md-allchk" style="margin:0"><input type="checkbox" class="mdw-terms" checked><span class="tag-req" style="font-size:10px">필수</span><b style="font-size:13px">개인정보 처리방침 동의</b><span class="md-terms" style="margin-left:auto" onclick="event.preventDefault();showTerms('epis',1)">보기</span></label>
-        <label class="md-allchk" style="margin:0"><input type="checkbox"><span class="tag-opt" style="font-size:10px">선택</span><b style="font-size:13px">새 소식 · 지원사업 알림 받기</b><span style="font-size:11.5px;color:var(--sub);margin-left:auto">이벤트·지원사업 안내</span></label>
-      </div>
     </div>
 
-    <!-- 3단계 · 보유기관·전송 항목 선택 (CNS-06) -->
+    <!-- 3단계 · 약관 동의 (목적 동의와 분리된 별도 프로세스) -->
     <div class="md-body" data-fade id="mdwS3" style="display:none">
+      <div>
+        <div class="mq">약관을 확인하고<br>동의해주세요</div>
+        <div class="mq-sub" style="margin-bottom:0">서비스 이용에 필요한 기본 약관이에요. › 를 눌러 내용을 볼 수 있어요.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div class="md-allchk trow-chk" style="margin:0"><input type="checkbox" class="mdw-terms" checked onclick="event.stopPropagation()"><span class="tag-req" style="font-size:10px">필수</span><b style="font-size:14px;flex:1">서비스 이용약관</b><button class="pur-more" onclick="showTsum('terms')" aria-label="서비스 이용약관 내용 보기"><svg width="8" height="13" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.7" stroke-linecap="round"/></svg></button></div>
+        <div class="md-allchk trow-chk" style="margin:0"><input type="checkbox" class="mdw-terms" checked onclick="event.stopPropagation()"><span class="tag-req" style="font-size:10px">필수</span><b style="font-size:14px;flex:1">개인정보 처리방침 동의</b><button class="pur-more" onclick="showTsum('privacy')" aria-label="개인정보 처리방침 내용 보기"><svg width="8" height="13" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.7" stroke-linecap="round"/></svg></button></div>
+        <div class="md-allchk trow-chk" style="margin:0"><input type="checkbox"><span class="tag-opt" style="font-size:10px">선택</span><b style="font-size:14px;flex:1">새 소식 · 지원사업 알림 받기</b><span style="font-size:11.5px;color:var(--sub)">이벤트·지원사업 안내</span></div>
+      </div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.6">동의하지 않을 권리가 있고, 필수 약관에 동의하지 않으면 이 서비스만 이용할 수 없어요.</div>
+    </div>
+
+    <!-- 4단계 · 보유기관·전송 항목 선택 (CNS-06) -->
+    <div class="md-body" data-fade id="mdwS4" style="display:none">
       <div style="font-size:13px;color:var(--sub);line-height:1.6">어느 기관에 어떤 자료를 보내달라고 할지 골라주세요.</div>
       <div>
         <div class="lbl" style="margin-bottom:8px;font-size:13px">🏛 자료를 요구할 기관 고르기</div>
@@ -1521,7 +1534,7 @@ docker run --rm -p 8080:8080 \
     </div>
 
     <!-- 4단계 · 완료 · 동의 영수증 (CNS-07) -->
-    <div class="md-body" data-fade id="mdwS4" style="display:none;text-align:center;padding-top:10px">
+    <div class="md-body" data-fade id="mdwS5" style="display:none;text-align:center;padding-top:10px">
       <div class="done-mini"><svg width="26" height="26" viewBox="0 0 38 38" fill="none"><path d="M8 20L16 28L30 11" stroke="#0E7A46" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div style="font-size:18px;font-weight:900">자료 요구가 완료되었어요</div>
       <div style="font-size:12.5px;color:var(--sub);line-height:1.6">농정원 · 골든플래닛에 자료를 요구했어요.<br>도착하면 문자로 알려드려요. (보통 1~2일)</div>
@@ -1611,8 +1624,22 @@ docker run --rm -p 8080:8080 \
   </div>
 </div>
 
+
+<!-- 약관 요약 시트: › 로 진입, '자세히 보기'로 전문 팝업 -->
+<div class="overlay sheet-lg" id="tsumModal">
+  <div class="modal" style="width:480px;max-height:calc(100vh - 100px);display:flex;flex-direction:column">
+    <div class="m-head"><div class="m-title" id="tsumTitle">약관</div>
+      <button class="m-x" onclick="closeModal('tsumModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="m-body" style="display:flex;flex-direction:column;gap:12px">
+      <div id="tsumBody" style="font-size:14px;line-height:1.75;color:#374151"></div>
+      <button class="btn btn-out" style="width:100%" id="tsumMore">전문 자세히 보기</button>
+    </div>
+    <div class="m-foot"><button class="btn btn-pri" style="width:100%" onclick="closeModal('tsumModal')">확인했어요</button></div>
+  </div>
+</div>
+
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=79"></script>
-<script src="js/mobile-flow.js?v=79"></script>
+<script src="js/app.js?v=81"></script>
+<script src="js/mobile-flow.js?v=81"></script>
 </body>
 </html>

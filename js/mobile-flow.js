@@ -143,6 +143,9 @@ window.mdocExit = function(){
   /* 종료 후 기본 UI(행정서류 홈)로 복귀 */
   if(window.currentPage === 'docs' && typeof goDocView === 'function') _goDocView('home');
 };
+window.mdocBackTap = function(){
+  if(mdoc.step > 0 && mdoc.step < 6) mdocPrev(); else mdocExit();
+};
 window.mdocPrev = function(){
   if(mdoc.step <= 0) return;
   if(mdoc.step === 2) mdoc.loaded = false;   /* 불러오기 화면은 처음부터 다시 */
@@ -172,7 +175,7 @@ function mdocRender(){
   document.getElementById('mdocTitle').textContent = s >= 6 ? (tplName || MDOC_TITLES[s]) : MDOC_TITLES[s];
   document.getElementById('mdocStep').textContent = s >= 6 ? '완료' : (s+1)+' / 6';
   document.getElementById('mdocBar').style.width = s >= 6 ? '100%' : Math.round((s+1)/6*100)+'%';
-  document.getElementById('mdocBack').classList.toggle('hidden', s===0 || s>=6);
+  document.getElementById('mdocBack').classList.toggle('hidden', s>=6);
   document.getElementById('mdocX').classList.toggle('hidden', s>=6);
   var body = document.getElementById('mdocBody');
   var foot = document.getElementById('mdocFoot');
@@ -350,17 +353,14 @@ function sheetSteps(cfg){
     var head = modal.querySelector('.m-head');
     if(head && head.nextSibling) modal.insertBefore(prog, head.nextSibling); else modal.appendChild(prog);
   }
+  var back = modal.querySelector('.sheet-back');
   function show(){
     secs.forEach(function(el, j){ el.style.display = j===i ? '' : 'none'; });
     prog.querySelector('i').style.width = Math.round((i+1)/secs.length*100)+'%';
     if(cfg.stepLabel) cfg.stepLabel.textContent = cfg.labelPrefix;
-    cfg.foot.innerHTML =
-      '<button class="btn btn-neu" id="'+cfg.key+'Prev"></button>' +
-      '<button class="btn btn-pri" style="flex:1.4" id="'+cfg.key+'Next"></button>';
-    var prev = document.getElementById(cfg.key+'Prev');
+    if(back) back.onclick = function(){ if(i===0){ cfg.cancel(); } else { i--; show(); } };
+    cfg.foot.innerHTML = '<button class="btn btn-pri" style="flex:1" id="'+cfg.key+'Next"></button>';
     var next = document.getElementById(cfg.key+'Next');
-    prev.textContent = i===0 ? '취소' : '이전';
-    prev.onclick = function(){ if(i===0){ cfg.cancel(); } else { i--; show(); } };
     next.textContent = i===secs.length-1 ? cfg.doneLabel : '다음';
     next.onclick = function(){
       if(cfg.validate && !cfg.validate(i)) return;
@@ -432,8 +432,14 @@ var BACK_SVG = '<svg width="17" height="17" viewBox="0 0 16 16" fill="none"><pat
     var mx = head && head.querySelector('.m-x');
     if(head && mx){
       mx.innerHTML = BACK_SVG;
+      mx.classList.add('sheet-back');
       head.insertBefore(mx, head.firstChild);
       if(head.children[1]) head.children[1].style.flex = '1';
+      var xb = document.createElement('button');
+      xb.className = 'm-x'; xb.style.position = 'static'; xb.setAttribute('aria-label','닫기');
+      xb.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg>';
+      xb.onclick = function(){ closeModal(id); };
+      head.appendChild(xb);
     }
   }
 });

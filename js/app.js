@@ -833,6 +833,7 @@ function purAgree(){
   }
   renderPurposes();
   closeModal('purModal');
+  if(document.getElementById('mdwModal').classList.contains('open') && mdwStep === 2) mdwRenderPurs();
   if(purAfter === 'doc'){ purAfter=null; goDocView('s1'); }
 }
 
@@ -891,18 +892,25 @@ function openRealname(){ openModal('rnModal'); }
 
 /* ── 전송요구 위저드 (CNS-01~07): 고령 사용자 대응 3단계 축약 + 진행 상태 상시 표시 ── */
 let mdwStep = 0, mdwRid = null;
-const MDW_STT = ['시작', '1 / 3 단계', '2 / 3 단계', '3 / 3 단계', '완료'];
-const MDW_TITLE = ['내 자료 가져오기', '본인 확인', '쓸 곳 고르기', '자료 요구하기', '요구 완료'];
+const MDW_STT = ['시작', '1', '2', '3', '4', '완료'];
+const MDW_TITLE = ['내 자료 가져오기', '본인 확인', '사용할 곳', '약관 동의', '자료 요구하기', '요구 완료'];
 function mdwOpen(){ mdwStep = 0; mdwRid = null; mdwRender(); openModal('mdwModal'); }
 function mdwGo(n){
+  /* 전진 검증: 목적 동의(2→3)와 약관 동의(3→4)는 별도 프로세스 */
   if(n === 3 && mdwStep === 2){
-    /* 목적 최소 1개 + 필수 약관 검증 */
     const purs = [...document.querySelectorAll('#mdwPurs .mdw-pur-chk')];
     if(!purs.some(c=>c.checked)){ toast('err','①② 중 최소 하나의 목적에 동의해주세요'); return; }
+  }
+  if(n === 4 && mdwStep === 3){
     if(![...document.querySelectorAll('#mdwModal .mdw-terms')].every(c=>c.checked)){ toast('err','필수 약관에 동의해주세요'); return; }
   }
-  if(n === 4) mdwIssue();
+  if(n === 5) mdwIssue();
   mdwStep = n; mdwRender();
+}
+/* 좌상단 ← : 이전 단계로, 첫 화면에서는 닫기 */
+function mdwBack(){
+  if(mdwStep > 0 && mdwStep < 5){ mdwStep--; mdwRender(); }
+  else closeModal('mdwModal');
 }
 function mdwDecline(){
   closeModal('mdwModal');
@@ -932,17 +940,18 @@ function mdwIssue(){
   ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 }
 function mdwRender(){
-  for(let i=0;i<=4;i++){ const el = document.getElementById('mdwS'+i); if(el) el.style.display = i===mdwStep ? '' : 'none'; }
-  document.getElementById('mdwBar').style.width = [8,33,58,83,100][mdwStep]+'%';
+  for(let i=0;i<=5;i++){ const el = document.getElementById('mdwS'+i); if(el) el.style.display = i===mdwStep ? '' : 'none'; }
+  document.getElementById('mdwBar').style.width = [8,24,42,60,80,100][mdwStep]+'%';
   var mdwSttEl = document.getElementById('mdwStt');            /* 진행 표시는 프로그레스바로 통일 — 텍스트는 남아 있을 때만 */
   if(mdwSttEl) mdwSttEl.textContent = MDW_STT[mdwStep];
   document.getElementById('mdwTitle').textContent = MDW_TITLE[mdwStep];
   if(mdwStep === 2) mdwRenderPurs();
   const foot = document.getElementById('mdwFoot');
   if(mdwStep === 0) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(1)">시작하기</button>';
-  else if(mdwStep === 1) foot.innerHTML = '<button class="btn-decline" onclick="mdwGo(0)">이전</button><button class="btn-accept" onclick="mdwGo(2)">휴대폰으로 확인하기</button>';
+  else if(mdwStep === 1) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(2)">휴대폰으로 확인하기</button>';
   else if(mdwStep === 2) foot.innerHTML = '<button class="btn-decline" onclick="mdwDecline()">동의하지 않음</button><button class="btn-accept" onclick="mdwGo(3)">동의합니다</button>';
-  else if(mdwStep === 3) foot.innerHTML = '<button class="btn-decline" onclick="mdwGo(2)">이전</button><button class="btn-accept" onclick="mdwGo(4)">전송 요구하기</button>';
+  else if(mdwStep === 3) foot.innerHTML = '<button class="btn-decline" onclick="mdwDecline()">동의하지 않음</button><button class="btn-accept" onclick="mdwGo(4)">동의하고 계속</button>';
+  else if(mdwStep === 4) foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="mdwGo(5)">전송 요구하기</button>';
   else foot.innerHTML = '<button class="btn-accept" style="flex:1" onclick="closeModal(\'mdwModal\')">확인</button>';
 }
 function mdwRenderPurs(){
@@ -950,20 +959,26 @@ function mdwRenderPurs(){
     <div class="pur${p.on?' on':''}" id="mdwPur${i}">
       <div class="pur-h" style="cursor:pointer" onclick="mdwPurToggle(${i})">
         <input type="checkbox" class="mdw-pur-chk" data-i="${i}" ${p.on?'checked':''} onclick="event.stopPropagation();mdwPurSync()">
-        <span style="font-size:13.5px;font-weight:900;color:var(--g700)">${p.no}</span>
-        <span class="pn" style="font-size:14px">${p.name}</span>
+        <span style="font-size:14px;font-weight:900;color:var(--g700)">${p.no}</span>
+        <span class="pn" style="font-size:15px">${p.name}</span>
         <span class="pl ${p.cls}">${p.proc}</span>
+        <button class="pur-more" onclick="event.stopPropagation();purOpen(${i})" aria-label="${p.name} 동의서 자세히 보기"><svg width="8" height="13" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#9AA3A0" stroke-width="1.7" stroke-linecap="round"/></svg></button>
       </div>
-      <div class="pur-d">${p.easy}</div>
-      <table class="pur-tbl">
-        <tr><th>쓰는 자료</th><td>${p.data}</td></tr>
-        <tr><th>자료 주는 곳</th><td>${p.org}</td></tr>
-        <tr><th>처리 방식</th><td>${p.how}</td></tr>
-        <tr><th>쓰는 곳</th><td>${p.where}</td></tr>
-      </table>
-      <div style="margin-top:8px"><a href="#" style="font-size:12px;font-weight:800;color:var(--g700)" onclick="event.stopPropagation();purOpen(${i});return false">동의서 자세히 보기 ›</a></div>
+      <div class="pur-d" style="margin-top:9px">${p.easy}</div>
     </div>`).join('');
   mdwPurSync();
+}
+/* 약관 요약 시트: › → 요약 → '전문 자세히 보기' → 약관 전문 팝업 */
+const TSUM = {
+  terms:  ['서비스 이용약관', 'agriG 서비스를 이용하는 기본 조건이에요.<br><br>· 계정과 서비스 제공 범위<br>· 이용자와 회사의 권리·책임<br>· 서비스 변경·중단 시의 안내 기준<br><br>을 담고 있어요.', ['epis', 0]],
+  privacy:['개인정보 처리방침', '내 자료를 어떻게 다루는지 정한 약속이에요.<br><br>· 수집하는 항목과 이용 목적<br>· 보관 기간과 파기 원칙<br>· 목적 외 사용 금지<br><br>가 핵심이에요.', ['epis', 1]],
+};
+function showTsum(kind){
+  const t = TSUM[kind]; if(!t) return;
+  document.getElementById('tsumTitle').textContent = t[0];
+  document.getElementById('tsumBody').innerHTML = t[1];
+  document.getElementById('tsumMore').onclick = function(){ showTerms(t[2][0], t[2][1]); };
+  openModal('tsumModal');
 }
 function mdwPurToggle(i){
   const c = document.querySelector('#mdwPurs .mdw-pur-chk[data-i="'+i+'"]');
@@ -2085,8 +2100,8 @@ const CAPTURE_STATES = {
   'CNS-03': ()=>{ capEnter(); mdwOpen(); mdwGo(2); },
   'CNS-04': ()=>{ capEnter(); purOpen(0); },
   'CNS-05': ()=>{ capEnter(); purOpen(1); },
-  'CNS-06': ()=>{ capEnter(); mdwOpen(); mdwStep=2; mdwRender(); mdwStep=3; mdwRender(); },
-  'CNS-07': ()=>{ capEnter(); mdwOpen(); mdwGo(4); },
+  'CNS-06': ()=>{ capEnter(); mdwOpen(); mdwStep=4; mdwRender(); },
+  'CNS-07': ()=>{ capEnter(); mdwOpen(); mdwGo(5); },
   'CMG-01': ()=>{ capEnter(); capScroll('[data-capture="CAPTURE-004"]'); },
   'CMG-02': ()=>{ capEnter(); PURPOSES[1].on=false; renderPurposes(); capScroll('[data-capture="CMG-02"]'); },
   'CMG-03': ()=>{ capEnter(); openWithdraw(); setTimeout(()=>{ const c=document.querySelector('#wdModal .wd-chk'); if(c) c.checked=true; }, 250); },

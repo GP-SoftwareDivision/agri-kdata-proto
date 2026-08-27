@@ -710,3 +710,10 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .allmenu,.mdoc{display:none}
 .rn-th{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .md-foot2 .btn-accept:only-child{grid-column:1/-1}
+/* 큰 리드 타이포 (PC 기본 — 모바일은 html.m .mq 가 확대) */
+.mq{font-size:20px;font-weight:900;letter-spacing:-.4px;line-height:1.4;margin-bottom:6px}
+.mq-sub{font-size:13px;color:var(--sub);line-height:1.6;margin-bottom:14px}
+/* 행 우측 › 상세 진입 버튼 */
+.pur-more{margin-left:auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;flex-shrink:0}
+.pur-more:active{background:var(--bg)}
+.trow-chk{gap:9px}
