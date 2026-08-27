@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=84">
-<link rel="stylesheet" href="css/mobile.css?v=84">
+<link rel="stylesheet" href="css/style.css?v=85">
+<link rel="stylesheet" href="css/mobile.css?v=85">
 </head>
 <body>
 
@@ -387,9 +387,9 @@
       <div class="chat-bar">
         <button class="btn btn-neu btn-sm ct-tgl" onclick="toggleThreads()" aria-label="대화 목록">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3.5H12M2 7H12M2 10.5H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          대화 목록</button>
+          <span class="ct-tgl-t">대화 목록</span></button>
         <img class="mascot-sm" src="assets/alnongi.png" alt="">
-        <b style="font-size:16px">알농이 · AI 영농 상담</b>
+        <div style="display:flex;align-items:baseline;gap:7px;min-width:0"><b style="font-size:16px;white-space:nowrap">알농이</b><span style="font-size:12px;color:var(--sub);white-space:nowrap">AI 영농 상담</span></div>
         <span class="badge bg-ok">RAG 연동</span>
         <span class="conn" id="connChip"><i></i><span id="connText">연결 확인 중…</span></span>
         <div style="flex:1"></div>
@@ -410,7 +410,8 @@
               새 대화</button>
           </div>
           <div class="ct-list" id="ctList"></div>
-          <div class="ct-foot">대화는 마지막 활동일부터 <b>7일간 보관</b> 후 자동 삭제돼요.</div>
+          <div class="ct-foot">대화는 마지막 활동일부터 <b>7일간 보관</b> 후 자동 삭제돼요.
+            <div class="ct-foot-acts"><a href="#" onclick="openApiModal();return false">API 설정</a><a href="#" onclick="newChatSession();toggleThreads(false);return false">새 상담 시작</a></div></div>
         </aside>
         <div class="chat-main">
           <div class="chat-host" id="chatHost"></div>
@@ -1643,7 +1644,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=84"></script>
-<script src="js/mobile-flow.js?v=84"></script>
+<script src="js/app.js?v=85"></script>
+<script src="js/mobile-flow.js?v=85"></script>
 </body>
 </html>

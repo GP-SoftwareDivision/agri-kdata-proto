@@ -90,7 +90,6 @@ window.nav = function(id){
    1단계 조회성 팝업(영수증·근거·기록·약관 등)은 바텀시트 — X/배경 클릭으로 닫고 기본 UI 유지 */
 function syncFocus(){
   var busy = document.querySelector('.overlay.open.fullpage')
-    || document.querySelector('.chat-panel.open')
     || document.querySelector('.mdoc.on');            /* 몰입 플로우 + 기능 서브페이지 */
   document.documentElement.classList.toggle('focus', !!busy);
 }
@@ -103,6 +102,14 @@ if(!CAP){
     mo.observe(el, {attributes:true, attributeFilter:['class']});
   });
 }
+
+/* 알농이 FAB: 모바일에서는 플로팅 패널 대신 챗봇 탭으로 이동 */
+(function(){
+  var fab = document.getElementById('fab');
+  if(fab) fab.onclick = function(){ nav('chatbot'); };
+})();
+/* 대시보드·지도 요약 칩은 기본값으로도 항상 표시 (선택한 정보만 보여주기) */
+setTimeout(function(){ if(typeof renderMsetBars === 'function') renderMsetBars(); }, 200);
 
 /* ══════════ ③ 행정서류 작성 — 몰입형 6단계 플로우 ══════════ */
 /* Mock 데이터 — 실데이터·API 없이 로컬 state로만 동작 */
