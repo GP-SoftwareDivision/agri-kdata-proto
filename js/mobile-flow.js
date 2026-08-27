@@ -139,7 +139,7 @@ window.mdocStart = function(){
 window.mdocExit = function(){
   document.getElementById('mdoc').classList.remove('on');
   focusOff();
-  if(mdoc.step < 6) toast('info','서류 작성을 중단했어요 — 언제든 다시 시작할 수 있습니다');
+  if(mdoc.step < 6) toast('info','서류 작성을 중단했어요 — 언제든 다시 시작할 수 있어요');
   /* 종료 후 기본 UI(행정서류 홈)로 복귀 */
   if(window.currentPage === 'docs' && typeof goDocView === 'function') _goDocView('home');
 };
@@ -280,7 +280,7 @@ function mdocRender(){
             + '<div class="tr"><b style="font-size:15px">'+r[1]+'</b></div></div>';
         }).join('') + '</div>'
       + '<div class="tcap" style="text-align:center">제출은 접수기관 방문·우편 또는 온라인 접수처에서 진행해주세요.</div></div>';
-    foot.innerHTML = '<button class="btn btn-neu" onclick="toast(\'ok\',\'보안 링크가 복사되었습니다 — 7일 후 만료\')">보안 링크</button>'
+    foot.innerHTML = '<button class="btn btn-neu" onclick="toast(\'ok\',\'보안 링크가 복사되었어요 — 7일 후 만료\')">보안 링크</button>'
       + '<button class="btn btn-pri" style="flex:1.6" onclick="mdocExit()">내 서류함으로</button>';
   }
 
@@ -341,9 +341,19 @@ function sheetSections(host){
 }
 function sheetSteps(cfg){
   var secs = cfg.sections, i = 0;
+  /* 진행 표시는 텍스트(n/m) 대신 헤더 아래 풀폭 프로그레스바로 통일 */
+  var modal = cfg.foot.closest('.modal');
+  var prog = modal.querySelector('.sheet-prog');
+  if(!prog){
+    prog = document.createElement('div');
+    prog.className = 'sheet-prog'; prog.innerHTML = '<i></i>';
+    var head = modal.querySelector('.m-head');
+    if(head && head.nextSibling) modal.insertBefore(prog, head.nextSibling); else modal.appendChild(prog);
+  }
   function show(){
     secs.forEach(function(el, j){ el.style.display = j===i ? '' : 'none'; });
-    if(cfg.stepLabel) cfg.stepLabel.textContent = cfg.labelPrefix + ' · ' + (i+1) + ' / ' + secs.length;
+    prog.querySelector('i').style.width = Math.round((i+1)/secs.length*100)+'%';
+    if(cfg.stepLabel) cfg.stepLabel.textContent = cfg.labelPrefix;
     cfg.foot.innerHTML =
       '<button class="btn btn-neu" id="'+cfg.key+'Prev"></button>' +
       '<button class="btn btn-pri" style="flex:1.4" id="'+cfg.key+'Next"></button>';
@@ -412,15 +422,29 @@ if(!CAP){
 
 /* ①-a 2단계 이상 프로세스만 풀스크린 (CSS .fullpage 스코프).
    조회성 1단계 팝업(영수증·근거·기록·약관·동의서 상세·동의 취소)은 바텀시트 유지 */
-['consentModal','mdwModal','dlModal','shareModal']
-  .forEach(function(id){ var e = document.getElementById(id); if(e) e.classList.add('fullpage'); });
+var BACK_SVG = '<svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+['consentModal','mdwModal','dlModal','shareModal'].forEach(function(id){
+  var e = document.getElementById(id); if(!e) return;
+  e.classList.add('fullpage');
+  /* 풀스크린은 좌상단 ← 로 통일 (mdwModal 은 마크업에서 이미 처리) */
+  if(id !== 'mdwModal'){
+    var head = e.querySelector('.m-head');
+    var mx = head && head.querySelector('.m-x');
+    if(head && mx){
+      mx.innerHTML = BACK_SVG;
+      head.insertBefore(mx, head.firstChild);
+      if(head.children[1]) head.children[1].style.flex = '1';
+    }
+  }
+});
 ['rcptModal','traceModal','rnModal','purModal','termsModal','wdModal']
   .forEach(function(id){ var e = document.getElementById(id); if(e) e.classList.add('sheet-lg'); });
 
 /* ⑤-a 기능 서브페이지(#msub): 마이페이지의 카드를 통째로 옮겨 와 전체 화면으로 보여준다 */
 var msubEl = null, msubMoved = [];   /* [{card, ph}] — 서브페이지로 옮겨 간 카드들 */
 var MSUB_MAP = {
-  conn:['동의 관리', ['[data-capture="CMG-02"]', '[data-capture="CAPTURE-004"]']],
+  use: ['데이터 활용 동의', ['[data-capture="CMG-02"]']],       /* 받아온 자료를 '어디에 쓸지' (목적 2축) */
+  conn:['데이터 연동 관리', ['[data-capture="CAPTURE-004"]']],  /* 어느 기관에서 '무엇을 받아올지' */
   rcpt:['데이터 이용내역 · 영수증', ['[data-capture="CAPTURE-012"]']],
 };
 function ensureMsub(){
@@ -485,7 +509,8 @@ window.msubClose = function(){
   var CHEV = '<svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#C2C9C4" stroke-width="1.6" stroke-linecap="round"/></svg>';
   var rows = [
     ['내 자료 가져오기', "mdwOpen()", '전송요구'],
-    ['동의 관리', "msubOpen('conn')", '목적 2 · 기관 3/4'],
+    ['데이터 활용 동의', "msubOpen('use')", 'AI 상담 · 서류 생성'],
+    ['데이터 연동 관리', "msubOpen('conn')", '3 / 4 기관'],
     ['데이터 이용내역 · 영수증', "msubOpen('rcpt')", ''],
     ['내 데이터 내려받기', "openDownload()", ''],
     ['제3자 선별 공유', "openShare()", ''],

@@ -85,7 +85,7 @@ function enterApp(){
     document.getElementById('fab').classList.remove('hidden');
     document.getElementById('chatPanel').classList.remove('hidden');
     nav('dashboard');
-    toast('ok','로그인되었습니다 — 김농가님, 환영합니다');
+    toast('ok','로그인되었어요 — 김농가님, 환영해요');
   }, 330);
 }
 
@@ -99,7 +99,7 @@ function logoutApp(){
   const lp = document.getElementById('loginPage');
   lp.style.display = '';
   lp.classList.remove('leaving');
-  toast('info','로그아웃되었습니다');
+  toast('info','로그아웃되었어요');
 }
 
 function nav(id){
@@ -443,13 +443,13 @@ function toggleItem(cid, ii){
   if(stEl){ stEl.textContent = it.on?'동의함':'철회됨'; stEl.className = it.on?'st-on':'st-off'; }
   const metaEl = document.getElementById('meta-'+cid);
   if(metaEl) metaEl.textContent = connMetaText(c);
-  toast(it.on?'ok':'warn', '"'+it.k+'" 항목을 '+(it.on?'재동의했어요':'철회했어요 — 동의 영수증에 기록됩니다'));
+  toast(it.on?'ok':'warn', '"'+it.k+'" 항목을 '+(it.on?'재동의했어요':'철회했어요 — 동의 영수증에 기록돼요'));
 }
 function askRevoke(id, itemName){
   pendingConn = CONNS.find(c=>c.id===id);
   document.getElementById('revokeName').textContent = pendingConn.name;
-  document.getElementById('revokeDesc').textContent = (itemName ? ' — "'+itemName+'"은(는) 필수 항목이라 기관 연동 해지로 처리됩니다. ' : ' ') +
-    '연동을 해지하면 모든 동의가 철회되고 자동입력·추천 기능이 중단됩니다. 이미 생성된 서류에는 영향이 없어요.';
+  document.getElementById('revokeDesc').textContent = (itemName ? ' — "'+itemName+'"은(는) 필수 항목이라 기관 연동 해지로 처리돼요. ' : ' ') +
+    '연동을 해지하면 모든 동의가 철회되고 자동입력·추천 기능이 중단돼요. 이미 생성된 서류에는 영향이 없어요.';
   openModal('revokeModal');
 }
 function confirmRevoke(){
@@ -460,7 +460,7 @@ function confirmRevoke(){
     '처리 결과': '데이터 수집 즉시 중단, 보유 데이터 파기(법정 보존 제외)'
   });
   closeModal('revokeModal'); renderConns();
-  toast('warn', pendingConn.name+' 연동이 해지되었어요 — 동의 영수증에 기록됩니다');
+  toast('warn', pendingConn.name+' 연동이 해지되었어요 — 동의 영수증에 기록돼요');
 }
 
 /* ── 알기 쉬운 동의 화면 ── */
@@ -529,7 +529,7 @@ function mdCheckState(){
 }
 function mdDecline(){
   closeModal('consentModal');
-  toast('info','동의하지 않으셨어요 — 서비스 이용에 불이익은 없으며, 언제든 다시 연동할 수 있습니다');
+  toast('info','동의하지 않으셨어요 — 서비스 이용에 불이익은 없으며, 언제든 다시 연동할 수 있어요');
 }
 function confirmConsent(){
   const chks = [...document.querySelectorAll('#consentModal .md-chk')];
@@ -545,21 +545,21 @@ function confirmConsent(){
     '동의 방법': '본인 인증 후 화면 내 개별 동의'
   });
   closeModal('consentModal'); renderConns();
-  toast('ok', pendingConn.name+' 연동이 완료되었어요 — 동의 영수증이 발행되었습니다');
+  toast('ok', pendingConn.name+' 연동이 완료되었어요 — 동의 영수증이 발행되었어요');
 }
 function showTerms(cid, ii){
   const c = CONNS.find(x=>x.id===cid); const it = c.items[ii];
   document.getElementById('termsTitle').textContent = '['+(it.req?'필수':'선택')+'] '+it.k+' 수집·이용 동의 약관';
   document.getElementById('termsBody').innerHTML = `
     <div style="font-size:13.5px;line-height:1.8;color:#374151">
-      ㈜골든플래닛(agriG)은 「개인정보 보호법」 제15조·제22조에 따라 아래와 같이 개인데이터를 수집·이용하고자 합니다.<br><br>
+      ㈜골든플래닛(agriG)은 「개인정보 보호법」 제15조·제22조에 따라 아래와 같이 개인데이터를 수집·이용하고자 해요.<br><br>
       <b style="font-size:15px">1. 수집·이용 목적</b><br>${it.purpose}<br><br>
       <b style="font-size:15px">2. 수집 항목</b><br>${it.fields}<br><br>
       <b style="font-size:15px">3. 보유 및 이용 기간</b><br><u style="text-decoration-color:var(--g400);text-underline-offset:3px">${it.period}</u><br><br>
       <b style="font-size:15px">4. 동의를 거부할 권리 및 불이익</b><br>
-      귀하는 위 동의를 거부할 권리가 있습니다. ${it.req
-        ? '다만 이 항목은 서비스 제공에 꼭 필요해서, 동의하지 않으면 <b>'+c.name+' 데이터 연동 서비스</b>를 이용할 수 없습니다. agriG의 다른 기능 이용에는 제한이 없습니다.'
-        : '<b>이 항목은 선택 사항으로, 동의하지 않아도 어떤 불이익도 없습니다.</b>'}<br><br>
+      귀하는 위 동의를 거부할 권리가 있어요. ${it.req
+        ? '다만 이 항목은 서비스 제공에 꼭 필요해서, 동의하지 않으면 <b>'+c.name+' 데이터 연동 서비스</b>를 이용할 수 없어요. agriG의 다른 기능 이용에는 제한이 없어요.'
+        : '<b>이 항목은 선택 사항으로, 동의하지 않아도 어떤 불이익도 없어요.</b>'}<br><br>
       <span style="font-size:12px;color:var(--sub)">시행일 2026-05-01 · 문의 privacy@agrig.kr</span>
     </div>`;
   openModal('termsModal');
@@ -608,7 +608,7 @@ function doDownload(){
   });
   document.getElementById('dlPick').style.display = 'none';
   document.getElementById('dlDone').style.display = '';
-  document.getElementById('dlDoneSum').innerHTML = `${method==='이 기기에 저장'?'이 기기의 내려받기 폴더에 저장했습니다':method+' 방식으로 전송을 시작했습니다'} · ${items.length}개 항목`;
+  document.getElementById('dlDoneSum').innerHTML = `${method==='이 기기에 저장'?'이 기기의 내려받기 폴더에 저장했어요':method+' 방식으로 전송을 시작했어요'} · ${items.length}개 항목`;
   /* 내려받기 영수증 — 필수 표기 6항목 (M6) */
   document.getElementById('dlRcptTbl').innerHTML = [
     ['영수증 ID', `<span class="rcpt-id" style="font-size:11.5px;color:var(--txt)">${rid}</span>`],
@@ -687,7 +687,7 @@ function shareNext(){
   document.getElementById('shareStep2').style.display = 'none';
   document.getElementById('shareDone').style.display = '';
   document.getElementById('shareStep').textContent = '공유가 완료되었어요';
-  document.getElementById('shareDoneOrg').textContent = org+'에 안전하게 전달되었습니다.';
+  document.getElementById('shareDoneOrg').textContent = org+'에 안전하게 전달되었어요.';
   /* 공유 영수증 — 필수 표기 6항목 + 근거 동의 연결 (SHR-04) */
   document.getElementById('shareDoneTbl').innerHTML = [
     ['영수증 ID', `<span class="rcpt-id" style="font-size:11.5px;color:var(--txt)">${rid}</span>`],
@@ -699,7 +699,7 @@ function shareNext(){
     ['근거 동의 영수증', `<a href="#" class="rcpt-id" style="font-size:11.5px;color:var(--g700);font-weight:700" onclick="closeModal('shareModal');openReceipt('RCPT-C-260510-001');return false">RCPT-C-260510-001 ›</a>`],
   ].map(([k,v])=>`<tr><th>${k}</th><td>${v}</td></tr>`).join('');
   document.getElementById('shareFoot').innerHTML = '<button class="btn btn-pri" style="width:100%" onclick="closeModal(\'shareModal\')">확인</button>';
-  toast('ok','공유가 완료되었어요 — 공유 영수증이 발행되었습니다');
+  toast('ok','공유가 완료되었어요 — 공유 영수증이 발행되었어요');
 }
 /* 공유 대상 검색: 일치 기관만 표시, 없으면 '아직 연결할 수 없는 곳' 안내 (SHR-01) */
 function shareSearchFilter(q){
@@ -718,23 +718,23 @@ function shareSearchFilter(q){
    동의·관리·영수증·역추적이 모두 이 2개 목적 모듈을 기준으로 동작한다. */
 const PURPOSES = [
   {id:'p1', no:'①', name:'출하 단가 분석용', proc:'가명처리', cls:'pl-pseudo', on:true, since:'2026-08-26',
-   easy:'내 농사 자료로 언제 얼마에 팔면 좋을지 계산해 상담해 드립니다. 이때 이름과 주소는 지우고 씁니다.',
+   easy:'내 농사 자료로 언제 얼마에 팔면 좋을지 계산해 상담해 드려요. 이때 이름과 주소는 지우고 써요.',
    data:'재배 품목·면적·물량, 소재지, 출하 실적, 교육 이수 이력',
    org:'농정원 · 골든플래닛',
    how:'<u>이름·상세주소·생년월일을 지우고</u> 가상 번호로 바꿔 사용 (개인정보 보호법 제28조의2 가명처리)',
    period:'<u>서비스 이용 종료 시까지</u> · 사업 종료(2027-12-31) 후 6개월 이내 파기',
    where:'AI 상담 (출하 시기·단가 분석, 판로 추천, 경영 리스크 진단)',
-   offNote:'끄면 AI 상담이 일반 시세 안내로만 동작합니다',
-   locks:[['AI 상담 개인화','①번에 동의하면 열립니다']]},
+   offNote:'끄면 AI 상담이 일반 시세 안내로만 동작해요',
+   locks:[['AI 상담 개인화','①번에 동의하면 열려요']]},
   {id:'p2', no:'②', name:'정책자금 서류 생성용', proc:'실명 한시보유', cls:'pl-real', on:true, since:'2026-08-26',
-   easy:'농협에 흩어져 있는 내 경영체 자료를 받아와 정부 서식을 대신 채워 드립니다. 서류에는 실명이 들어가야 해서 이 목적에서만 이름·주소를 그대로 씁니다.',
+   easy:'농협에 흩어져 있는 내 경영체 자료를 받아와 정부 서식을 대신 채워 드려요. 서류에는 실명이 들어가야 해서 이 목적에서만 이름·주소를 그대로 써요.',
    data:'경영체 등록정보(경영체번호·대표자·주소), 교육 이수 이력, 유통 실적, 재무 정보',
    org:'농림수산식품교육문화정보원 (농정원)',
    how:'<u>서류를 만드는 동안만 이름·주소를 유지</u>하고, 그 외 용도로는 쓰지 않음 · 열람 이력 전부 기록',
    period:'<u>서비스 이용 종료 시까지</u> · 사업 종료(2027-12-31) 후 6개월 이내 파기',
    where:'행정 서류 자동 작성 (정부 표준 서식 4종 자동 기입 · PDF 초안 생성)',
-   offNote:'끄면 서류 자동 작성이 잠기고, 보관 중인 이름·주소를 즉시 없앱니다',
-   locks:[['행정 서류 자동 작성','②번에 동의하면 열립니다'],['정책자금 신청서 미리 채우기','②번에 동의하면 열립니다']]},
+   offNote:'끄면 서류 자동 작성이 잠기고, 보관 중인 이름·주소를 즉시 없애요',
+   locks:[['행정 서류 자동 작성','②번에 동의하면 열려요'],['정책자금 신청서 미리 채우기','②번에 동의하면 열려요']]},
 ];
 let etcConsent = {news:false};   /* 그 밖의 동의 (새 소식 알림) */
 function purposeOn(id){ const p = PURPOSES.find(x=>x.id===id); return p ? p.on : false; }
@@ -751,7 +751,7 @@ function renderPurposes(){
         <span class="pl ${p.on?'pl-on':'pl-off'}">${p.on?'동의 중':'동의 안 함'}</span>
         <span class="toggle ${p.on?'on':''}" onclick="togglePurpose(${i})"></span>
       </div>
-      <div class="pur-d">${p.on ? p.easy+' · '+(p.since?p.since+' 동의':'') : p.offNote+'. 동의하면 바로 쓸 수 있습니다.'}
+      <div class="pur-d">${p.on ? p.easy+' · '+(p.since?p.since+' 동의':'') : p.offNote+'. 동의하면 바로 쓸 수 있어요.'}
         <a href="#" style="font-weight:700;color:var(--g700);margin-left:4px" onclick="purOpen(${i});return false">동의서 자세히 보기 ›</a></div>
     </div>`).join('') + `
     <div class="pur" style="border-style:dashed">
@@ -768,10 +768,10 @@ function renderPurposes(){
     <div style="display:flex;flex-direction:column;gap:7px">${locks.map(([no,t,d])=>`
       <div class="lockrow">
         <div class="lk"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="3" y="6.5" width="10" height="7" rx="1.5" stroke="#6E7681" stroke-width="1.5"/><path d="M5.5 6.5V5a2.5 2.5 0 0 1 5 0v1.5" stroke="#6E7681" stroke-width="1.5"/></svg></div>
-        <div style="flex:1"><div class="lt">${t}</div><div class="ld">잠김 · ${no}번에 동의하면 열립니다</div></div>
+        <div style="flex:1"><div class="lt">${t}</div><div class="ld">잠김 · ${no}번에 동의하면 열려요</div></div>
         <button class="btn btn-out btn-sm" onclick="purOpen(${no==='①'?0:1})">동의하러 가기</button>
       </div>`).join('')}</div>
-    <div style="font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.6">①②를 모두 끄면 서비스를 쓸 수 없어 탈퇴 절차로 넘어갑니다.</div>` : '';
+    <div style="font-size:11.5px;color:var(--sub);margin-top:8px;line-height:1.6">①②를 모두 끄면 서비스를 쓸 수 없어 탈퇴 절차로 넘어가요.</div>` : '';
   if(typeof renderDocLockState === 'function') renderDocLockState();
 }
 function togglePurpose(i){
@@ -782,7 +782,7 @@ function togglePurpose(i){
       '철회 일시': nowStamp(), '동의 유형': '목적 동의 철회', '대상 목적': p.no+' '+p.name+' ('+p.proc+')',
       '처리 결과': p.id==='p2' ? '서류 자동 작성 잠김 · 보관 중인 식별정보(이름·주소) 즉시 파기' : 'AI 상담 개인화 중단 (일반 시세 안내만 동작)'
     });
-    toast('warn', p.no+' '+p.name+' 동의를 철회했어요 — 동의 영수증에 기록됩니다');
+    toast('warn', p.no+' '+p.name+' 동의를 철회했어요 — 동의 영수증에 기록돼요');
     renderPurposes();
   } else {
     purOpen(i);   /* 재동의는 동의서 상세를 확인한 뒤 진행 */
@@ -809,14 +809,14 @@ function purOpen(i, after){
           <tr><th>어떻게 처리하나요<br><small style="font-weight:400;color:var(--mut)">(처리 방식)</small></th><td style="font-weight:700">${p.how}</td></tr>
           <tr><th>얼마나 갖고 있나요<br><small style="font-weight:400;color:var(--mut)">(보유·이용 기간)</small></th><td>${p.period}</td></tr>
         </table></div>
-        <div style="font-size:10.5px;color:var(--mut);margin-top:5px">※ 위 항목 중 핵심 문구는 본문보다 20% 크게·굵게 표기했습니다.</div>
+        <div style="font-size:10.5px;color:var(--mut);margin-top:5px">※ 위 항목 중 핵심 문구는 본문보다 20% 크게·굵게 표기했어요.</div>
       </div>
       ${i===1 ? `
       <div style="font-size:12px;background:var(--orange-bg);border:1px solid #F1DDBE;border-radius:10px;padding:10px 14px;line-height:1.65;color:#7A4A0B">
-        <b>①번(출하 단가 분석)과 다른 점</b><br>① 분석에는 이름을 지우고 쓰지만, ② 서류에는 <b>실명이 있어야 서류가 성립</b>하므로 그 목적에서만 이름·주소를 유지합니다. 서류 만들기 외에는 쓰이지 않습니다.</div>
-      <div style="font-size:12px;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;line-height:1.65;color:#24559E">이름·주소를 꺼내 쓸 때마다 <b>기록이 남습니다.</b> [데이터 영수증 › 실명 사용 기록]에서 직접 확인할 수 있습니다.</div>` : `
-      <div style="font-size:12px;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;line-height:1.65;color:#24559E">상담 답변을 만들 때 <b>내 경영 자료 원문은 밖으로 나가지 않습니다.</b> 요약한 숫자만 사용합니다. (폐쇄형 원칙)</div>`}
-      <div class="md-rights"><b class="md-rights-lead">동의하지 않아도 됩니다.</b><br>${i===1?'동의하지 않으면 서류 자동 작성만 잠기고, AI 상담 등 다른 기능은 그대로 쓸 수 있습니다. 서류는 직접 작성해 제출할 수도 있습니다.':'동의하지 않으면 AI 상담이 내 조건을 반영한 답을 드리지 못하고 일반 시세 정보만 안내합니다. 다른 기능 이용에는 제한이 없습니다.'}</div>
+        <b>①번(출하 단가 분석)과 다른 점</b><br>① 분석에는 이름을 지우고 쓰지만, ② 서류에는 <b>실명이 있어야 서류가 성립</b>하므로 그 목적에서만 이름·주소를 유지해요. 서류 만들기 외에는 쓰이지 않아요.</div>
+      <div style="font-size:12px;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;line-height:1.65;color:#24559E">이름·주소를 꺼내 쓸 때마다 <b>기록이 남아요.</b> [데이터 영수증 › 실명 사용 기록]에서 직접 확인할 수 있어요.</div>` : `
+      <div style="font-size:12px;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:10px;padding:10px 14px;line-height:1.65;color:#24559E">상담 답변을 만들 때 <b>내 경영 자료 원문은 밖으로 나가지 않아요.</b> 요약한 숫자만 사용해요. (폐쇄형 원칙)</div>`}
+      <div class="md-rights"><b class="md-rights-lead">동의하지 않아도 돼요.</b><br>${i===1?'동의하지 않으면 서류 자동 작성만 잠기고, AI 상담 등 다른 기능은 그대로 쓸 수 있어요. 서류는 직접 작성해 제출할 수도 있어요.':'동의하지 않으면 AI 상담이 내 조건을 반영한 답을 드리지 못하고 일반 시세 정보만 안내해요. 다른 기능 이용에는 제한이 없어요.'}</div>
     </div>`;
   openModal('purModal');
 }
@@ -829,7 +829,7 @@ function purAgree(){
       '처리 방식': p.proc, '제공 항목': p.data, '보유 기관': p.org.replace(/<[^>]+>/g,''),
       '보유·이용 기간': p.period.replace(/<[^>]+>/g,''), '동의 방법': '본인 인증 후 동의서 상세 확인 · 화면 내 동의'
     });
-    toast('ok', p.no+' '+p.name+' 동의가 완료되었어요 — 동의 영수증이 발행되었습니다');
+    toast('ok', p.no+' '+p.name+' 동의가 완료되었어요 — 동의 영수증이 발행되었어요');
   }
   renderPurposes();
   closeModal('purModal');
@@ -850,7 +850,7 @@ function openWithdraw(){
   rows.push(`<label class="md-allchk" style="margin:0 0 8px;${etcConsent.news?'':'opacity:.45'}">
     <input type="checkbox" class="wd-chk" data-i="news" ${etcConsent.news?'':'disabled'}>
     <b style="font-size:13px">새 소식 · 지원사업 알림</b>
-    <span style="font-size:11px;color:var(--sub);margin-left:auto">끄면 알림이 오지 않습니다</span></label>`);
+    <span style="font-size:11px;color:var(--sub);margin-left:auto">끄면 알림이 오지 않아요</span></label>`);
   document.getElementById('wdBody').innerHTML = rows.join('');
   openModal('wdModal');
 }
@@ -868,21 +868,21 @@ function confirmWithdraw(){
   });
   renderPurposes();
   closeModal('wdModal');
-  toast('warn','고른 동의를 취소했어요 — 처리 결과는 동의 영수증에 기록됩니다');
+  toast('warn','고른 동의를 취소했어요 — 처리 결과는 동의 영수증에 기록돼요');
 }
 
 /* CMG-01 연결 대시보드 — 실시간 갱신 요청 · 데이터 삭제 */
 function connRefresh(){
   CONNS.filter(c=>c.on).forEach(c=>c.last = nowStamp());
   renderConns();
-  toast('ok','연결된 기관에 최신 자료 갱신을 요구했어요 — 도착하면 알려드립니다');
+  toast('ok','연결된 기관에 최신 자료 갱신을 요구했어요 — 도착하면 알려드려요');
 }
 function connPurge(){
   issueReceipt('use', '받아온 자료 즉시 삭제', {
     '처리 일시': nowStamp(), '목적': '정보주체 요청에 따른 보관 데이터 삭제',
     '대상': '연결 기관에서 받아 보관 중이던 전체 자료', '처리 결과': '즉시 삭제 완료 (연결 상태는 유지 — 다음 갱신부터 다시 수신)'
   });
-  toast('warn','받아온 자료를 즉시 삭제했어요 — 처리 결과가 영수증에 기록됩니다');
+  toast('warn','받아온 자료를 즉시 삭제했어요 — 처리 결과가 영수증에 기록돼요');
 }
 
 /* USE-04 · USE-05 — 역추적/감사 화면 */
@@ -906,7 +906,7 @@ function mdwGo(n){
 }
 function mdwDecline(){
   closeModal('mdwModal');
-  toast('info','동의하지 않으셨어요 — 불이익은 없으며, 언제든 다시 시작할 수 있습니다');
+  toast('info','동의하지 않으셨어요 — 불이익은 없으며, 언제든 다시 시작할 수 있어요');
 }
 function mdwIssue(){
   if(mdwRid) return;
@@ -934,7 +934,8 @@ function mdwIssue(){
 function mdwRender(){
   for(let i=0;i<=4;i++){ const el = document.getElementById('mdwS'+i); if(el) el.style.display = i===mdwStep ? '' : 'none'; }
   document.getElementById('mdwBar').style.width = [8,33,58,83,100][mdwStep]+'%';
-  document.getElementById('mdwStt').textContent = MDW_STT[mdwStep];
+  var mdwSttEl = document.getElementById('mdwStt');            /* 진행 표시는 프로그레스바로 통일 — 텍스트는 남아 있을 때만 */
+  if(mdwSttEl) mdwSttEl.textContent = MDW_STT[mdwStep];
   document.getElementById('mdwTitle').textContent = MDW_TITLE[mdwStep];
   if(mdwStep === 2) mdwRenderPurs();
   const foot = document.getElementById('mdwFoot');
@@ -988,7 +989,7 @@ function renderDocLockState(){
     <div class="lockrow" style="border-style:solid">
       <span class="pl ${p.cls}">${p.proc}</span>
       <div style="flex:1"><div class="lt">${p.no} ${p.name}</div>
-        <div class="ld">${p.on ? (p.id==='p1'?'AI 상담은 지금도 쓸 수 있습니다':'동의 중') : '동의 안 함 · 동의하면 서류 자동 작성이 바로 열립니다'}</div></div>
+        <div class="ld">${p.on ? (p.id==='p1'?'AI 상담은 지금도 쓸 수 있어요':'동의 중') : '동의 안 함 · 동의하면 서류 자동 작성이 바로 열려요'}</div></div>
       <span class="pl ${p.on?'pl-on':'pl-off'}">${p.on?'동의 중':'동의 안 함'}</span>
     </div>`).join('');
 }
@@ -1026,12 +1027,12 @@ function loadTpls(){ if(!tpls) tpls = loadStore(TPLS_KEY, []); return tpls; }
 function persist(){ try{ localStorage.setItem(DOCS_KEY, JSON.stringify(docs)); localStorage.setItem(TPLS_KEY, JSON.stringify(tpls)); }catch(e){} }
 
 const DOC_SUBTITLES = {
-  home:'완성된 서류는 이 기기에만 저장되고, 내 데이터는 작성 시점마다 실시간으로 조회합니다.',
+  home:'완성된 서류는 이 기기에만 저장되고, 내 데이터는 작성 시점마다 실시간으로 조회해요.',
   s1:'표준 서식을 고르거나, 갖고 있는 서식 파일을 올려 웹 양식으로 변환하세요.',
   s2:'마이데이터로 자동입력된 값을 확인하고, 비어 있는 항목만 채워주세요.',
-  s3:'실제 서식 그대로 미리 확인합니다. 초록 배경이 자동입력된 항목입니다.',
-  s4:'생성된 서류는 내 서류함(이 기기)에 보관됩니다.',
-  lock:'서류 자동 작성은 \'② 정책자금 서류 생성용\' 동의가 있어야 열립니다.'
+  s3:'실제 서식 그대로 미리 확인해요. 초록 배경이 자동입력된 항목이에요.',
+  s4:'생성된 서류는 내 서류함(이 기기)에 보관돼요.',
+  lock:'서류 자동 작성은 \'② 정책자금 서류 생성용\' 동의가 있어야 열려요.'
 };
 
 function goDocView(v){
@@ -1071,7 +1072,7 @@ function renderDocList(){
   loadDocs();
   const box = document.getElementById('docList');
   if(!docs.length){
-    box.innerHTML = '<div style="padding:36px;text-align:center;font-size:13px;color:var(--sub)">아직 작성한 서류가 없습니다. <b>새 서류 작성</b>으로 시작해보세요.</div>';
+    box.innerHTML = '<div style="padding:36px;text-align:center;font-size:13px;color:var(--sub)">아직 작성한 서류가 없어요. <b>새 서류 작성</b>으로 시작해보세요.</div>';
     return;
   }
   box.innerHTML = docs.map((d,i)=>`
@@ -1090,7 +1091,7 @@ function renderDocList(){
           <span style="font-size:12px;font-weight:700;color:var(--blue)">${d.prog||60}%</span>
         </div>
         <button class="btn btn-pri btn-sm" onclick="resumeDoc(${i})">이어쓰기</button>`
-      : `<button class="btn btn-neu btn-sm" onclick="toast('info','PDF 열기 — 시안에서는 생략됩니다')">PDF 보기</button>`}
+      : `<button class="btn btn-neu btn-sm" onclick="toast('info','PDF 열기 — 시안에서는 생략돼요')">PDF 보기</button>`}
       <button class="btn btn-neu btn-sm" onclick="delDoc(${i})" title="이 기기에서 삭제">삭제</button>
     </div>`).join('');
 }
@@ -1098,12 +1099,12 @@ function resumeDoc(i){
   curDoc = {name:docs[i].name, org:docs[i].org};
   setFormBar();
   goDocView('s2');
-  toast('info','임시저장 상태를 불러왔습니다 — 마이데이터는 최신 값으로 다시 조회했습니다');
+  toast('info','임시저장 상태를 불러왔어요 — 마이데이터는 최신 값으로 다시 조회했어요');
 }
 function delDoc(i){
   const nm = docs[i].name;
   docs.splice(i,1); persist(); renderDocList();
-  toast('warn', '"'+nm+'" 서류를 이 기기에서 삭제했습니다');
+  toast('warn', '"'+nm+'" 서류를 이 기기에서 삭제했어요');
 }
 function saveDraft(){
   loadDocs();
@@ -1112,7 +1113,7 @@ function saveDraft(){
   if(ex){ ex.date = today; }
   else docs.unshift({name:curDoc.name, org:curDoc.org, date:today, status:'draft', prog:60});
   persist();
-  toast('ok','임시저장 완료 — 내 서류함(이 기기)에 보관되었습니다');
+  toast('ok','임시저장 완료 — 내 서류함(이 기기)에 보관되었어요');
 }
 
 /* ── 1단계: 서식 선택 / 업로드 변환 ── */
@@ -1128,7 +1129,7 @@ function pickTemplate(name, org){
   curDoc = {name, org};
   setFormBar();
   goDocView('s2');
-  toast('ok','서식을 불러와 마이데이터로 자동입력했습니다');
+  toast('ok','서식을 불러와 마이데이터로 자동입력했어요');
 }
 function handleUpload(file){
   if(!file) return;
@@ -1159,7 +1160,7 @@ function useConverted(){
   curDoc = {name:convName, org:'내 변환 서식 (업로드)'};
   setFormBar();
   goDocView('s2');
-  toast('ok','변환된 서식에 자동입력을 적용했습니다 — 값을 꼭 확인해주세요');
+  toast('ok','변환된 서식에 자동입력을 적용했어요 — 값을 꼭 확인해주세요');
 }
 function renderTpls(){
   loadTpls();
@@ -1179,12 +1180,12 @@ function useTpl(i){
   curDoc = {name:tpls[i].name, org:'내 변환 서식 (업로드)'};
   setFormBar();
   goDocView('s2');
-  toast('ok','저장된 변환 서식을 불러왔습니다 — 마이데이터 최신 값으로 자동입력');
+  toast('ok','저장된 변환 서식을 불러왔어요 — 마이데이터 최신 값으로 자동입력');
 }
 function delTpl(i){
   const nm = tpls[i].name;
   tpls.splice(i,1); persist(); renderTpls();
-  toast('warn','"'+nm+'" 변환 서식을 삭제했습니다');
+  toast('warn','"'+nm+'" 변환 서식을 삭제했어요');
 }
 
 /* ── 2단계: 정보 확인 ── */
@@ -1197,7 +1198,7 @@ function touchMdTime(){
 }
 function refreshMyData(){
   touchMdTime();
-  toast('info','마이데이터를 다시 조회했습니다 — 저장본이 아닌 실시간 연계 값입니다');
+  toast('info','마이데이터를 다시 조회했어요 — 저장본이 아닌 실시간 연계 값이에요');
 }
 function phoneFilled(inp){
   const has = inp.value.trim().length > 0;
@@ -1208,7 +1209,7 @@ function phoneFilled(inp){
 }
 function genPreview(){
   const phone = document.getElementById('phoneInput').value.trim();
-  if(!phone){ toast('err','연락처를 입력해주세요 — 필수 항목입니다'); document.getElementById('phoneInput').focus(); return; }
+  if(!phone){ toast('err','연락처를 입력해주세요 — 필수 항목이에요'); document.getElementById('phoneInput').focus(); return; }
   goDocView('s3');
 }
 
@@ -1230,7 +1231,7 @@ function confirmDoc(){
   docs.unshift({name:curDoc.name, org:curDoc.org, date:dt.slice(0,10), status:'done'});
   persist();
   goDocView('s4');
-  toast('ok','서류가 생성되었습니다 — TSA 타임스탬프 적용');
+  toast('ok','서류가 생성되었어요 — TSA 타임스탬프 적용');
 }
 
 /* ══════════ AI 챗봇 — rag-orchestrator 위젯 연동 ══════════ */
@@ -1270,8 +1271,8 @@ function hostAction(e){
   const kind = e && e.kind, label = (e && e.label) || '';
   if(kind === 'document-vault'){ openDocs('home'); return; }
   if(kind === 'channel-cta'){ nav('map'); toast('info', label + ' — 판로 지도에서 확인하세요'); return; }
-  if(kind === 'contact'){ toast('info', label + ' — 전화 연결은 시안 범위 외입니다'); return; }
-  toast('info', label + ' — 시안 범위 외 동작입니다');
+  if(kind === 'contact'){ toast('info', label + ' — 전화 연결은 시안 범위 외이에요'); return; }
+  toast('info', label + ' — 시안 범위 외 동작이에요');
 }
 
 function setConn(state, text){
@@ -1323,7 +1324,7 @@ async function initChatWidget(){
 }
 function retryChatConnect(){ initChatWidget(); }
 function newChatSession(){
-  if(chatWidget){ chatWidget.newSession(); toast('ok','새 상담을 시작했습니다'); }
+  if(chatWidget){ chatWidget.newSession(); toast('ok','새 상담을 시작했어요'); }
   else initChatWidget();
 }
 function openApiModal(){
@@ -1335,7 +1336,7 @@ function saveApiBase(){
   closeModal('apiModal');
   if(panelWidget){ panelWidget.destroy(); panelWidget = null; document.getElementById('cpBody').innerHTML = ''; }
   initChatWidget();
-  toast('ok','API 주소를 저장했습니다 — 다시 연결합니다');
+  toast('ok','API 주소를 저장했어요 — 다시 연결해요');
 }
 /* 외부(대시보드 칩 등)에서 질문을 보내면 챗봇 페이지로 이동해 실제 질의 */
 function askFromOutside(q){
@@ -1537,12 +1538,12 @@ function ensureSigGroup(sidoCd){
 }
 function ensureEmdIndex(cb){
   if(GEO.emd){ cb(); return; }
-  toast('info','읍면동 경계를 불러오는 중입니다…');
+  toast('info','읍면동 경계를 불러오는 중이에요…');
   fetch('data/emd_wgs84.json').then(r=>r.json()).then(g=>{
     GEO.emd = g;
     g.features.forEach(f=>{ const sig=f.properties.EMD_CD.slice(0,5); (emdBySig[sig]=emdBySig[sig]||[]).push(f); });
     cb();
-  }).catch(()=>toast('err','읍면동 데이터를 불러오지 못했습니다'));
+  }).catch(()=>toast('err','읍면동 데이터를 불러오지 못했어요'));
 }
 function ensureEmdGroup(sigCd){
   if(!groups.emd[sigCd]) groups.emd[sigCd] = buildGroup(emdBySig[sigCd]||[], 'emd');
@@ -1759,7 +1760,7 @@ function initPanMap(){
     buildMarkets();
     refreshAll();
   })
-  .catch(function(){ panMap=null; toast('err','지도 데이터를 불러오지 못했습니다'); });
+  .catch(function(){ panMap=null; toast('err','지도 데이터를 불러오지 못했어요'); });
 }
 
 /* ── 렌더 일괄 ── */
@@ -1877,8 +1878,8 @@ function applySelPick(opt){
   sel.classList.remove('open');
   event.stopPropagation();
 }
-function pickItem(opt){ applySelPick(opt); curItem = opt.textContent.trim(); refreshAll(); toast('info', '"'+curItem+'" 기준으로 갱신했습니다'); }
-function pickDate(opt){ applySelPick(opt); curDate = opt.textContent.trim(); refreshAll(); toast('info', curDate+' 기준 시세로 갱신했습니다'); }
+function pickItem(opt){ applySelPick(opt); curItem = opt.textContent.trim(); refreshAll(); toast('info', '"'+curItem+'" 기준으로 갱신했어요'); }
+function pickDate(opt){ applySelPick(opt); curDate = opt.textContent.trim(); refreshAll(); toast('info', curDate+' 기준 시세로 갱신했어요'); }
 function toggleLabels(){
   labelsOn = !labelsOn;
   document.getElementById('panMap').classList.toggle('labels-off', !labelsOn);
@@ -1900,9 +1901,9 @@ const MK_TYPE = {
 };
 /* 샘플 데이터 — 실서비스에서는 도매시장 반입/경락 API + 자사 유통 DB로 대체 */
 const MARKETS = [
-  {id:'m01', t:'auction', n:'서울 가락동 농수산물도매시장', lat:37.4970, lng:127.1190, price:1290, vol:412, fee:7.0, dist:298, settle:'D+3', hours:'경매 20:00~04:00', best:true, tags:['최고 단가','대량 출하'], note:'전국 최대 규모. 상품 등급이 좋을수록 낙찰가 편차가 큽니다.'},
+  {id:'m01', t:'auction', n:'서울 가락동 농수산물도매시장', lat:37.4970, lng:127.1190, price:1290, vol:412, fee:7.0, dist:298, settle:'D+3', hours:'경매 20:00~04:00', best:true, tags:['최고 단가','대량 출하'], note:'전국 최대 규모. 상품 등급이 좋을수록 낙찰가 편차가 커요.'},
   {id:'m02', t:'auction', n:'서울 강서 농수산물도매시장', lat:37.5510, lng:126.8490, price:1268, vol:186, fee:7.0, dist:312, settle:'D+3', hours:'경매 21:00~03:00', tags:['수도권 서부'], note:'가락시장 대비 반입량이 적어 물량 소진이 빠른 편.'},
-  {id:'m03', t:'auction', n:'구리 농수산물도매시장', lat:37.5940, lng:127.1420, price:1258, vol:143, fee:6.5, dist:305, settle:'D+3', hours:'경매 20:30~03:30', tags:['수수료 낮음'], note:'수도권 동북부 소비지 접근성이 좋습니다.'},
+  {id:'m03', t:'auction', n:'구리 농수산물도매시장', lat:37.5940, lng:127.1420, price:1258, vol:143, fee:6.5, dist:305, settle:'D+3', hours:'경매 20:30~03:30', tags:['수수료 낮음'], note:'수도권 동북부 소비지 접근성이 좋아요.'},
   {id:'m04', t:'auction', n:'부산 엄궁동 농산물도매시장', lat:35.1420, lng:128.9760, price:1245, vol:128, fee:7.0, dist:186, settle:'D+3', hours:'경매 20:00~02:00', tags:['영남권'], note:'영남권 소비지 물량 집중.'},
   {id:'m05', t:'auction', n:'대구 북부 농수산물도매시장', lat:35.8950, lng:128.5570, price:1238, vol:145, fee:6.5, dist:98, settle:'D+3', hours:'경매 20:00~02:30', tags:['근거리','운송비 절감'], note:'청송에서 가까워 운송비 부담이 가장 적은 도매시장.'},
   {id:'m06', t:'auction', n:'대전 오정 농수산물도매시장', lat:36.3620, lng:127.4090, price:1230, vol:76, fee:6.5, dist:214, settle:'D+3', hours:'경매 20:00~02:00', tags:['중부권'], note:'중부권 분산 출하 시 활용.'},
@@ -1910,10 +1911,10 @@ const MARKETS = [
   {id:'m08', t:'apc', n:'청송 농협 산지유통센터(APC)', lat:36.4360, lng:129.0570, price:1180, vol:42, fee:3.0, dist:12, settle:'D+7', hours:'접수 08:00~17:00', best:true, tags:['계약 출하','물류 부담 없음'], note:'계약 물량은 고정가 정산. 시세 변동 위험을 줄이고 싶을 때 유리.'},
   {id:'m09', t:'apc', n:'안동 농협 통합 APC', lat:36.5680, lng:128.7290, price:1195, vol:58, fee:3.5, dist:48, settle:'D+7', hours:'접수 08:00~17:00', tags:['선별·저장 지원'], note:'저온저장 연계로 출하 시점 조절 가능.'},
   {id:'m10', t:'apc', n:'무안 양파 전문 APC', lat:34.9900, lng:126.4820, price:1210, vol:96, fee:3.0, dist:392, settle:'D+7', hours:'접수 08:00~18:00', tags:['양파 특화'], note:'양파 주산지 전문 선별 라인 보유.'},
-  {id:'m11', t:'retail', n:'롯데마트 중부 물류센터', lat:36.8060, lng:127.1140, price:1340, vol:64, fee:9.0, dist:246, settle:'D+30', hours:'입고 06:00~15:00', tags:['고단가','정산 김'], note:'규격·선별 기준이 엄격하지만 단가가 높습니다. 정산 주기 확인 필요.'},
-  {id:'m12', t:'retail', n:'이마트 후레쉬센터', lat:37.2410, lng:127.1780, price:1352, vol:78, fee:9.5, dist:288, settle:'D+30', hours:'입고 05:00~14:00', tags:['고단가','대량 계약'], note:'연간 계약 물량 위주. 소량 출하는 어려울 수 있습니다.'},
-  {id:'m13', t:'retail', n:'하나로마트 대구 유통센터', lat:35.8420, lng:128.6320, price:1285, vol:52, fee:7.5, dist:104, settle:'D+15', hours:'입고 06:00~16:00', tags:['근거리','농협 계열'], note:'농협 계열로 경영체 실적 연계가 수월합니다.'},
-  {id:'m14', t:'online', n:'온라인 B2B 직거래 (식자재 유통)', lat:37.3980, lng:127.1080, price:1350, vol:36, fee:5.0, dist:290, settle:'D+7', hours:'상시 접수', best:true, tags:['최소 5톤','순수익 우수'], note:'중간 유통 단계가 짧아 순수익이 높지만 최소 물량 조건이 있습니다.'},
+  {id:'m11', t:'retail', n:'롯데마트 중부 물류센터', lat:36.8060, lng:127.1140, price:1340, vol:64, fee:9.0, dist:246, settle:'D+30', hours:'입고 06:00~15:00', tags:['고단가','정산 김'], note:'규격·선별 기준이 엄격하지만 단가가 높아요. 정산 주기 확인 필요.'},
+  {id:'m12', t:'retail', n:'이마트 후레쉬센터', lat:37.2410, lng:127.1780, price:1352, vol:78, fee:9.5, dist:288, settle:'D+30', hours:'입고 05:00~14:00', tags:['고단가','대량 계약'], note:'연간 계약 물량 위주. 소량 출하는 어려울 수 있어요.'},
+  {id:'m13', t:'retail', n:'하나로마트 대구 유통센터', lat:35.8420, lng:128.6320, price:1285, vol:52, fee:7.5, dist:104, settle:'D+15', hours:'입고 06:00~16:00', tags:['근거리','농협 계열'], note:'농협 계열로 경영체 실적 연계가 수월해요.'},
+  {id:'m14', t:'online', n:'온라인 B2B 직거래 (식자재 유통)', lat:37.3980, lng:127.1080, price:1350, vol:36, fee:5.0, dist:290, settle:'D+7', hours:'상시 접수', best:true, tags:['최소 5톤','순수익 우수'], note:'중간 유통 단계가 짧아 순수익이 높지만 최소 물량 조건이 있어요.'},
   {id:'m15', t:'online', n:'로컬푸드 직매장 (경북권)', lat:36.0190, lng:129.3430, price:1420, vol:8, fee:12.0, dist:86, settle:'D+1', hours:'상시 접수', tags:['소량 가능','즉시 정산'], note:'단가는 높으나 물량이 적어 보조 판로로 적합.'}
 ];
 let mkGroup = null, mkOn = true, selMk = null;
@@ -1985,10 +1986,10 @@ function askMarket(id){
 
 /* ══════════ 알림 ══════════ */
 const NOTIFS = [
-  {type:'warn', tt:'원가 급증 감지 · 비료비', desc:'최근 30일 지출이 평년 대비 +18% 상승했습니다. 상세 내역을 확인해보세요.', time:'오늘 09:12', unread:true, go:'dashboard'},
+  {type:'warn', tt:'원가 급증 감지 · 비료비', desc:'최근 30일 지출이 평년 대비 +18% 상승했어요. 상세 내역을 확인해보세요.', time:'오늘 09:12', unread:true, go:'dashboard'},
   {type:'ok', tt:'교육 이수증 수신 완료', desc:'농정원에서 수신되어 작성 중인 서류에 자동 첨부되었어요.', time:'2시간 전', unread:true, go:'docs'},
-  {type:'info', tt:'분산 출하 시작일 안내', desc:'AI 추천 출하 기간(8/22~8/29)이 3일 후 시작됩니다.', time:'어제', unread:false, go:'dashboard'},
-  {type:'ok', tt:'데이터 영수증 신규 기록 2건', desc:'정책자금 신청서 자동 첨부에 마이데이터가 활용되었습니다.', time:'어제', unread:false, go:'mypage'}
+  {type:'info', tt:'분산 출하 시작일 안내', desc:'AI 추천 출하 기간(8/22~8/29)이 3일 후 시작돼요.', time:'어제', unread:false, go:'dashboard'},
+  {type:'ok', tt:'데이터 영수증 신규 기록 2건', desc:'정책자금 신청서 자동 첨부에 마이데이터가 활용되었어요.', time:'어제', unread:false, go:'mypage'}
 ];
 const N_STYLE = {
   warn:{bg:'var(--orange-bg)', svg:'<svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M9 2L16.5 15.5H1.5L9 2Z" stroke="#E17A17" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 7V10.5" stroke="#E17A17" stroke-width="1.6" stroke-linecap="round"/><circle cx="9" cy="13" r=".9" fill="#E17A17"/></svg>'},
@@ -2027,7 +2028,7 @@ function openNotif(i){
 function readAllNotifs(){
   NOTIFS.forEach(n=>n.unread=false);
   renderNotifs();
-  toast('ok','모든 알림을 읽음으로 표시했습니다');
+  toast('ok','모든 알림을 읽음으로 표시했어요');
 }
 document.addEventListener('click', closeNotif);
 renderNotifs();

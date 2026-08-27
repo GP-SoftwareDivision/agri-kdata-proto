@@ -708,3 +708,4 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 #purBody .pur-tbl td{padding-left:2px}
 /* 모바일 전용 요소는 기본 숨김 — html.m 스코프(mobile.css)에서만 표시 */
 .allmenu,.mdoc{display:none}
+.rn-th{display:flex;align-items:center;justify-content:space-between;gap:10px}
