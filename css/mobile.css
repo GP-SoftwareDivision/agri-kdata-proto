@@ -309,3 +309,35 @@ html.m .mload.now .dot{border-color:var(--g600);animation:pulse 1s infinite}
 html.m .mfield{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:13px 15px;margin-bottom:8px}
 html.m .mfield .fl{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--sub);margin-bottom:4px;flex-wrap:wrap}
 html.m .mfield .fv{font-size:15px;font-weight:700}
+
+/* ── 몰입 플로우 v2: 토스 스타일 플랫 리스트 (박스 최소화) ── */
+html.m .mdoc{background:#fff}
+html.m .mdoc-body{padding:26px 20px 24px}
+html.m .mq{font-size:23px;margin-bottom:8px}
+html.m .mq-sub{font-size:14.5px;margin-bottom:22px}
+/* 공통 플랫 행: 박스 없이 행 단위 구분선만 */
+html.m .trow{display:flex;align-items:center;gap:12px;padding:17px 0;border-bottom:1px solid #F1F3F2;width:100%;text-align:left}
+html.m .trow:last-of-type{border-bottom:none}
+html.m .trow .tl{flex:1;min-width:0}
+html.m .trow .tl b{font-size:16px;display:block;letter-spacing:-.2px}
+html.m .trow .tl span{font-size:13px;color:var(--sub);display:block;margin-top:3px}
+html.m .trow .tr{flex-shrink:0;display:flex;align-items:center;gap:6px}
+html.m button.trow:active{background:var(--g50);margin:0 -12px;padding-left:12px;padding-right:12px;border-radius:12px}
+/* 라벨 위 · 값 아래 (자동입력 확인) — 배지는 라벨 행 우측 고정 */
+html.m .tfield{padding:15px 0;border-bottom:1px solid #F1F3F2}
+html.m .tfield:last-of-type{border-bottom:none}
+html.m .tfield .fl{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--sub)}
+html.m .tfield .fl .bd{display:flex;align-items:center;gap:5px;flex-shrink:0}
+html.m .tfield .fv{font-size:17px;font-weight:800;margin-top:5px;letter-spacing:-.2px}
+/* 로딩 스피너 */
+html.m .spin{width:18px;height:18px;border-radius:50%;border:2.5px solid #E5E9E6;border-top-color:var(--g600);animation:mspin .8s linear infinite;flex-shrink:0}
+@keyframes mspin{to{transform:rotate(360deg)}}
+html.m .tchk{width:22px;height:22px;border-radius:50%;background:var(--g600);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* 은은한 캡션 (색 박스 대신 한 줄 텍스트) */
+html.m .tcap{font-size:12.5px;color:var(--mut);line-height:1.65;margin-top:18px}
+html.m .tcap b{color:var(--sub)}
+/* 연락처 입력 — 내부 여백 충분히 */
+html.m .tinput{width:100%;border:1.5px solid var(--bd2);border-radius:14px;padding:16px 18px;
+  font-size:18px;font-weight:700;letter-spacing:.2px;background:#fff;transition:border-color .15s}
+html.m .tinput:focus{border-color:var(--g600);outline:none}
+html.m .tinput::placeholder{color:#C2C9C4;font-weight:500}
