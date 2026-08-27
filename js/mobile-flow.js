@@ -85,8 +85,10 @@ window.nav = function(id){
 /* ══════════ ② 몰입 모드 ══════════
    토스처럼 "무언가를 진행 중"일 때는 상단 헤더·하단 탭바를 치워 화면을 넓게 쓰고,
    끝나면 기본 UI 를 복구한다. 대상: 몰입 플로우 · 모든 바텀시트(모달) · 챗봇 패널 */
+/* 규칙: 2단계 이상 '프로세스'(풀스크린)만 기본 UI 를 숨기고 좌상단 뒤로가기.
+   1단계 조회성 팝업(영수증·근거·기록·약관 등)은 바텀시트 — X/배경 클릭으로 닫고 기본 UI 유지 */
 function syncFocus(){
-  var busy = document.querySelector('.overlay.open')
+  var busy = document.querySelector('.overlay.open.fullpage')
     || document.querySelector('.chat-panel.open')
     || document.querySelector('.mdoc.on');            /* 몰입 플로우 + 기능 서브페이지 */
   document.documentElement.classList.toggle('focus', !!busy);
@@ -408,15 +410,18 @@ window.openShare = function(){
 /* ══════════ ⑤ 모바일 IA v3 — 기능은 전부 '페이지 전체'로 ══════════ */
 if(!CAP){
 
-/* ①-a 주요 기능 시트를 풀스크린으로 (CSS .fullpage 스코프) */
-['consentModal','termsModal','mdwModal','purModal','wdModal','dlModal','shareModal','rcptModal','traceModal','rnModal']
+/* ①-a 2단계 이상 프로세스만 풀스크린 (CSS .fullpage 스코프).
+   조회성 1단계 팝업(영수증·근거·기록·약관·동의서 상세·동의 취소)은 바텀시트 유지 */
+['consentModal','mdwModal','dlModal','shareModal']
   .forEach(function(id){ var e = document.getElementById(id); if(e) e.classList.add('fullpage'); });
+['rcptModal','traceModal','rnModal','purModal','termsModal','wdModal']
+  .forEach(function(id){ var e = document.getElementById(id); if(e) e.classList.add('sheet-lg'); });
 
 /* ⑤-a 기능 서브페이지(#msub): 마이페이지의 카드를 통째로 옮겨 와 전체 화면으로 보여준다 */
-var msubEl = null, msubPh = null, msubCard = null;
+var msubEl = null, msubMoved = [];   /* [{card, ph}] — 서브페이지로 옮겨 간 카드들 */
 var MSUB_MAP = {
-  conn:['데이터 연동 · 동의 관리', '[data-capture="CAPTURE-004"]'],
-  rcpt:['데이터 이용내역 · 영수증', '[data-capture="CAPTURE-012"]'],
+  conn:['동의 관리', ['[data-capture="CMG-02"]', '[data-capture="CAPTURE-004"]']],
+  rcpt:['데이터 이용내역 · 영수증', ['[data-capture="CAPTURE-012"]']],
 };
 function ensureMsub(){
   if(msubEl) return;
@@ -433,25 +438,28 @@ function ensureMsub(){
 window.msubOpen = function(key){
   ensureMsub();
   var m = MSUB_MAP[key]; if(!m) return;
-  var card = document.querySelector(m[1]); if(!card) return;
-  if(msubCard) msubClose();
-  msubPh = document.createComment('msub-ph');
-  card.parentNode.insertBefore(msubPh, card);
-  card.classList.remove('m-hide');
-  document.getElementById('msubBody').appendChild(card);
-  msubCard = card;
+  if(msubMoved.length) msubClose();
+  var body = document.getElementById('msubBody');
+  m[1].forEach(function(sel){
+    var card = document.querySelector(sel); if(!card) return;
+    var ph = document.createComment('msub-ph');
+    card.parentNode.insertBefore(ph, card);
+    card.classList.remove('m-hide');
+    body.appendChild(card);
+    msubMoved.push({card:card, ph:ph});
+  });
   document.getElementById('msubTitle').textContent = m[0];
-  document.getElementById('msubBody').scrollTop = 0;
+  body.scrollTop = 0;
   msubEl.classList.add('on');
   syncFocus();
 };
 window.msubClose = function(){
-  if(msubCard && msubPh){
-    msubCard.classList.add('m-hide');            /* 루트에서는 계속 숨김 */
-    msubPh.parentNode.insertBefore(msubCard, msubPh);
-    msubPh.remove();
-  }
-  msubCard = null; msubPh = null;
+  msubMoved.forEach(function(x){
+    x.card.classList.add('m-hide');              /* 루트에서는 계속 숨김 */
+    x.ph.parentNode.insertBefore(x.card, x.ph);
+    x.ph.remove();
+  });
+  msubMoved = [];
   msubEl.classList.remove('on');
   syncFocus();
 };
@@ -467,20 +475,23 @@ window.msubClose = function(){
     if(t) t.textContent = '마이페이지';
     if(st) st.textContent = '내 데이터가 어떻게 쓰이는지 확인하고 직접 관리해요.';
   }
+  /* 루트에는 본인정보(프로필+정보수정)와 메뉴 목록만 — 나머지 기능은 전부 depth 로 */
   var hero = mp.querySelector('[data-capture="CNS-01"]');
+  var pur  = mp.querySelector('[data-capture="CMG-02"]');
   var conn = mp.querySelector('[data-capture="CAPTURE-004"]');
   var rcpt = mp.querySelector('[data-capture="CAPTURE-012"]');
   var dl   = mp.querySelector('[data-capture="CAPTURE-008"]');
-  [hero, conn, rcpt, dl && dl.parentElement].forEach(function(el){ if(el) el.classList.add('m-hide'); });
+  [hero, pur, conn, rcpt, dl && dl.parentElement].forEach(function(el){ if(el) el.classList.add('m-hide'); });
   var CHEV = '<svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#C2C9C4" stroke-width="1.6" stroke-linecap="round"/></svg>';
   var rows = [
     ['내 자료 가져오기', "mdwOpen()", '전송요구'],
-    ['데이터 연동 · 동의 관리', "msubOpen('conn')", '3 / 4 기관'],
+    ['동의 관리', "msubOpen('conn')", '목적 2 · 기관 3/4'],
     ['데이터 이용내역 · 영수증', "msubOpen('rcpt')", ''],
     ['내 데이터 내려받기', "openDownload()", ''],
     ['제3자 선별 공유', "openShare()", ''],
     ['실명 사용 기록', "openRealname()", ''],
     ['AI 상담 근거 보기', "openTrace()", ''],
+    ['알림 설정', "toast('info','알림 설정 — 시안 범위 외')", ''],
   ];
   var nav = document.createElement('div');
   nav.className = 'card'; nav.id = 'mpNav';
@@ -489,8 +500,8 @@ window.msubClose = function(){
         return '<button class="mnav-row" onclick="'+r[1]+'"><b>'+r[0]+'</b>'
           + (r[2] ? '<span class="mv">'+r[2]+'</span>' : '') + CHEV + '</button>';
       }).join('') + '</div>';
-  var main = mp.querySelector('[data-capture="CMG-02"]');
-  if(main) main.after(nav);
+  var profile = mp.querySelector('[data-capture="CAPTURE-000"]');
+  if(profile) profile.after(nav); else if(pur) pur.after(nav);
 })();
 
 /* ④ 행정서류 홈: [내 서류함 + ⓘ] → [서류 목록] → [새 서류 작성 버튼] 3블록 */

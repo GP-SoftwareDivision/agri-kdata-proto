@@ -271,7 +271,7 @@ html.m .am-cell.now{border:1.5px solid var(--g600);background:var(--g50)}
 html.m.focus .gnb,html.m.focus .tabbar,html.m.focus .fab,html.m.focus .chat-panel{display:none !important}
 
 /* ── 몰입형 서류 작성 플로우 ── */
-html.m .mdoc{position:fixed;inset:0;z-index:120;background:var(--bg);display:none;flex-direction:column}
+html.m .mdoc{position:fixed;inset:0;z-index:1100;background:var(--bg);display:none;flex-direction:column}
 html.m .mdoc.on{display:flex}
 html.m .mdoc-top{display:flex;align-items:center;gap:6px;padding:10px 14px 8px 8px;background:#fff;flex-shrink:0}
 html.m .mdoc-x{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;flex-shrink:0}
@@ -406,3 +406,7 @@ html.m .ihelp{width:20px;height:20px;border-radius:50%;background:#EDF0EE;color:
   font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 /* 서브페이지에서는 상단바 타이틀과 중복되는 카드 제목 숨김 */
 html.m #msub .sec-t{display:none}
+/* 팝업(시트·풀스크린 프로세스)은 서브페이지(depth)보다 항상 위 — 서브 안에서 열어도 가려지지 않게 */
+html.m .overlay{z-index:1200}
+/* 1단계 조회 시트: 아래에서 위로, 화면을 넉넉히 차지 */
+html.m .overlay.sheet-lg .modal{min-height:62dvh}
