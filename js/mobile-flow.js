@@ -78,9 +78,24 @@ window.nav = function(id){
   _nav(id);
 };
 
-/* ══════════ ② 몰입 모드 ══════════ */
-function focusOn(){ document.documentElement.classList.add('focus'); }
-function focusOff(){ document.documentElement.classList.remove('focus'); }
+/* ══════════ ② 몰입 모드 ══════════
+   토스처럼 "무언가를 진행 중"일 때는 상단 헤더·하단 탭바를 치워 화면을 넓게 쓰고,
+   끝나면 기본 UI 를 복구한다. 대상: 몰입 플로우 · 모든 바텀시트(모달) · 챗봇 패널 */
+function syncFocus(){
+  var busy = document.querySelector('.overlay.open')
+    || document.querySelector('.chat-panel.open')
+    || document.getElementById('mdoc').classList.contains('on');
+  document.documentElement.classList.toggle('focus', !!busy);
+}
+function focusOn(){ syncFocus(); }
+function focusOff(){ syncFocus(); }
+if(!CAP){
+  /* 열림/닫힘 경로가 여러 곳(openModal · 배경 클릭 · X 버튼)이라 클래스 변화를 직접 감시 */
+  var mo = new MutationObserver(syncFocus);
+  document.querySelectorAll('.overlay, .chat-panel').forEach(function(el){
+    mo.observe(el, {attributes:true, attributeFilter:['class']});
+  });
+}
 
 /* ══════════ ③ 행정서류 작성 — 몰입형 6단계 플로우 ══════════ */
 /* Mock 데이터 — 실데이터·API 없이 로컬 state로만 동작 */

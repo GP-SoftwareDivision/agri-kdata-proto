@@ -706,3 +706,5 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 /* 동의서 상세 모달의 5요소 표는 항목명(한글 풀네임)이 길어 좌측 열을 넓게 */
 #purBody .pur-tbl th{width:122px;padding-right:10px}
 #purBody .pur-tbl td{padding-left:2px}
+/* 모바일 전용 요소는 기본 숨김 — html.m 스코프(mobile.css)에서만 표시 */
+.allmenu,.mdoc{display:none}

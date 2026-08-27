@@ -341,3 +341,33 @@ html.m .tinput{width:100%;border:1.5px solid var(--bd2);border-radius:14px;paddi
   font-size:18px;font-weight:700;letter-spacing:.2px;background:#fff;transition:border-color .15s}
 html.m .tinput:focus{border-color:var(--g600);outline:none}
 html.m .tinput::placeholder{color:#C2C9C4;font-weight:500}
+
+/* ═══════════ 토스식 플랫 섹션 — .wrap 페이지 공통 (전체 메뉴는 바둑판 유지) ═══════════
+   박스(카드)의 좌우 여백·보더·라운드를 걷어내고, 흰 풀폭 섹션 + 두꺼운 회색
+   디바이더로만 구획한다. 카드 내부 인라인 패딩이 곧 콘텐츠 좌우 여백이 된다. */
+html.m .wrap{padding:0 0 96px;gap:0;background:var(--bg)}
+html.m .wrap>*{background:#fff;border-bottom:8px solid var(--bg)}
+html.m .wrap>*:last-child{border-bottom:none}
+html.m .wrap .card{border:none;border-radius:0;box-shadow:none}
+/* 페이지 타이틀 등 카드가 아닌 직계 블록에는 자체 패딩 부여 */
+html.m .wrap>div:not(.card){padding:16px 20px}
+html.m .wrap>div:first-child{padding:20px 20px 14px;border-bottom:none}
+/* 1열로 접힌 그리드 래퍼: 내부 카드는 보더 없이 헤어라인으로만 구분 (토스 리스트) */
+html.m .wrap div[style*="grid-template-columns"]{gap:0 !important}
+html.m .wrap div[style*="grid-template-columns"]>.card+.card{border-top:1px solid #F1F3F2}
+/* KPI 타일만 예외 — 2열 미니 타일 유지 */
+html.m .kpis{padding:12px 16px 16px;gap:10px !important}
+html.m .kpis .kpi{border:1px solid var(--bd);border-radius:14px}
+/* 행정서류 뷰(위저드 홈 등)도 동일 규칙 */
+html.m .doc-view.on{gap:0}
+html.m .doc-view .card{border:none;border-radius:0;box-shadow:none;border-bottom:8px solid var(--bg)}
+html.m .doc-view .card:last-child{border-bottom:none}
+/* 내부 미니 박스도 리스트 행으로 — 보더·라운드 대신 헤어라인 */
+html.m .pur{border:none !important;border-radius:0;padding:17px 0;border-bottom:1px solid #F1F3F2 !important}
+html.m .pur.on{background:#fff}
+html.m #purList>.pur:last-of-type{border-bottom:none}
+html.m .lockrow{border:none !important;background:transparent;border-radius:0;padding:14px 0;border-bottom:1px solid #F1F3F2 !important}
+html.m .lockrow:last-child{border-bottom:none !important}
+html.m .trace-src,html.m .rn-row{border:none;border-radius:0;padding:13px 0;border-bottom:1px solid #F1F3F2}
+/* 히어로(내 자료 가져오기) CTA 는 풀폭으로 */
+html.m [data-capture="CNS-01"] .btn{width:100%}
