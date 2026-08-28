@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=87">
-<link rel="stylesheet" href="css/mobile.css?v=87">
+<link rel="stylesheet" href="css/style.css?v=90">
+<link rel="stylesheet" href="css/mobile.css?v=90">
 </head>
 <body>
 
@@ -1619,8 +1619,11 @@ docker run --rm -p 8080:8080 \
     </div>
     <div class="md-body" data-fade id="mktBody">
       <div>
-        <div class="q-lbl">어떤 작물을 키우세요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">최대 5개</span></div>
-        <div class="pick-grid" id="mktCrops"></div>
+        <div class="q-lbl" style="display:flex;align-items:center;gap:7px">어떤 작물을 키우세요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">최대 5개</span>
+          <span class="help-q">?<span class="tip">5대 작물(배추·무·고추·마늘·양파)은 AI 예측·분석까지 제공해요. 그 외 작물은 시세 조회만 제공해요.</span></span>
+        </div>
+        <div id="mktCrops" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
+        <select class="inp" id="mktCropSelect" style="height:44px" onchange="mktAddCrop(this.value)"></select>
       </div>
       <div>
         <div class="q-lbl"><b id="mktCropName">양파</b>는 주로 어디에 내세요?</div>
@@ -1630,12 +1633,6 @@ docker run --rm -p 8080:8080 \
         <div class="q-lbl">어느 청과로 볼까요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">고르면 더 정확해져요</span></div>
         <div style="display:flex;flex-direction:column;gap:8px" id="mktCqs"></div>
         <div class="tcap" id="mktCqNote">청과까지 고르면 그 청과의 실측 경락가로 보여드려요. 건너뛰면 시장 전체 평균으로 보여드려요.</div>
-      </div>
-      <div>
-        <div class="q-lbl">언제 자료를 볼까요?</div>
-        <div style="display:flex;flex-direction:column;gap:8px" id="mktDates"></div>
-        <input type="date" class="inp" id="mktDateInput" style="display:none;margin-top:8px" min="2025-08-19" max="2026-08-18" value="2026-08-18">
-        <div class="tcap">경락 자료는 다음 날 아침에 집계돼요 — 오늘 자료는 내일 볼 수 있어요. 특정 날짜는 최근 1년까지 고를 수 있어요.</div>
       </div>
     </div>
     <div class="m-foot" id="mktFoot" style="align-items:center">
@@ -1647,7 +1644,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=87"></script>
-<script src="js/mobile-flow.js?v=87"></script>
+<script src="js/app.js?v=90"></script>
+<script src="js/mobile-flow.js?v=90"></script>
 </body>
 </html>

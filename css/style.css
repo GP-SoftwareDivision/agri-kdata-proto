@@ -732,3 +732,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .crop-chip.add{padding:7px 11px;color:var(--mut)}
 .mkt-cond{font-size:13px;color:var(--sub);white-space:nowrap}
 .mkt-cond b{color:var(--txt)}
+/* 조건 바 2행 구성 */
+#mktBarDash{flex-direction:column;align-items:stretch;gap:10px}
+.mkt-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mkt-row-dates{gap:10px;padding-top:2px}
+.mkt-dates button{padding:6px 13px;font-size:12.5px}
