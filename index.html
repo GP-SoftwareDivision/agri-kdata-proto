@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=102">
-<link rel="stylesheet" href="css/mobile.css?v=102">
+<link rel="stylesheet" href="css/style.css?v=105">
+<link rel="stylesheet" href="css/mobile.css?v=105">
 </head>
 <body>
 
@@ -439,26 +439,22 @@ docker run --rm -p 8080:8080 \
       <div id="panMap"></div>
       <div class="crosshair" id="crosshair"><i></i><b id="chName"></b></div>
 
-      <!-- 좌상단: 타이틀 + 필터 -->
-      <div class="mf mf-panel mf-tl">
-        <div id="mktBarMap" class="mkt-inline"></div>
-        <div class="mkt-row mkt-row-metric">
-          <span class="flabel">지표</span>
-          <div class="metric-seg" id="metricSeg">
-            <button class="on" onclick="setMetric('price',this)">평균 경락가</button>
-            <button onclick="setMetric('net',this)">내 예상 순수익</button>
-          </div>
-        </div>
+      <!-- 좌상단: 기본 검색기(작물·날짜) + 즐겨찾기 — 분리된 두 카드 -->
+      <div class="mf mf-tlwrap">
+        <div class="mf-panel mf-tl"><div id="mktBarMap" class="mkt-inline"></div></div>
+        <div class="mf-panel mf-fav" id="mktFavMap"></div>
       </div>
 
       <!-- 지도 내 위치 브레드크럼 -->
       <div class="mf mf-crumb" id="mapCrumb"></div>
 
-      <!-- 상단 통계 칩 -->
+      <!-- 상단 통계: 한 카드로 통합 -->
       <div class="mf mf-stats">
-        <div class="stat-chip"><div class="t">전국 평균 경락가</div><div class="v" id="mf-avg">1,229<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span></div></div>
-        <div class="stat-chip"><div class="t">최고 단가 지역</div><div class="v" id="mf-top" style="color:var(--g700)">서울 1,290</div></div>
-        <div class="stat-chip"><div class="t">전일 대비</div><div class="v up" id="mf-diff">▲ 1.8%</div></div>
+        <div class="stat-merge">
+          <div class="si"><div class="t">전국 평균 경락가</div><div class="v" id="mf-avg">1,229<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span></div></div>
+          <div class="si"><div class="t">최고 단가 지역</div><div class="v" id="mf-top" style="color:var(--g700)">서울 1,290</div></div>
+          <div class="si"><div class="t">전일 대비</div><div class="v up" id="mf-diff">▲ 1.8%</div></div>
+        </div>
       </div>
 
       <!-- 우측: 선택 지역 + 순위 -->
@@ -1613,24 +1609,23 @@ docker run --rm -p 8080:8080 \
   <div class="modal md-modal">
     <div class="m-head" style="padding-bottom:8px">
       <div>
-        <div class="m-title" style="font-size:19px">판로 조건 설정</div>
-        <div style="font-size:12.5px;color:var(--sub);margin-top:3px" id="mktStepLbl">설정한 조건 기준으로만 보여드려요</div>
+        <div class="m-title" style="font-size:19px">즐겨찾기 설정</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px" id="mktStepLbl">작물 → 시장 → 청과 순서로 하나씩 고르면 돼요</div>
       </div>
       <button class="m-x" onclick="closeModal('mktModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
     </div>
     <div class="md-body" data-fade id="mktBody">
       <div>
-        <div class="q-lbl" style="display:flex;align-items:center;gap:7px">어떤 작물을 키우세요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">최대 5개</span>
-          <span class="help-q">?<span class="tip">5대 작물(배추·무·고추·마늘·양파)은 AI 예측·분석까지 제공해요. 그 외 작물은 시세 조회만 제공해요.</span></span>
+        <div class="q-lbl" style="display:flex;align-items:center;gap:7px">어떤 작물인가요?
+          <span class="help-q">?<span class="tip">5대 작물(배추·무·고추·마늘·양파)은 AI 예측·분석까지 제공해요. 그 외 작물은 시세 조회만 제공해요. 즐겨찾기는 작물당 1개, 최대 5개까지 담을 수 있어요.</span></span>
         </div>
-        <div id="mktCrops" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
         <div class="select" data-select id="mktCropSelect" style="width:100%">
-          <button class="select-btn" onclick="tglSelect(this)">＋ 작물 추가하기 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          <button class="select-btn" onclick="tglSelect(this)">작물을 골라주세요 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
           <div class="select-list" id="mktCropList"></div>
         </div>
       </div>
       <div>
-        <div class="q-lbl"><b id="mktCropName">양파</b>는 주로 어디에 내세요?</div>
+        <div class="q-lbl"><b id="mktCropName">작물</b>은 주로 어디에 내세요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">꼭 골라야 해요</span></div>
         <div style="display:flex;flex-direction:column;gap:8px" id="mktMarkets"></div>
       </div>
       <div>
@@ -1640,15 +1635,15 @@ docker run --rm -p 8080:8080 \
       </div>
     </div>
     <div class="m-foot" id="mktFoot" style="align-items:center">
-      <button style="font-size:12.5px;color:var(--sub);text-decoration:underline;text-underline-offset:3px;margin-right:auto" onclick="mktViewAll()">조건 없이 전체 보기</button>
+      <button id="mktDel" style="font-size:12.5px;color:var(--red,#D9534F);text-decoration:underline;text-underline-offset:3px;margin-right:auto;display:none" onclick="favDelete()">즐겨찾기에서 빼기</button>
       <button class="btn btn-neu" onclick="closeModal('mktModal')">취소</button>
-      <button class="btn btn-pri" onclick="mktApply()">적용</button>
+      <button class="btn btn-pri" onclick="mktSave()">저장</button>
     </div>
   </div>
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=102"></script>
-<script src="js/mobile-flow.js?v=102"></script>
+<script src="js/app.js?v=105"></script>
+<script src="js/mobile-flow.js?v=105"></script>
 </body>
 </html>

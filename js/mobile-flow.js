@@ -594,8 +594,9 @@ window.openMktset = function(){
     foot: document.getElementById('mktFoot'),
     stepLabel: document.getElementById('mktStepLbl'),
     labelPrefix: '하나씩 고르면 돼요',
-    doneLabel: '적용',
+    doneLabel: '저장',
     validate: function(i){
+      if(i===0 && !mktSel.crop){ toast('err','작물을 골라주세요'); return false; }
       if(i===1 && !mktSel.market){ toast('err','시장을 골라주세요'); return false; }
       return true;
     },
@@ -612,9 +613,9 @@ if(CAP){ window.openDownload = _openDownload; window.openShare = _openShare; win
 var MCAPS = {
   'NAV-HOME': function(){ MKTSET.inited=true; capEnter('dashboard'); renderMktBars(); },
   'NAV-ALL':  function(){ capEnter('dashboard'); toggleAllMenu(true); },
-  'MKT-CROP': function(){ MKTSET.inited=true; capEnter('dashboard'); openMktset(); },
-  'MKT-MARKET': function(){ MKTSET.inited=true; capEnter('dashboard'); openMktset(); document.getElementById('mkNext').click(); },
-  'MKT-CQ': function(){ MKTSET.inited=true; capEnter('dashboard'); openMktset(); document.getElementById('mkNext').click(); document.getElementById('mkNext').click(); },
+  'MKT-CROP': function(){ MKTSET.inited=true; capEnter('dashboard'); mktFavIdx=-1; openMktset(); },
+  'MKT-MARKET': function(){ MKTSET.inited=true; capEnter('dashboard'); mktFavIdx=-1; openMktset(); mktSel.crop='배추'; mktRenderModal(); document.getElementById('mkNext').click(); },
+  'MKT-CQ': function(){ MKTSET.inited=true; capEnter('dashboard'); mktFavIdx=-1; openMktset(); mktSel.crop='배추'; mktSel.market='가락시장 (서울)'; mktRenderModal(); document.getElementById('mkNext').click(); document.getElementById('mkNext').click(); },
   'MKT-MAP':  function(){ MKTSET.inited=true; capEnter('map'); },
   'DSH-HOME': function(){ MKTSET.inited=true; capEnter('dashboard'); renderMktBars(); },
   'MY-ROOT':  function(){ MKTSET.inited=true; capEnter('mypage'); },

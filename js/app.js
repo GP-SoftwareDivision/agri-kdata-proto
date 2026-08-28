@@ -120,7 +120,6 @@ function nav(id){
   if(id==='map') setTimeout(function(){
     if(typeof initPanMap === 'function') initPanMap();
     if(panMap && panMap.invalidateSize) panMap.invalidateSize();
-    if(!MKTSET.inited && !document.documentElement.classList.contains('cap-mode')){ MKTSET.inited = true; openMktset(); }
   }, 180);
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof closeNotif === 'function') closeNotif();
@@ -1067,77 +1066,176 @@ if(window.IntersectionObserver){
   window.segObserve = segObserve;
 }
 
-/* ══════════ 판로 조건 설정 — 품목(최대5) · 품목별 시장/청과 프로필 · 날짜 ══════════
-   Mock · 로컬 state. 청과까지 고르면 신뢰도 높음, 시장만 고르면 보통, 전체 보기는 참고 */
+/* ══════════ 판로 검색 + 즐겨찾기 — Mock · 로컬 state ══════════
+   기본 검색기(작물·날짜)는 지도에 항상 열려 있고, 즐겨찾기는 미리 세팅해 둔
+   작물·시장(·청과)으로 빠르게 조회하는 별도 목록이다. 날짜는 즐겨찾기에 저장하지 않는다. */
 const MKT_CROPS_CORE = ['양파','마늘','배추','무','고추'];       /* AI 예측·분석 제공 */
 const MKT_CROPS_EXTRA = ['감자','대파','상추','시금치','사과','복숭아','딸기'];  /* 시세 조회만 */
 const MKT_MARKETS = [
-  {n:'가락시장 (서울)',      d:'전국 기준가',      cq:['중앙청과','동화청과','서울청과','한국청과']},
-  {n:'대구 북부 도매시장',   d:'주 출하처',        cq:['효성청과','대구중앙청과']},
-  {n:'부산 엄궁 도매시장',   d:'',                 cq:[]},        /* 청과별 자료 미제공 */
-  {n:'청송 농협 공판장',     d:'산지 공판장',      cq:null},      /* 청과 개념 없음 */
+  {n:'가락시장 (서울)',      s:'가락시장',   d:'전국 기준가',  map:'m01', cq:['중앙청과','동화청과','서울청과','한국청과']},
+  {n:'대구 북부 도매시장',   s:'대구 북부',  d:'주 출하처',    map:'m05', cq:['효성청과','대구중앙청과']},
+  {n:'부산 엄궁 도매시장',   s:'부산 엄궁',  d:'',             map:'m04', cq:[]},        /* 청과별 자료 미제공 */
+  {n:'청송 농협 공판장',     s:'청송 공판장',d:'산지 공판장',  map:'m08', cq:null},      /* 청과 개념 없음 */
 ];
 const MKTSET = {
-  crops: ['양파'],
-  active: '양파',
-  profiles: { '양파': {market:'대구 북부 도매시장', cq:'효성청과'} },
-  dateMode: '어제',
-  dateValue: '2026-08-18',
-  viewAll: false,
+  crop: '양파',
+  date: '2026-08-18', preset: '어제',            /* 어제 | 7일 | 30일 | null(직접 선택) */
+  favs: [
+    {crop:'양파', market:'대구 북부 도매시장', cq:'효성청과'},
+    {crop:'마늘', market:null, cq:null},          /* 설정을 끝내지 않은 예시 → '설정 필요' */
+  ],
   inited: false,
 };
-/* 모달 임시 선택값 */
-let mktSel = null;
-function mktProfile(crop){ return MKTSET.profiles[crop] || null; }
-function mktTrust(){
-  if(MKTSET.viewAll) return ['참고 — 전국 평균', 'bg-mut'];
-  const p = mktProfile(MKTSET.active);
-  if(p && p.cq) return ['신뢰도 높음 — '+p.cq+' 실측', 'bg-ok'];
-  return ['신뢰도 보통 — 시장 평균', 'bg-warn'];
-}
+const MKT_PRESETS = {'어제':'2026-08-18','7일':'2026-08-12','30일':'2026-07-20'};
+let mktSel = null;        /* 즐겨찾기 편집 임시값 */
+let mktFavIdx = -1;       /* 편집 중인 즐겨찾기 index (-1 = 새로 추가) */
+
+function mktFav(crop){ return MKTSET.favs.find(f=>f.crop===crop) || null; }
+function mktMarket(n){ return MKT_MARKETS.find(m=>m.n===n) || null; }
 function mktDateLabel(){
-  return MKTSET.dateMode === '직접 선택' ? MKTSET.dateValue : MKTSET.dateMode + (MKTSET.dateMode==='어제' ? ' (08/18)' : '');
+  if(MKTSET.preset==='어제') return '어제 (08/18)';
+  if(MKTSET.preset==='7일') return '최근 7일 평균';
+  if(MKTSET.preset==='30일') return '최근 30일 평균';
+  return MKTSET.date;
 }
+const TRUST_TIP = '청과(도매법인)의 실측 경락가를 그대로 쓰기 때문에, 시장 평균으로 추정한 값보다 데이터 신뢰도가 높아요.';
+const TRUST_B = '<span class="trust-b">신뢰<span class="tip">'+TRUST_TIP+'</span></span>';
+
+/* ── 기본 검색기 + 즐겨찾기 렌더 (대시보드 · 지도 공용) ── */
+function renderMktBars(){
+  const f = mktFav(MKTSET.crop);
+  const fm = f && f.market ? mktMarket(f.market) : null;
+  const cond = fm
+    ? `<span class="mkt-cond"><b>${fm.s}</b>${f.cq?' · '+f.cq:''}</span>${f.cq?TRUST_B:''}`
+    : `<span class="mkt-cond">전국 평균 기준</span>`;
+  const cropOpt = (list, star) => list.map(c=>
+    `<div class="select-opt${c===MKTSET.crop?' sel':''}" onclick="mktPickCrop('${c}')"><span>${star?'<b class="star">★</b> ':''}${c}</span></div>`).join('');
+  const find = `
+    <div class="mkt-row mkt-row-find">
+      <span class="flabel">작물</span>
+      <div class="select mkt-crop-sel" data-select>
+        <button class="select-btn" onclick="tglSelect(this)">${MKTSET.crop} <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+        <div class="select-list">
+          <div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>${cropOpt(MKT_CROPS_CORE,true)}
+          <div class="select-grp">그 외 작물 <span>시세 조회만</span></div>${cropOpt(MKT_CROPS_EXTRA,false)}
+        </div>
+      </div>
+      ${cond}
+    </div>`;
+  const dates = `
+    <div class="mkt-row mkt-row-dates">
+      <span class="flabel">날짜</span>
+      <div class="metric-seg seg-sm mkt-dates">${['어제','7일','30일'].map(p=>
+        `<button class="${MKTSET.preset===p?'on':''}" onclick="mktPickPreset('${p}')">${p}</button>`).join('')}</div>
+      <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18"
+        value="${MKTSET.date}" onchange="mktPickDateValue(this.value)">
+    </div>`;
+  const favs = `
+    <div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
+      const mk = mktMarket(fv.market);
+      return `<button class="fav-chip${fv.crop===MKTSET.crop && fv.market?' on':''}" onclick="favApply(${i})">
+        <span class="star">★</span>${fv.crop}${mk?' <span class="fm">'+mk.s+'</span>':''}
+        ${!fv.market?'<span class="fv-need">설정 필요</span>':fv.cq?TRUST_B:''}
+        <span class="fx" onclick="favRemove(event,${i})" aria-label="${fv.crop} 즐겨찾기 빼기">✕</span>
+      </button>`;}).join('')}
+      ${MKTSET.favs.length<5?'<button class="fav-add" onclick="favAdd()">＋ 추가</button>':''}
+    </div>`;
+  const d1 = document.getElementById('mktBarDash');
+  if(d1) d1.innerHTML = `<div class="mkt-row-top">${find}${dates}</div>
+    <div class="mkt-row-favwrap"><span class="flabel">즐겨찾기</span>${favs}</div>`;
+  const d2 = document.getElementById('mktBarMap'); if(d2) d2.innerHTML = find + dates;
+  const d3 = document.getElementById('mktFavMap');
+  if(d3) d3.innerHTML = `<div class="fav-t">즐겨찾기 <span>내가 정해 둔 작물·시장으로 빠르게</span></div>` + favs;
+  if(typeof segSyncSoon === 'function') segSyncSoon();
+  if(typeof segObserve === 'function') segObserve();
+  /* 차트 제목에 반영 */
+  document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
+    if(el.textContent.indexOf('가격 추이')>-1){
+      el.innerHTML = MKTSET.crop+' 가격 추이 · 예측 <span style="font-size:12px;color:var(--mut);font-weight:400">'
+        + (fm ? fm.n+(f.cq?' · '+f.cq:'') : '전국 평균') + ' · ' + mktDateLabel() + ' · 원/kg</span>';
+    }
+  });
+}
+
+/* ── 기본 검색기 동작 ── */
+function mktPickCrop(c){
+  if(event) event.stopPropagation();
+  document.querySelectorAll('.mkt-crop-sel.open').forEach(el=>el.classList.remove('open'));
+  MKTSET.crop = c;
+  if(!MKT_CROPS_CORE.includes(c)) toast('info', c+'는 AI 예측 없이 시세 조회만 제공해요');
+  renderMktBars();
+}
+function mktPickPreset(p){
+  MKTSET.preset = p; MKTSET.date = MKT_PRESETS[p];
+  renderMktBars();
+}
+function mktPickDateValue(v){ if(v){ MKTSET.date = v; MKTSET.preset = null; renderMktBars(); } }
+
+/* ── 즐겨찾기 동작 ── */
+function favApply(i){
+  const f = MKTSET.favs[i];
+  if(!f.market){ favEdit(i); return; }        /* 설정 필요 → 이어서 설정하도록 */
+  MKTSET.crop = f.crop;
+  renderMktBars();
+  const mk = mktMarket(f.market);
+  /* 지도에서는 그 시장으로 확대하고 시장(청과) 정보를 띄운다 */
+  if(currentPage==='map' && mk && typeof panMap!=='undefined' && panMap && typeof mkRef!=='undefined' && mkRef[mk.map]){
+    const m = MARKETS.find(x=>x.id===mk.map);
+    panMap.flyTo([m.lat, m.lng], 9.5, {duration:.8});
+    setTimeout(()=>{ try{ mkRef[mk.map].openPopup(); }catch(e){} }, 900);
+  }
+  toast('ok', f.crop+' · '+mk.s+(f.cq?' · '+f.cq:'')+' 기준으로 보여드릴게요');
+}
+function favRemove(ev, i){
+  ev.stopPropagation();
+  const f = MKTSET.favs.splice(i,1)[0];
+  renderMktBars();
+  toast('info', f.crop+' 즐겨찾기를 뺐어요');
+}
+function favAdd(){
+  if(MKTSET.favs.length>=5){ toast('err','즐겨찾기는 최대 5개까지 담을 수 있어요'); return; }
+  mktFavIdx = -1; openMktset();
+}
+function favEdit(i){ mktFavIdx = i; openMktset(); }
+
+/* ── 즐겨찾기 설정 모달: 작물 → 시장(필수) → 청과(보조) 를 한 흐름씩 ── */
 function openMktset(){
-  const p = mktProfile(MKTSET.active) || {};
-  mktSel = { crops:[...MKTSET.crops], crop:MKTSET.active, market:p.market||null, cq:p.cq||null };
+  const f = mktFavIdx>=0 ? MKTSET.favs[mktFavIdx] : null;
+  mktSel = f ? {crop:f.crop, market:f.market, cq:f.cq} : {crop:null, market:null, cq:null};
   mktRenderModal();
   openModal('mktModal');
 }
 function mktRenderModal(){
   if(typeof segSyncSoon === 'function') segSyncSoon();
-  /* ① 품목: 선택된 칩(탭=지금 보는 품목, ×=제거) + select 로 추가 */
-  document.getElementById('mktCrops').innerHTML = mktSel.crops.map(c=>`
-    <span class="crop-chip${c===mktSel.crop?' on':''}" style="display:inline-flex;align-items:center;gap:7px" onclick="mktFocusCrop('${c}')">
-      ${c}${MKT_CROPS_CORE.includes(c)?'':' <small style="font-weight:400;opacity:.75">시세만</small>'}
-      <span onclick="event.stopPropagation();mktRemoveCrop('${c}')" style="font-weight:400;opacity:.7" aria-label="${c} 빼기">✕</span>
-    </span>`).join('');
-  const remainCore = MKT_CROPS_CORE.filter(c=>!mktSel.crops.includes(c));
-  const remainEx = MKT_CROPS_EXTRA.filter(c=>!mktSel.crops.includes(c));
-  const full = mktSel.crops.length >= 5;
+  /* ① 작물 (하나만) — 다른 즐겨찾기가 이미 쓰는 작물은 고를 수 없다 */
   const box = document.getElementById('mktCropSelect');
-  box.querySelector('.select-btn').childNodes[0].textContent =
-    (full ? '＋ 작물 추가하기 (5개가 꽉 찼어요)' : '＋ 작물 추가하기') + ' ';
-  box.classList.toggle('disabled', full);
+  box.querySelector('.select-btn').childNodes[0].textContent = (mktSel.crop || '작물을 골라주세요') + ' ';
+  const usedByOther = c => MKTSET.favs.some((f,i)=>f.crop===c && i!==mktFavIdx);
+  const opt = (list, star) => list.map(c=>{
+    const dup = usedByOther(c);
+    return `<div class="select-opt${c===mktSel.crop?' sel':''}${dup?' dis':''}"${dup?'':` onclick="mktPickCropSel('${c}')"`}>
+      <span>${star?'<b class="star">★</b> ':''}${c}</span>${dup?'<span class="dup">이미 있어요</span>':''}</div>`;
+  }).join('');
   document.getElementById('mktCropList').innerHTML =
-    '<div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>'
-    + (remainCore.length ? remainCore.map(c=>`<div class="select-opt" onclick="mktAddCrop('${c}')"><span><b class="star">★</b> ${c}</span></div>`).join('')
-                         : '<div class="select-empty">모두 추가했어요</div>')
-    + '<div class="select-grp">그 외 작물 <span>시세 조회만</span></div>'
-    + (remainEx.length ? remainEx.map(c=>`<div class="select-opt" onclick="mktAddCrop('${c}')"><span>${c}</span></div>`).join('')
-                       : '<div class="select-empty">모두 추가했어요</div>');
-  document.getElementById('mktCropName').textContent = mktSel.crop;
-  /* ② 시장 (단일) */
-  document.getElementById('mktMarkets').innerHTML = MKT_MARKETS.map(m=>`
-    <div class="share-org${mktSel.market===m.n?' sel':''}" onclick="mktPickMarket('${m.n}')">
-      <div style="flex:1"><div class="on">${m.n}</div><div class="od">${m.d||' '}</div></div>
-      ${m.cq===null?'':m.cq.length===0?'<span class="badge bg-mut">청과별 자료 없음</span>':'<span class="badge bg-ok">청과 '+m.cq.length+'곳</span>'}
-    </div>`).join('');
-  /* ③ 청과 (선택 · 건너뛰기 가능) */
-  const mk = MKT_MARKETS.find(m=>m.n===mktSel.market);
+    '<div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>' + opt(MKT_CROPS_CORE,true)
+    + '<div class="select-grp">그 외 작물 <span>시세 조회만</span></div>' + opt(MKT_CROPS_EXTRA,false);
+  /* ② 시장 — 작물을 고르기 전에는 잠가서 한 흐름씩 끝내도록 유도 */
+  document.getElementById('mktCropName').textContent = mktSel.crop || '작물';
+  const mBox = document.getElementById('mktMarkets');
+  if(!mktSel.crop){
+    mBox.innerHTML = '<div class="mkt-wait">먼저 작물을 골라주세요 — 고르면 여기가 열려요.</div>';
+  } else {
+    mBox.innerHTML = MKT_MARKETS.map(m=>`
+      <div class="share-org${mktSel.market===m.n?' sel':''}" onclick="mktPickMarket('${m.n}')">
+        <div style="flex:1"><div class="on">${m.n}</div><div class="od">${m.d||' '}</div></div>
+        ${m.cq===null?'':m.cq.length===0?'<span class="badge bg-mut">청과별 자료 없음</span>':'<span class="badge bg-ok">청과 '+m.cq.length+'곳</span>'}
+      </div>`).join('');
+  }
+  /* ③ 청과 (보조) — 시장을 고르기 전에는 잠금 */
+  const mk = mktMarket(mktSel.market);
   const cqBox = document.getElementById('mktCqs');
   const note = document.getElementById('mktCqNote');
-  if(!mk){ cqBox.innerHTML = '<div class="tcap">먼저 시장을 골라주세요.</div>'; note.style.display='none'; }
+  if(!mktSel.market){ cqBox.innerHTML = '<div class="mkt-wait">시장을 고르면 여기가 열려요.</div>'; note.style.display='none'; }
   else if(mk.cq===null){ cqBox.innerHTML = '<div class="tcap">산지 공판장은 청과 구분 없이 공판장 평균으로 보여드려요.</div>'; note.style.display='none'; mktSel.cq=null; }
   else if(mk.cq.length===0){ cqBox.innerHTML = '<div class="tcap">이 시장은 청과별 자료를 제공하지 않아요 — 시장 전체 평균으로 보여드려요.</div>'; note.style.display='none'; mktSel.cq=null; }
   else {
@@ -1150,96 +1248,37 @@ function mktRenderModal(){
       + `<div class="share-org${mktSel.cq===null?' sel':''}" onclick="mktPickCq(null)" style="border-style:dashed">
         <div style="flex:1"><div class="on" style="color:var(--sub)">건너뛰기 — 시장 전체 평균으로 볼게요</div></div></div>`;
   }
+  /* 삭제 버튼은 기존 즐겨찾기를 열었을 때만 */
+  const del = document.getElementById('mktDel');
+  if(del) del.style.display = mktFavIdx>=0 ? '' : 'none';
 }
-function mktAddCrop(c){
+function mktPickCropSel(c){
   if(event) event.stopPropagation();
   document.getElementById('mktCropSelect').classList.remove('open');
-  if(!c) return;
-  if(mktSel.crops.length>=5){ toast('err','품목은 최대 5개까지 고를 수 있어요'); mktRenderModal(); return; }
-  mktSel.crops.push(c); mktSel.crop = c;
-  const p = mktProfile(c); mktSel.market = p?p.market:null; mktSel.cq = p?p.cq:null;
+  mktSel.crop = c; mktSel.market = null; mktSel.cq = null;
   if(!MKT_CROPS_CORE.includes(c)) toast('info', c+'는 AI 예측 없이 시세 조회만 제공해요');
-  mktRenderModal();
-}
-function mktRemoveCrop(c){
-  if(mktSel.crops.length===1){ toast('err','품목은 최소 1개는 있어야 해요'); return; }
-  mktSel.crops = mktSel.crops.filter(x=>x!==c);
-  if(mktSel.crop===c){ mktSel.crop = mktSel.crops[0]; const p=mktProfile(mktSel.crop); mktSel.market=p?p.market:null; mktSel.cq=p?p.cq:null; }
-  mktRenderModal();
-}
-function mktFocusCrop(c){
-  mktSel.crop = c;
-  const p = mktProfile(c); mktSel.market = p?p.market:null; mktSel.cq = p?p.cq:null;
   mktRenderModal();
 }
 function mktPickMarket(n){ mktSel.market = n; mktSel.cq = null; mktRenderModal(); }
 function mktPickCq(q){ mktSel.cq = q; mktRenderModal(); }
-function mktPickDate(m){
-  MKTSET.dateMode = m;
-  renderMktBars();
-  if(m === '직접 선택'){ const i = document.getElementById('mktDateBar'); if(i){ i.style.display=''; try{ i.focus(); i.showPicker && i.showPicker(); }catch(e){} } }
-}
-function mktPickDateValue(v){ if(v){ MKTSET.dateValue = v; MKTSET.dateMode = '직접 선택'; renderMktBars(); } }
-function mktViewAll(){
-  MKTSET.viewAll = true; MKTSET.inited = true;
-  closeModal('mktModal'); renderMktBars();
-  toast('info','조건 없이 전체 기준으로 보여드릴게요');
-}
-function mktApply(){
-  if(!mktSel.market){ toast('err','시장을 골라주세요'); return; }
-  MKTSET.crops = [...mktSel.crops];
-  MKTSET.active = mktSel.crop;
-  MKTSET.profiles[mktSel.crop] = {market:mktSel.market, cq:mktSel.cq};
-  MKTSET.viewAll = false; MKTSET.inited = true;
-  closeModal('mktModal'); renderMktBars();
-  toast('ok', MKTSET.active+' · '+mktSel.market+(mktSel.cq?' · '+mktSel.cq:'')+' 기준으로 보여드릴게요');
-}
-/* 품목 칩 전환: 프로필이 있으면 즉시, 없으면 그 품목의 시장부터 물어봐요 */
-function mktSwitch(c){
-  MKTSET.active = c;
-  if(!mktProfile(c)){
-    openMktset();
-    toast('info', c+'의 판로를 아직 몰라요 — 시장을 골라주세요');
-    return;
+function mktSave(){
+  if(!mktSel.crop){ toast('err','작물을 골라주세요'); return; }
+  const item = {crop:mktSel.crop, market:mktSel.market, cq:mktSel.cq};
+  if(mktFavIdx>=0) MKTSET.favs[mktFavIdx] = item; else MKTSET.favs.push(item);
+  closeModal('mktModal');
+  if(!item.market){
+    toast('info', "시장 설정이 남아서 '설정 필요'로 담아뒀어요");
+  } else {
+    MKTSET.crop = item.crop;
+    toast('ok', '즐겨찾기에 담았어요 — '+item.crop+' · '+mktMarket(item.market).s+(item.cq?' · '+item.cq:''));
   }
-  MKTSET.viewAll = false;
   renderMktBars();
 }
-function renderMktBars(){
-  const p = mktProfile(MKTSET.active) || {};
-  const [trust, trustCls] = mktTrust();
-  const chips = MKTSET.crops.map(c=>
-    `<button class="crop-chip${!MKTSET.viewAll && c===MKTSET.active?' on':''}" onclick="mktSwitch('${c}')">${c}</button>`).join('');
-  const cond = MKTSET.viewAll
-    ? `<span class="mkt-cond"><b>전체 보기 중</b> — 전국 · 전체 품목</span>`
-    : `<span class="mkt-cond"><b>${p.market||'시장 미설정'}</b>${p.cq?' · '+p.cq:''}</span>`;
-  /* 날짜는 계속 바꿔 보는 값이라 팝업이 아니라 상시 세그로 — '직접 선택'은 항상 노출 */
-  const dates = ['어제','최근 7일 평균','최근 30일 평균','직접 선택'].map(d=>
-    `<button class="${MKTSET.dateMode===d?'on':''}" onclick="mktPickDate('${d}')">${d.replace('최근 ','').replace(' 평균','')}</button>`).join('');
-  const html = `
-    <div class="mkt-row mkt-row-left">
-      <div class="crop-chips">${chips}</div>
-      ${cond}
-      <span class="badge ${trustCls}" style="flex-shrink:0">${trust}</span>
-      ${MKTSET.viewAll?'<button class="btn btn-out btn-sm" onclick="openMktset()">내 조건 보기</button>':'<button class="btn btn-neu btn-sm" onclick="openMktset()">설정</button>'}
-    </div>
-    <div class="mkt-row mkt-row-dates">
-      <span class="flabel">날짜</span>
-      <div class="metric-seg mkt-dates">${dates}</div>
-      <input type="date" id="mktDateBar" class="inp" style="height:36px;width:150px;padding:0 12px;${MKTSET.dateMode==='직접 선택'?'':'display:none'}"
-        min="2025-08-19" max="2026-08-18" value="${MKTSET.dateValue}" onchange="mktPickDateValue(this.value)">
-    </div>`;
-  const d1 = document.getElementById('mktBarDash'); if(d1) d1.innerHTML = html;
-  const d2 = document.getElementById('mktBarMap'); if(d2) d2.innerHTML = html;
-  if(typeof segSyncSoon === 'function') segSyncSoon();
-  if(typeof segObserve === 'function') segObserve();
-  /* 차트·요약 텍스트에 반영 */
-  document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
-    if(el.textContent.indexOf('가격 추이')>-1){
-      el.innerHTML = (MKTSET.viewAll?'전체 품목':MKTSET.active)+' 가격 추이 · 예측 <span style="font-size:12px;color:var(--mut);font-weight:400">'
-        + (MKTSET.viewAll?'전국 평균':(p.market||'')+(p.cq?' · '+p.cq:'')) + ' · ' + mktDateLabel() + ' · 원/kg</span>';
-    }
-  });
+const mktApply = mktSave;   /* 모바일 래퍼 호환 */
+function favDelete(){
+  if(mktFavIdx>=0) MKTSET.favs.splice(mktFavIdx,1);
+  closeModal('mktModal'); renderMktBars();
+  toast('info','즐겨찾기에서 뺐어요');
 }
 renderMktBars();
 
@@ -2161,6 +2200,7 @@ const MARKETS = [
   {id:'m15', t:'online', n:'로컬푸드 직매장 (경북권)', lat:36.0190, lng:129.3430, price:1420, vol:8, fee:12.0, dist:86, settle:'D+1', hours:'상시 접수', tags:['소량 가능','즉시 정산'], note:'단가는 높으나 물량이 적어 보조 판로로 적합.'}
 ];
 let mkGroup = null, mkOn = true, selMk = null;
+const mkRef = {};   /* id → Leaflet marker (즐겨찾기 → 지도 확대용) */
 
 function mkNet(m){
   /* 내 예상 순수익률(%) = (수취가 - 운송비 - 수수료) / 시장평균가 기준 근사 */
@@ -2211,6 +2251,7 @@ function buildMarkets(){
     });
     mk.on('popupclose', function(){ if(selMk===m.id) selMk = null; const el=mk.getElement(); if(el) el.querySelector('.mk-pin').classList.remove('sel'); });
     mkGroup.addLayer(mk);
+    mkRef[m.id] = mk;
   });
   if(mkOn) mkGroup.addTo(panMap);
 }
@@ -2461,7 +2502,7 @@ function positionHelpTip(q){
   tip.style.top  = Math.round(y) + 'px';
 }
 document.addEventListener('mouseover', e=>{
-  const q = e.target.closest && e.target.closest('.help-q');
+  const q = e.target.closest && e.target.closest('.help-q,.trust-b');
   if(q) positionHelpTip(q);
 });
 
