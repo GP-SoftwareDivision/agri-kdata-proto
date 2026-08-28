@@ -375,7 +375,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mf-legend{left:16px;bottom:64px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px 16px;box-shadow:0 4px 14px rgba(16,24,40,.10);display:flex;flex-direction:column;gap:5px}
 .mf-legend .lg-row{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--sub)}
 .mf-legend .lg-sw{width:16px;height:12px;border-radius:3px}
-.map-full .leaflet-left .leaflet-control-zoom{margin-left:16px;margin-top:0;top:104px;position:relative}
+.map-full .leaflet-left .leaflet-control-zoom{margin-left:16px;margin-top:0;top:168px;position:relative}
 
 /* ── 판로(시장) 마커 ─────────────────────── */
 .mk{background:none;border:none}
@@ -732,8 +732,34 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .crop-chip.add{padding:7px 11px;color:var(--mut)}
 .mkt-cond{font-size:13px;color:var(--sub);white-space:nowrap}
 .mkt-cond b{color:var(--txt)}
-/* 조건 바 2행 구성 */
-#mktBarDash{flex-direction:column;align-items:stretch;gap:10px}
-.mkt-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.mkt-row-dates{gap:10px;padding-top:2px}
-.mkt-dates button{padding:6px 13px;font-size:12.5px}
+/* ── 조건 바: 좌(대상) · 우(날짜) 한 줄 정렬, 좁아지면 자연스럽게 접힘 ── */
+#mktBarDash{display:flex;align-items:center;justify-content:space-between;gap:20px;
+  padding:14px 20px;flex-wrap:wrap}
+.mkt-row{display:flex;align-items:center;gap:12px;min-width:0}
+.mkt-row-left{flex:1 1 420px}
+.mkt-row-dates{flex:0 0 auto}
+.mkt-dates button{padding:7px 14px;font-size:13px}
+.mkt-cond{font-size:13.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mkt-cond b{color:var(--txt)}
+/* 지도 플로팅 카드: 조건 → 날짜 → 지표 3행, 라벨 폭을 맞춰 좌측 정렬 */
+.mf-tl{padding:12px 14px}
+.mf-tl .mkt-inline{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.mf-tl .mkt-row{flex-wrap:nowrap;gap:8px}
+.mf-tl .mkt-row-left{flex:0 0 auto}
+.mf-tl .mkt-row-dates{flex:0 0 auto}
+.mf-tl .mkt-cond{font-size:12.5px}
+.mf-tl .mkt-dates button{padding:6px 12px;font-size:12.5px}
+.mf-tl .flabel{flex:0 0 30px}
+.mkt-row-metric{display:flex;align-items:center;gap:8px}
+.mkt-row-metric .metric-seg button{padding:6px 12px;font-size:12.5px}
+
+/* ── 디자인시스템 select (네이티브 select 를 .select-btn 토큰과 동일하게) ── */
+.sel-ds{height:44px;width:100%;border:1px solid var(--bd2);border-radius:8px;background:#fff;
+  padding:0 38px 0 14px;font-size:14px;font-weight:700;color:var(--txt);font-family:inherit;
+  appearance:none;-webkit-appearance:none;cursor:pointer;transition:border .15s,box-shadow .15s;
+  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236E7681' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center}
+.sel-ds:hover{border-color:var(--g400)}
+.sel-ds:focus{outline:none;border-color:var(--g600);box-shadow:0 0 0 3px rgba(14,122,70,.12)}
+.sel-ds optgroup{font-size:12px;color:var(--sub)}
+.sel-ds option{font-weight:500;color:var(--txt);padding:8px}

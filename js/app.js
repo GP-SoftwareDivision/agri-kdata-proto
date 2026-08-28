@@ -1162,17 +1162,16 @@ function renderMktBars(){
   const dates = ['어제','최근 7일 평균','최근 30일 평균','직접 선택'].map(d=>
     `<button class="${MKTSET.dateMode===d?'on':''}" onclick="mktPickDate('${d}')">${d.replace('최근 ','').replace(' 평균','')}</button>`).join('');
   const html = `
-    <div class="mkt-row">
+    <div class="mkt-row mkt-row-left">
       <div class="crop-chips">${chips}</div>
       ${cond}
       <span class="badge ${trustCls}" style="flex-shrink:0">${trust}</span>
-      <div style="flex:1"></div>
       ${MKTSET.viewAll?'<button class="btn btn-out btn-sm" onclick="openMktset()">내 조건 보기</button>':'<button class="btn btn-neu btn-sm" onclick="openMktset()">설정</button>'}
     </div>
     <div class="mkt-row mkt-row-dates">
       <span class="flabel">날짜</span>
       <div class="metric-seg mkt-dates">${dates}</div>
-      <input type="date" id="mktDateBar" class="inp" style="height:34px;width:150px;padding:0 10px;${MKTSET.dateMode==='직접 선택'?'':'display:none'}"
+      <input type="date" id="mktDateBar" class="inp" style="height:36px;width:150px;padding:0 12px;${MKTSET.dateMode==='직접 선택'?'':'display:none'}"
         min="2025-08-19" max="2026-08-18" value="${MKTSET.dateValue}" onchange="mktPickDateValue(this.value)">
     </div>`;
   const d1 = document.getElementById('mktBarDash'); if(d1) d1.innerHTML = html;

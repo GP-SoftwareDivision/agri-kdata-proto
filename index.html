@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=90">
-<link rel="stylesheet" href="css/mobile.css?v=90">
+<link rel="stylesheet" href="css/style.css?v=94">
+<link rel="stylesheet" href="css/mobile.css?v=94">
 </head>
 <body>
 
@@ -293,7 +293,7 @@
             <div class="sec-t">판로 추천 TOP 3</div>
             <a href="#" style="font-size:12px;font-weight:500" onclick="toast('info','판로 전체 목록은 시안 범위 외예요');return false">전체보기</a>
           </div>
-          <div style="display:flex;flex-direction:column;gap:10px;flex:1">
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;justify-content:space-between">
             <div class="mkt top" onclick="toast('info','가락시장 상세 — 시안 범위 외')">
               <div style="display:flex;justify-content:space-between;align-items:center"><b>1. 서울 가락시장 (경매)</b><span class="badge bg-ok">순수익 +8.2%</span></div>
               <div style="font-size:12px;color:var(--sub)">예상 단가 1,290원 · 운송비 84원/kg · 수수료 7%</div>
@@ -441,8 +441,9 @@ docker run --rm -p 8080:8080 \
 
       <!-- 좌상단: 타이틀 + 필터 -->
       <div class="mf mf-panel mf-tl">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div id="mktBarMap" class="mkt-inline"></div>
+        <div id="mktBarMap" class="mkt-inline"></div>
+        <div class="mkt-row mkt-row-metric">
+          <span class="flabel">지표</span>
           <div class="metric-seg" id="metricSeg">
             <button class="on" onclick="setMetric('price',this)">평균 경락가</button>
             <button onclick="setMetric('net',this)">내 예상 순수익</button>
@@ -1623,7 +1624,7 @@ docker run --rm -p 8080:8080 \
           <span class="help-q">?<span class="tip">5대 작물(배추·무·고추·마늘·양파)은 AI 예측·분석까지 제공해요. 그 외 작물은 시세 조회만 제공해요.</span></span>
         </div>
         <div id="mktCrops" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
-        <select class="inp" id="mktCropSelect" style="height:44px" onchange="mktAddCrop(this.value)"></select>
+        <select class="sel-ds" id="mktCropSelect" onchange="mktAddCrop(this.value)"></select>
       </div>
       <div>
         <div class="q-lbl"><b id="mktCropName">양파</b>는 주로 어디에 내세요?</div>
@@ -1644,7 +1645,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=90"></script>
-<script src="js/mobile-flow.js?v=90"></script>
+<script src="js/app.js?v=94"></script>
+<script src="js/mobile-flow.js?v=94"></script>
 </body>
 </html>
