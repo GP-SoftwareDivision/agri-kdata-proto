@@ -471,9 +471,14 @@ html.m .kpis .kpi:nth-child(n+3){grid-column:1/-1;display:grid;grid-template-col
 html.m .kpis .kpi:nth-child(n+3) .kpi-lb{grid-column:1;font-size:13px}
 html.m .kpis .kpi:nth-child(n+3)>div:nth-child(2){grid-column:2;grid-row:1/span 2;font-size:18px !important;font-weight:900;text-align:right;letter-spacing:-.3px}
 html.m .kpis .kpi:nth-child(n+3)>div:nth-child(3){grid-column:1;grid-row:2}
-/* 조건 바 모바일: 날짜 4버튼이 꽉 차게 — '직접 선택'이 잘리지 않게 */
+/* 조건 바 모바일: PC 의 좌/우 양끝 배치를 세로 2행으로 되돌린다 */
+html.m #mktBarDash{flex-direction:column;align-items:stretch;gap:10px;padding:14px 16px !important}
+html.m .mkt-row-left{flex:1 1 auto;flex-wrap:wrap;gap:8px 10px}
+html.m .mkt-row-left .mkt-cond{white-space:normal;overflow:visible;flex:1 1 100%;order:3}
+html.m .mkt-row-left .badge{order:4}
+html.m .mkt-row-left .btn-sm{margin-left:auto;order:2}
+html.m .mkt-row-dates{flex:1 1 auto;flex-wrap:wrap}
 html.m .mkt-row-dates .flabel{display:none}
 html.m .mkt-dates{display:flex;width:100%;gap:3px}
-html.m .mkt-dates button{flex:1;padding:8px 0;font-size:12px;white-space:nowrap}
+html.m .mkt-dates button{flex:1;padding:9px 0;font-size:12px;white-space:nowrap}
 html.m #mktDateBar{width:100% !important;margin-top:6px}
-html.m .mkt-row .btn-sm{margin-left:auto}
