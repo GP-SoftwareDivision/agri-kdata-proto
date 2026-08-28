@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=95">
-<link rel="stylesheet" href="css/mobile.css?v=95">
+<link rel="stylesheet" href="css/style.css?v=101">
+<link rel="stylesheet" href="css/mobile.css?v=101">
 </head>
 <body>
 
@@ -1624,7 +1624,10 @@ docker run --rm -p 8080:8080 \
           <span class="help-q">?<span class="tip">5대 작물(배추·무·고추·마늘·양파)은 AI 예측·분석까지 제공해요. 그 외 작물은 시세 조회만 제공해요.</span></span>
         </div>
         <div id="mktCrops" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
-        <select class="sel-ds" id="mktCropSelect" onchange="mktAddCrop(this.value)"></select>
+        <div class="select" data-select id="mktCropSelect" style="width:100%">
+          <button class="select-btn" onclick="tglSelect(this)">＋ 작물 추가하기 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+          <div class="select-list" id="mktCropList"></div>
+        </div>
       </div>
       <div>
         <div class="q-lbl"><b id="mktCropName">양파</b>는 주로 어디에 내세요?</div>
@@ -1645,7 +1648,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=95"></script>
-<script src="js/mobile-flow.js?v=95"></script>
+<script src="js/app.js?v=101"></script>
+<script src="js/mobile-flow.js?v=101"></script>
 </body>
 </html>

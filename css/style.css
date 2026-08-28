@@ -53,6 +53,13 @@ a{color:var(--g600);text-decoration:none}a:hover{color:var(--g700)}
 .select.open .select-list{opacity:1;transform:none;pointer-events:auto}
 .select-opt{padding:9px 12px;border-radius:7px;font-size:13.5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .select-opt:hover{background:var(--g50)}
+.select-grp{padding:9px 12px 5px;font-size:11.5px;font-weight:800;color:var(--sub);display:flex;align-items:center;gap:6px}
+.select-grp span{font-weight:500;color:var(--mut);font-size:11px}
+.select-grp:not(:first-child){margin-top:4px;border-top:1px solid var(--bd);padding-top:10px}
+.select-opt .star{color:var(--g600);font-size:11px;margin-right:2px}
+.select-empty{padding:8px 12px;font-size:12.5px;color:var(--mut)}
+.select.disabled .select-btn{background:var(--bg);color:var(--mut);cursor:not-allowed}
+.select.disabled .select-list{display:none}
 .select-opt.sel{background:var(--g100);color:var(--g700);font-weight:700}
 
 /* 토글 */
@@ -313,10 +320,16 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 #map-tooltip.show{opacity:1}
 #map-tooltip .tip-name{font-weight:900;margin-bottom:2px}
 #map-tooltip .tip-val b{color:#7FC9A2}
-.metric-seg{display:inline-flex;gap:3px;background:#EDF0EE;border:1px solid var(--bd);border-radius:10px;padding:3px}
-.metric-seg button{padding:7px 16px;font-size:13px;border-radius:7px;color:var(--sub);font-weight:500;transition:all .18s var(--ease);white-space:nowrap}
-.metric-seg button:hover:not(.on){color:var(--g700);background:rgba(255,255,255,.7)}
-.metric-seg button.on{background:var(--g700);color:#fff;font-weight:700;box-shadow:0 1px 3px rgba(10,92,54,.28)}
+.metric-seg{position:relative;display:inline-flex;gap:3px;background:#EDF0EE;border:1px solid var(--bd);border-radius:10px;padding:3px;isolation:isolate}
+/* 활성 배경은 실제 버튼이 아니라 하나의 인디케이터가 미끄러져 이동한다 */
+.metric-seg::before{content:'';position:absolute;z-index:-1;top:3px;bottom:3px;left:0;width:0;
+  background:var(--g700);border-radius:7px;box-shadow:0 1px 3px rgba(10,92,54,.28);opacity:0;
+  transform:translateX(var(--seg-x,0));transition:transform .28s var(--ease),width .28s var(--ease),opacity .18s}
+.metric-seg.seg-ready::before{opacity:1;width:var(--seg-w,0)}
+.metric-seg button{position:relative;padding:7px 16px;font-size:13px;border-radius:7px;color:var(--sub);font-weight:500;
+  transition:color .2s var(--ease),font-weight .2s;white-space:nowrap;background:transparent}
+.metric-seg button:hover:not(.on){color:var(--g700)}
+.metric-seg button.on{color:#fff;font-weight:700}
 .rank-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:9px;cursor:pointer;transition:background .15s}
 .rank-row:hover{background:var(--g50)}
 .rank-row.sel{background:var(--g100)}
@@ -750,8 +763,12 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mf-tl .mkt-cond{font-size:12.5px}
 .mf-tl .mkt-dates button{padding:6px 12px;font-size:12.5px}
 .mf-tl .flabel{flex:0 0 30px}
-.mkt-row-metric{display:flex;align-items:center;gap:8px}
-.mkt-row-metric .metric-seg button{padding:6px 12px;font-size:12.5px}
+.mkt-row-metric{display:flex;align-items:center;gap:8px;margin-top:2px}
+.mf-tl .mkt-row-dates,.mf-tl .mkt-row-metric{gap:8px}
+/* 날짜·지표 세그의 폭과 높이를 맞춰 두 행이 같은 리듬으로 보이게
+   (flex:1 만 주면 부모 폭 제약에 눌려 버튼 폭이 0 이 되므로 기준 폭을 함께 지정) */
+.mf-tl .metric-seg{flex:1 1 auto;display:flex;min-width:0}
+.mf-tl .metric-seg button{flex:1 1 0;min-width:64px;padding:7px 10px;font-size:12.5px;text-align:center}
 
 /* ── 디자인시스템 select (네이티브 select 를 .select-btn 토큰과 동일하게) ── */
 .sel-ds{height:44px;width:100%;border:1px solid var(--bd2);border-radius:8px;background:#fff;

@@ -91,6 +91,7 @@ function enterApp(){
 
 function logoutApp(){
   closeSidebar();
+  if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof closeNotif === 'function') closeNotif();
   if(typeof closeChatPanel === 'function') closeChatPanel();
   document.getElementById('appShell').classList.remove('on');
@@ -121,6 +122,7 @@ function nav(id){
     if(panMap && panMap.invalidateSize) panMap.invalidateSize();
     if(!MKTSET.inited && !document.documentElement.classList.contains('cap-mode')){ MKTSET.inited = true; openMktset(); }
   }, 180);
+  if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof closeNotif === 'function') closeNotif();
   if(id !== 'map' && $mapTip) $mapTip.classList.remove('show');
   if(typeof osScrollTop === 'function') osScrollTop(pg, 0);
@@ -1021,6 +1023,50 @@ renderPurposes();
 renderThreads();
 
 
+
+/* ══════════ 세그먼트 탭: 활성 배경이 미끄러지듯 이동 ══════════ */
+function segSync(seg){
+  if(!seg) return;
+  const on = seg.querySelector('button.on');
+  if(!on){ seg.classList.remove('seg-ready'); return; }
+  seg.style.setProperty('--seg-x', (on.offsetLeft - 3) + 'px');
+  seg.style.setProperty('--seg-w', on.offsetWidth + 'px');
+  seg.classList.add('seg-ready');
+}
+function segSyncAll(){ document.querySelectorAll('.metric-seg').forEach(segSync); }
+/* 클릭·리사이즈·화면 전환 시 재계산 (렌더 직후 offset 확정을 위해 rAF 2회) */
+document.addEventListener('click', e=>{
+  const b = e.target.closest && e.target.closest('.metric-seg button');
+  if(!b) return;
+  const seg = b.parentElement;
+  /* 각 세그의 onclick(setMetric/segPick/mktPickDate)이 .on 을 바꾼 뒤에 계산해야 한다 */
+  setTimeout(()=>segSync(seg), 0);
+  requestAnimationFrame(()=>segSync(seg));
+});
+window.addEventListener('resize', segSyncAll);
+function segSyncSoon(){
+  requestAnimationFrame(()=>requestAnimationFrame(segSyncAll));
+  /* 페이지 전환 애니메이션·차트 렌더 뒤 offset 이 확정되는 경우가 있어 한 번 더 */
+  setTimeout(segSyncAll, 260);
+  setTimeout(segSyncAll, 700);
+}
+segSyncSoon();
+window.addEventListener('load', segSyncSoon);
+/* 세그가 화면에 나타나거나 크기가 확정되는 순간 자동 계산
+   (탭 전환·모달 오픈·조건 바 재렌더 직후에는 offset 이 0 으로 잡힐 수 있다) */
+if(window.IntersectionObserver){
+  const segIO = new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting) segSync(e.target); }));
+  const segRO = window.ResizeObserver ? new ResizeObserver(es=>es.forEach(e=>{
+    if(e.contentRect.width > 0) segSync(e.target);
+  })) : null;
+  const segObserve = ()=>document.querySelectorAll('.metric-seg').forEach(el=>{
+    segIO.observe(el);
+    if(segRO) segRO.observe(el);
+  });
+  segObserve();
+  window.segObserve = segObserve;
+}
+
 /* ══════════ 판로 조건 설정 — 품목(최대5) · 품목별 시장/청과 프로필 · 날짜 ══════════
    Mock · 로컬 state. 청과까지 고르면 신뢰도 높음, 시장만 고르면 보통, 전체 보기는 참고 */
 const MKT_CROPS_CORE = ['양파','마늘','배추','무','고추'];       /* AI 예측·분석 제공 */
@@ -1059,6 +1105,7 @@ function openMktset(){
   openModal('mktModal');
 }
 function mktRenderModal(){
+  if(typeof segSyncSoon === 'function') segSyncSoon();
   /* ① 품목: 선택된 칩(탭=지금 보는 품목, ×=제거) + select 로 추가 */
   document.getElementById('mktCrops').innerHTML = mktSel.crops.map(c=>`
     <span class="crop-chip${c===mktSel.crop?' on':''}" style="display:inline-flex;align-items:center;gap:7px" onclick="mktFocusCrop('${c}')">
@@ -1067,12 +1114,18 @@ function mktRenderModal(){
     </span>`).join('');
   const remainCore = MKT_CROPS_CORE.filter(c=>!mktSel.crops.includes(c));
   const remainEx = MKT_CROPS_EXTRA.filter(c=>!mktSel.crops.includes(c));
-  document.getElementById('mktCropSelect').innerHTML =
-    '<option value="">＋ 작물 추가하기'+(mktSel.crops.length>=5?' (5개가 꽉 찼어요)':'')+'</option>'
-    + '<optgroup label="5대 작물 — AI 예측·분석 제공 ★">'
-    + remainCore.map(c=>`<option value="${c}">★ ${c}</option>`).join('') + '</optgroup>'
-    + '<optgroup label="그 외 작물 — 시세 조회만">'
-    + remainEx.map(c=>`<option value="${c}">${c}</option>`).join('') + '</optgroup>';
+  const full = mktSel.crops.length >= 5;
+  const box = document.getElementById('mktCropSelect');
+  box.querySelector('.select-btn').childNodes[0].textContent =
+    (full ? '＋ 작물 추가하기 (5개가 꽉 찼어요)' : '＋ 작물 추가하기') + ' ';
+  box.classList.toggle('disabled', full);
+  document.getElementById('mktCropList').innerHTML =
+    '<div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>'
+    + (remainCore.length ? remainCore.map(c=>`<div class="select-opt" onclick="mktAddCrop('${c}')"><span><b class="star">★</b> ${c}</span></div>`).join('')
+                         : '<div class="select-empty">모두 추가했어요</div>')
+    + '<div class="select-grp">그 외 작물 <span>시세 조회만</span></div>'
+    + (remainEx.length ? remainEx.map(c=>`<div class="select-opt" onclick="mktAddCrop('${c}')"><span>${c}</span></div>`).join('')
+                       : '<div class="select-empty">모두 추가했어요</div>');
   document.getElementById('mktCropName').textContent = mktSel.crop;
   /* ② 시장 (단일) */
   document.getElementById('mktMarkets').innerHTML = MKT_MARKETS.map(m=>`
@@ -1099,6 +1152,8 @@ function mktRenderModal(){
   }
 }
 function mktAddCrop(c){
+  if(event) event.stopPropagation();
+  document.getElementById('mktCropSelect').classList.remove('open');
   if(!c) return;
   if(mktSel.crops.length>=5){ toast('err','품목은 최대 5개까지 고를 수 있어요'); mktRenderModal(); return; }
   mktSel.crops.push(c); mktSel.crop = c;
@@ -1176,6 +1231,8 @@ function renderMktBars(){
     </div>`;
   const d1 = document.getElementById('mktBarDash'); if(d1) d1.innerHTML = html;
   const d2 = document.getElementById('mktBarMap'); if(d2) d2.innerHTML = html;
+  if(typeof segSyncSoon === 'function') segSyncSoon();
+  if(typeof segObserve === 'function') segObserve();
   /* 차트·요약 텍스트에 반영 */
   document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
     if(el.textContent.indexOf('가격 추이')>-1){
