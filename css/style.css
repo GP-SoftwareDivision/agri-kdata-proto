@@ -770,13 +770,3 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mf-tl .metric-seg{flex:1 1 auto;display:flex;min-width:0}
 .mf-tl .metric-seg button{flex:1 1 0;min-width:64px;padding:7px 10px;font-size:12.5px;text-align:center}
 
-/* ── 디자인시스템 select (네이티브 select 를 .select-btn 토큰과 동일하게) ── */
-.sel-ds{height:44px;width:100%;border:1px solid var(--bd2);border-radius:8px;background:#fff;
-  padding:0 38px 0 14px;font-size:14px;font-weight:700;color:var(--txt);font-family:inherit;
-  appearance:none;-webkit-appearance:none;cursor:pointer;transition:border .15s,box-shadow .15s;
-  background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236E7681' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center}
-.sel-ds:hover{border-color:var(--g400)}
-.sel-ds:focus{outline:none;border-color:var(--g600);box-shadow:0 0 0 3px rgba(14,122,70,.12)}
-.sel-ds optgroup{font-size:12px;color:var(--sub)}
-.sel-ds option{font-weight:500;color:var(--txt);padding:8px}
