@@ -108,8 +108,8 @@ if(!CAP){
   var fab = document.getElementById('fab');
   if(fab) fab.onclick = function(){ nav('chatbot'); };
 })();
-/* 대시보드·지도 요약 칩은 기본값으로도 항상 표시 (선택한 정보만 보여주기) */
-setTimeout(function(){ if(typeof renderMsetBars === 'function') renderMsetBars(); }, 200);
+/* 대시보드·지도 조건 바는 기본값으로도 항상 표시 */
+setTimeout(function(){ if(typeof renderMktBars === 'function') renderMktBars(); }, 200);
 
 /* ══════════ ③ 행정서류 작성 — 몰입형 6단계 플로우 ══════════ */
 /* Mock 데이터 — 실데이터·API 없이 로컬 state로만 동작 */
@@ -565,130 +565,44 @@ window.msubClose = function(){
 
 }
 
-/* ══════════ ⑥ 판로 조건 설정 플로우 (One Thing per One Page) ══════════
-   작물 → 품종 → 시장 → 가격 기준('청가') → 날짜를 하나씩 고르면,
-   대시보드·판로 지도에는 "선택한 정보만" 요약 칩으로 보여준다. Mock · 로컬 state */
-var MSET = {crop:'양파', variety:'중만생', market:'대구 북부 도매시장', price:'도매 경락가', date:'2026-08-19'};
-var msetDone = false, msetStep = 0, msetAfter = null, msetEl = null;
-var MSET_STEPS = [
-  {key:'crop',    t:'작물',   q:'어떤 작물을 보실래요?',        sub:'설정한 작물 기준으로만 보여드려요.',
-   opts:[['양파','전국 2위 주산지'],['마늘',''],['배추',''],['무',''],['고추','']]},
-  {key:'variety', t:'품종',   q:'품종은 무엇인가요?',            sub:'품종에 따라 시세가 달라요.',
-   opts:[['조생','5~6월 출하'],['중생','6~7월 출하'],['중만생','저장용 · 7월 이후']]},
-  {key:'market',  t:'시장',   q:'어느 시장을 기준으로 볼까요?',  sub:'주로 출하하는 시장을 골라주세요.',
-   opts:[['가락시장 (서울)','전국 기준가'],['대구 북부 도매시장','주 출하처'],['부산 엄궁 도매시장',''],['청송 농협 공판장','산지']]},
-  {key:'price',   t:'가격 기준', q:'어떤 가격을 보실래요?',      sub:'',
-   opts:[['도매 경락가','시장 경매 낙찰가'],['산지 수집가','밭떼기 · 수집상 가격'],['소매가','소비자 판매 가격']]},
-  {key:'date',    t:'날짜',   q:'언제 자료를 볼까요?',           sub:'',
-   opts:[['오늘 (2026-08-19)','최신 경락 자료'],['어제 (2026-08-18)',''],['날짜 직접 고르기','']]},
-];
-function msetEnsure(){
-  if(msetEl) return;
-  msetEl = document.createElement('div');
-  msetEl.className = 'mdoc'; msetEl.id = 'msetFlow';
-  msetEl.innerHTML =
-    '<div class="mdoc-top">'
-    + '<button class="mdoc-x" onclick="msetBack()" aria-label="이전"><svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
-    + '<div class="mdoc-title" id="msetTitle"></div>'
-    + '<button class="mdoc-x" onclick="msetExit()" aria-label="닫기"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 3L13 13M13 3L3 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>'
-    + '<div class="mdoc-prog"><i id="msetBar"></i></div>'
-    + '<div class="mdoc-body" id="msetBody"></div>'
-    + '<div class="mdoc-foot" id="msetFoot"></div>';
-  document.body.appendChild(msetEl);
-}
-window.msetStart = function(after){
-  msetEnsure(); msetAfter = after || null; msetStep = 0;
-  msetEl.classList.add('on'); syncFocus(); msetRender();
-};
-window.msetExit = function(){
-  msetEl.classList.remove('on'); syncFocus();
-};
-window.msetBack = function(){
-  if(msetStep > 0){ msetStep--; msetRender(); } else msetExit();
-};
-window.msetPick = function(i){
-  var st = MSET_STEPS[msetStep];
-  MSET[st.key] = st.opts[i][0].replace(/ \(.*\)$/, '').replace('날짜 직접 고르기','2026-08-19');
-  if(st.key === 'date') MSET.date = st.opts[i][0].indexOf('오늘')>-1 ? '2026-08-19' : st.opts[i][0].indexOf('어제')>-1 ? '2026-08-18' : '2026-08-19';
-  document.querySelectorAll('#msetBody .trow').forEach(function(el,j){ el.classList.toggle('sel', j===i); });
-  setTimeout(function(){
-    if(msetStep < MSET_STEPS.length-1){ msetStep++; msetRender(); }
-    else msetApply();
-  }, 200);
-};
-function msetRender(){
-  var st = MSET_STEPS[msetStep];
-  document.getElementById('msetTitle').textContent = st.t;
-  document.getElementById('msetBar').style.width = Math.round((msetStep+1)/MSET_STEPS.length*100)+'%';
-  document.getElementById('msetBody').innerHTML =
-    '<div class="mstep-in"><div class="mq">'+st.q+'</div>'
-    + (st.sub ? '<div class="mq-sub">'+st.sub+'</div>' : '<div style="height:8px"></div>')
-    + st.opts.map(function(o,i){
-        var cur = MSET[st.key] && o[0].indexOf(MSET[st.key])>-1;
-        return '<button class="trow'+(cur?' sel':'')+'" onclick="msetPick('+i+')">'
-          + '<div class="tl"><b>'+o[0]+'</b>'+(o[1]?'<span>'+o[1]+'</span>':'')+'</div>'
-          + '<div class="tr">'+(cur?'<span class="tchk"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.8 9L10 3.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':'<svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#C2C9C4" stroke-width="1.6" stroke-linecap="round"/></svg>')+'</div></button>';
-      }).join('') + '</div>';
-  document.getElementById('msetFoot').innerHTML = '';
-  document.getElementById('msetBody').scrollTop = 0;
-}
-function msetApply(){
-  msetDone = true;
-  msetExit();
-  renderMsetBars();
-  toast('ok', MSET.crop+' · '+MSET.market+' 기준으로 보여드릴게요');
-  if(msetAfter === 'map'){ msetAfter=null; }
-}
-/* 선택한 정보만 보이는 요약 칩 바 — 대시보드·판로 지도 상단 */
-function msetBarHtml(){
-  return '<div class="mset-chips">'
-    + '<span class="msc"><b>'+MSET.crop+'</b> · '+MSET.variety+'</span>'
-    + '<span class="msc">'+MSET.market.replace(' 도매시장','')+'</span>'
-    + '<span class="msc">'+MSET.price+'</span>'
-    + '<span class="msc">'+MSET.date.slice(5).replace('-','/')+'</span>'
-    + '</div><button class="msc-edit" onclick="msetStart()">변경</button>';
-}
-function renderMsetBars(){
-  /* 대시보드: 필터바 대신 요약 바 */
-  var fb = document.querySelector('#page-dashboard .filterbar');
-  if(fb){
-    fb.classList.add('m-hide');
-    var bar = document.getElementById('msetBarDash');
-    if(!bar){
-      bar = document.createElement('div');
-      bar.id = 'msetBarDash'; bar.className = 'card mset-bar';
-      fb.parentNode.insertBefore(bar, fb);
-    }
-    bar.innerHTML = msetBarHtml();
-  }
-  /* 판로 지도: 플로팅 필터 카드 대신 요약 바 */
-  var tl = document.querySelector('#page-map .mf-tl');
-  if(tl){
-    tl.classList.add('m-hide');
-    var bar2 = document.getElementById('msetBarMap');
-    if(!bar2){
-      bar2 = document.createElement('div');
-      bar2.id = 'msetBarMap'; bar2.className = 'mset-bar mset-bar-map';
-      tl.parentNode.insertBefore(bar2, tl);
-    }
-    bar2.innerHTML = msetBarHtml();
-  }
-  /* 차트 제목에도 선택 작물 반영 */
-  document.querySelectorAll('#page-dashboard .sec-t').forEach(function(el){
-    if(el.textContent.indexOf('가격 추이')>-1){
-      el.innerHTML = MSET.crop+' 가격 추이 · 예측 <span style="font-size:12px;color:var(--mut);font-weight:400">'+MSET.market.replace(' 도매시장','')+' · '+MSET.price+' · 원/kg</span>';
-    }
-  });
-}
-/* 판로 지도 최초 진입 시: 조건을 먼저 고르고 → 결과를 보여준다 */
+/* 판로 조건 설정: 모바일은 풀스크린 One-Thing 스텝(품목 → 시장 → 청과 → 날짜) */
 (function(){
-  var __nav = window.nav;
-  window.nav = function(id){
-    __nav(id);
-    if(id === 'map' && !msetDone){ setTimeout(function(){ msetStart('map'); }, 250); }
-    if(msetDone) renderMsetBars();
-  };
+  var e = document.getElementById('mktModal');
+  if(e){
+    e.classList.add('fullpage');
+    var head = e.querySelector('.m-head');
+    var mx = head && head.querySelector('.m-x');
+    if(head && mx){
+      mx.innerHTML = BACK_SVG; mx.classList.add('sheet-back');
+      head.insertBefore(mx, head.firstChild);
+      if(head.children[1]) head.children[1].style.flex = '1';
+      var xb = document.createElement('button');
+      xb.className = 'm-x'; xb.style.position = 'static'; xb.setAttribute('aria-label','닫기');
+      xb.innerHTML = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg>';
+      xb.onclick = function(){ closeModal('mktModal'); };
+      head.appendChild(xb);
+    }
+  }
 })();
+var _openMktset = window.openMktset;
+window.openMktset = function(){
+  _openMktset();
+  var body = document.getElementById('mktBody');
+  sheetSteps({
+    key:'mk',
+    sections: sheetSections(body),
+    foot: document.getElementById('mktFoot'),
+    stepLabel: document.getElementById('mktStepLbl'),
+    labelPrefix: '하나씩 고르면 돼요',
+    doneLabel: '적용',
+    validate: function(i){
+      if(i===1 && !mktSel.market){ toast('err','시장을 골라주세요'); return false; }
+      return true;
+    },
+    cancel: function(){ closeModal('mktModal'); },
+    done: function(){ mktApply(); },
+  });
+};
 
 /* 캡처 모드(#cap=)에서는 시트 단계 분할을 걷어내 기존 증빙 화면 그대로 재현 */
 if(CAP){ window.openDownload = _openDownload; window.openShare = _openShare; window.goDocView = _goDocView; }
@@ -696,33 +610,33 @@ if(CAP){ window.openDownload = _openDownload; window.openShare = _openShare; win
 
 /* ══════════ 모바일 화면설계서 캡처 상태 (#mcap=ID) ══════════ */
 var MCAPS = {
-  'NAV-HOME': function(){ msetDone=true; capEnter('dashboard'); renderMsetBars(); },
+  'NAV-HOME': function(){ MKTSET.inited=true; capEnter('dashboard'); renderMktBars(); },
   'NAV-ALL':  function(){ capEnter('dashboard'); toggleAllMenu(true); },
-  'MKT-CROP': function(){ capEnter('dashboard'); msetStart(); },
-  'MKT-MARKET': function(){ capEnter('dashboard'); msetStart(); msetStep=2; msetRender(); },
-  'MKT-PRICE': function(){ capEnter('dashboard'); msetStart(); msetStep=3; msetRender(); },
-  'MKT-MAP':  function(){ msetDone=true; capEnter('map'); setTimeout(renderMsetBars, 400); },
-  'DSH-HOME': function(){ msetDone=true; capEnter('dashboard'); renderMsetBars(); },
-  'MY-ROOT':  function(){ msetDone=true; capEnter('mypage'); },
-  'MY-USE':   function(){ msetDone=true; capEnter('mypage'); msubOpen('use'); },
-  'MY-CONN':  function(){ msetDone=true; capEnter('mypage'); msubOpen('conn'); },
-  'MY-RCPT':  function(){ msetDone=true; capEnter('mypage'); msubOpen('rcpt'); },
-  'MY-SHEET': function(){ msetDone=true; capEnter('mypage'); msubOpen('rcpt'); setTimeout(function(){ openReceipt('RCPT-U-260819-014'); }, 300); },
-  'CNS-INTRO': function(){ msetDone=true; capEnter('mypage'); mdwOpen(); },
-  'CNS-AUTH': function(){ msetDone=true; capEnter('mypage'); mdwOpen(); mdwGo(1); },
-  'CNS-USE':  function(){ msetDone=true; capEnter('mypage'); mdwOpen(); mdwStep=2; mdwRender(); },
-  'CNS-TERMS': function(){ msetDone=true; capEnter('mypage'); mdwOpen(); mdwStep=3; mdwRender(); },
-  'CNS-ITEMS': function(){ msetDone=true; capEnter('mypage'); mdwOpen(); mdwStep=5; mdwRender(); },
-  'CNS-DONE': function(){ msetDone=true; capEnter('mypage'); mdwOpen(); mdwGo(6); },
-  'DOC-TPL':  function(){ msetDone=true; capEnter('docs'); mdocStart(); },
-  'DOC-LOAD': function(){ msetDone=true; capEnter('docs'); mdocStart(); mdocPickTpl(0); },
-  'DOC-CONFIRM': function(){ msetDone=true; capEnter('docs'); mdocStart(); mdoc.tpl=0; mdoc.step=2; mdocRenderPub(); },
-  'DOC-PHONE': function(){ msetDone=true; capEnter('docs'); mdocStart(); mdoc.tpl=0; mdoc.step=3; mdocRenderPub(); },
-  'DOC-DONE': function(){ msetDone=true; capEnter('docs'); mdocStart(); mdoc.tpl=0; mdoc.phone='010-1234-5678'; mdoc.step=6; mdocRenderPub(); },
-  'DLD-ITEMS': function(){ msetDone=true; capEnter('mypage'); openDownload(); },
-  'DLD-PERIOD': function(){ msetDone=true; capEnter('mypage'); openDownload(); setTimeout(function(){ document.getElementById('dlNext').click(); }, 250); },
-  'SHR-TARGET': function(){ msetDone=true; capEnter('mypage'); openShare(); },
-  'DOCS-HOME': function(){ msetDone=true; capEnter('docs'); },
+  'MKT-CROP': function(){ MKTSET.inited=true; capEnter('dashboard'); openMktset(); },
+  'MKT-MARKET': function(){ MKTSET.inited=true; capEnter('dashboard'); openMktset(); document.getElementById('mkNext').click(); },
+  'MKT-CQ': function(){ MKTSET.inited=true; capEnter('dashboard'); openMktset(); document.getElementById('mkNext').click(); document.getElementById('mkNext').click(); },
+  'MKT-MAP':  function(){ MKTSET.inited=true; capEnter('map'); },
+  'DSH-HOME': function(){ MKTSET.inited=true; capEnter('dashboard'); renderMktBars(); },
+  'MY-ROOT':  function(){ MKTSET.inited=true; capEnter('mypage'); },
+  'MY-USE':   function(){ MKTSET.inited=true; capEnter('mypage'); msubOpen('use'); },
+  'MY-CONN':  function(){ MKTSET.inited=true; capEnter('mypage'); msubOpen('conn'); },
+  'MY-RCPT':  function(){ MKTSET.inited=true; capEnter('mypage'); msubOpen('rcpt'); },
+  'MY-SHEET': function(){ MKTSET.inited=true; capEnter('mypage'); msubOpen('rcpt'); setTimeout(function(){ openReceipt('RCPT-U-260819-014'); }, 300); },
+  'CNS-INTRO': function(){ MKTSET.inited=true; capEnter('mypage'); mdwOpen(); },
+  'CNS-AUTH': function(){ MKTSET.inited=true; capEnter('mypage'); mdwOpen(); mdwGo(1); },
+  'CNS-USE':  function(){ MKTSET.inited=true; capEnter('mypage'); mdwOpen(); mdwStep=2; mdwRender(); },
+  'CNS-TERMS': function(){ MKTSET.inited=true; capEnter('mypage'); mdwOpen(); mdwStep=3; mdwRender(); },
+  'CNS-ITEMS': function(){ MKTSET.inited=true; capEnter('mypage'); mdwOpen(); mdwStep=5; mdwRender(); },
+  'CNS-DONE': function(){ MKTSET.inited=true; capEnter('mypage'); mdwOpen(); mdwGo(6); },
+  'DOC-TPL':  function(){ MKTSET.inited=true; capEnter('docs'); mdocStart(); },
+  'DOC-LOAD': function(){ MKTSET.inited=true; capEnter('docs'); mdocStart(); mdocPickTpl(0); },
+  'DOC-CONFIRM': function(){ MKTSET.inited=true; capEnter('docs'); mdocStart(); mdoc.tpl=0; mdoc.step=2; mdocRenderPub(); },
+  'DOC-PHONE': function(){ MKTSET.inited=true; capEnter('docs'); mdocStart(); mdoc.tpl=0; mdoc.step=3; mdocRenderPub(); },
+  'DOC-DONE': function(){ MKTSET.inited=true; capEnter('docs'); mdocStart(); mdoc.tpl=0; mdoc.phone='010-1234-5678'; mdoc.step=6; mdocRenderPub(); },
+  'DLD-ITEMS': function(){ MKTSET.inited=true; capEnter('mypage'); openDownload(); },
+  'DLD-PERIOD': function(){ MKTSET.inited=true; capEnter('mypage'); openDownload(); setTimeout(function(){ document.getElementById('dlNext').click(); }, 250); },
+  'SHR-TARGET': function(){ MKTSET.inited=true; capEnter('mypage'); openShare(); },
+  'DOCS-HOME': function(){ MKTSET.inited=true; capEnter('docs'); },
 };
 window.mdocRenderPub = function(){ mdocRender(); };
 (function(){

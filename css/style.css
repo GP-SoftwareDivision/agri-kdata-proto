@@ -721,3 +721,14 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .q-lbl{font-size:17px;font-weight:900;letter-spacing:-.3px;margin-bottom:10px;line-height:1.4}
 .ct-foot-acts{display:flex;gap:14px;margin-top:8px}
 .ct-foot-acts a{font-weight:700;color:var(--g700)}
+/* ── 판로 조건 바 (PC) ── */
+#mktBarDash{display:flex;align-items:center;gap:14px;padding:12px 18px;flex-wrap:wrap}
+.mkt-inline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.crop-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.crop-chip{font-size:13px;font-weight:700;color:var(--sub);background:#fff;border:1px solid var(--bd2);
+  border-radius:999px;padding:7px 14px;transition:all .15s;cursor:pointer}
+.crop-chip:hover{border-color:var(--g400);color:var(--g700)}
+.crop-chip.on{background:var(--g700);border-color:var(--g700);color:#fff;font-weight:800}
+.crop-chip.add{padding:7px 11px;color:var(--mut)}
+.mkt-cond{font-size:13px;color:var(--sub);white-space:nowrap}
+.mkt-cond b{color:var(--txt)}

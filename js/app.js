@@ -119,6 +119,7 @@ function nav(id){
   if(id==='map') setTimeout(function(){
     if(typeof initPanMap === 'function') initPanMap();
     if(panMap && panMap.invalidateSize) panMap.invalidateSize();
+    if(!MKTSET.inited && !document.documentElement.classList.contains('cap-mode')){ MKTSET.inited = true; openMktset(); }
   }, 180);
   if(typeof closeNotif === 'function') closeNotif();
   if(id !== 'map' && $mapTip) $mapTip.classList.remove('show');
@@ -1018,6 +1019,158 @@ renderConns();
 renderReceipts();
 renderPurposes();
 renderThreads();
+
+
+/* ══════════ 판로 조건 설정 — 품목(최대5) · 품목별 시장/청과 프로필 · 날짜 ══════════
+   Mock · 로컬 state. 청과까지 고르면 신뢰도 높음, 시장만 고르면 보통, 전체 보기는 참고 */
+const MKT_CROPS = ['양파','마늘','배추','무','고추'];
+const MKT_MARKETS = [
+  {n:'가락시장 (서울)',      d:'전국 기준가',      cq:['중앙청과','동화청과','서울청과','한국청과']},
+  {n:'대구 북부 도매시장',   d:'주 출하처',        cq:['효성청과','대구중앙청과']},
+  {n:'부산 엄궁 도매시장',   d:'',                 cq:[]},        /* 청과별 자료 미제공 */
+  {n:'청송 농협 공판장',     d:'산지 공판장',      cq:null},      /* 청과 개념 없음 */
+];
+const MKT_DATES = [
+  ['어제', '2026-08-18 하루치'],
+  ['최근 7일 평균', '변동을 눌러 본 값'],
+  ['최근 30일 평균', '한 달 흐름 기준'],
+  ['특정 날짜', '최근 1년 안에서 고르기'],
+];
+const MKTSET = {
+  crops: ['양파'],
+  active: '양파',
+  profiles: { '양파': {market:'대구 북부 도매시장', cq:'효성청과'} },
+  dateMode: '어제',
+  dateValue: '2026-08-18',
+  viewAll: false,
+  inited: false,
+};
+/* 모달 임시 선택값 */
+let mktSel = null;
+function mktProfile(crop){ return MKTSET.profiles[crop] || null; }
+function mktTrust(){
+  if(MKTSET.viewAll) return ['참고 — 전국 평균', 'bg-mut'];
+  const p = mktProfile(MKTSET.active);
+  if(p && p.cq) return ['신뢰도 높음 — '+p.cq+' 실측', 'bg-ok'];
+  return ['신뢰도 보통 — 시장 평균', 'bg-warn'];
+}
+function mktDateLabel(){
+  return MKTSET.dateMode === '특정 날짜' ? MKTSET.dateValue : MKTSET.dateMode + (MKTSET.dateMode==='어제' ? ' (08/18)' : '');
+}
+function openMktset(){
+  const p = mktProfile(MKTSET.active) || {};
+  mktSel = { crops:[...MKTSET.crops], crop:MKTSET.active, market:p.market||null, cq:p.cq||null,
+             dateMode:MKTSET.dateMode, dateValue:MKTSET.dateValue };
+  mktRenderModal();
+  openModal('mktModal');
+}
+function mktRenderModal(){
+  /* ① 품목 (다중 · 최대 5) */
+  document.getElementById('mktCrops').innerHTML = MKT_CROPS.map(c=>`
+    <div class="pick${mktSel.crops.includes(c)?' sel':''}" onclick="mktTglCrop('${c}')">
+      <input type="checkbox" style="pointer-events:none" ${mktSel.crops.includes(c)?'checked':''} onclick="return false">
+      <div><div>${c}</div>${c===mktSel.crop?'<div style="font-size:11px;color:var(--g700);font-weight:700">지금 보는 품목</div>':''}</div>
+    </div>`).join('');
+  document.getElementById('mktCropName').textContent = mktSel.crop;
+  /* ② 시장 (단일) */
+  document.getElementById('mktMarkets').innerHTML = MKT_MARKETS.map(m=>`
+    <div class="share-org${mktSel.market===m.n?' sel':''}" onclick="mktPickMarket('${m.n}')">
+      <div style="flex:1"><div class="on">${m.n}</div><div class="od">${m.d||' '}</div></div>
+      ${m.cq===null?'':m.cq.length===0?'<span class="badge bg-mut">청과별 자료 없음</span>':'<span class="badge bg-ok">청과 '+m.cq.length+'곳</span>'}
+    </div>`).join('');
+  /* ③ 청과 (선택 · 건너뛰기 가능) */
+  const mk = MKT_MARKETS.find(m=>m.n===mktSel.market);
+  const cqBox = document.getElementById('mktCqs');
+  const note = document.getElementById('mktCqNote');
+  if(!mk){ cqBox.innerHTML = '<div class="tcap">먼저 시장을 골라주세요.</div>'; note.style.display='none'; }
+  else if(mk.cq===null){ cqBox.innerHTML = '<div class="tcap">산지 공판장은 청과 구분 없이 공판장 평균으로 보여드려요.</div>'; note.style.display='none'; mktSel.cq=null; }
+  else if(mk.cq.length===0){ cqBox.innerHTML = '<div class="tcap">이 시장은 청과별 자료를 제공하지 않아요 — 시장 전체 평균으로 보여드려요.</div>'; note.style.display='none'; mktSel.cq=null; }
+  else {
+    note.style.display='';
+    cqBox.innerHTML = mk.cq.map(q=>`
+      <div class="share-org${mktSel.cq===q?' sel':''}" onclick="mktPickCq('${q}')">
+        <div style="flex:1"><div class="on">${q}</div></div>
+        ${mktSel.cq===q?'<span class="badge bg-ok">신뢰도 높음</span>':''}
+      </div>`).join('')
+      + `<div class="share-org${mktSel.cq===null?' sel':''}" onclick="mktPickCq(null)" style="border-style:dashed">
+        <div style="flex:1"><div class="on" style="color:var(--sub)">건너뛰기 — 시장 전체 평균으로 볼게요</div></div></div>`;
+  }
+  /* ④ 날짜 */
+  document.getElementById('mktDates').innerHTML = MKT_DATES.map(d=>`
+    <div class="share-org${mktSel.dateMode===d[0]?' sel':''}" onclick="mktPickDate('${d[0]}')">
+      <div style="flex:1"><div class="on">${d[0]}</div><div class="od">${d[1]}</div></div>
+    </div>`).join('');
+  document.getElementById('mktDateInput').style.display = mktSel.dateMode==='특정 날짜' ? '' : 'none';
+}
+function mktTglCrop(c){
+  const i = mktSel.crops.indexOf(c);
+  if(i>-1){
+    if(mktSel.crops.length===1){ toast('err','품목은 최소 1개는 있어야 해요'); return; }
+    mktSel.crops.splice(i,1);
+    if(mktSel.crop===c) mktSel.crop = mktSel.crops[0];
+  } else {
+    if(mktSel.crops.length>=5){ toast('err','품목은 최대 5개까지 고를 수 있어요'); return; }
+    mktSel.crops.push(c); mktSel.crop = c;
+    const p = mktProfile(c); mktSel.market = p?p.market:null; mktSel.cq = p?p.cq:null;
+  }
+  mktRenderModal();
+}
+function mktPickMarket(n){ mktSel.market = n; mktSel.cq = null; mktRenderModal(); }
+function mktPickCq(q){ mktSel.cq = q; mktRenderModal(); }
+function mktPickDate(m){ mktSel.dateMode = m; mktRenderModal(); }
+function mktViewAll(){
+  MKTSET.viewAll = true; MKTSET.inited = true;
+  closeModal('mktModal'); renderMktBars();
+  toast('info','조건 없이 전체 기준으로 보여드릴게요');
+}
+function mktApply(){
+  if(!mktSel.market){ toast('err','시장을 골라주세요'); return; }
+  MKTSET.crops = [...mktSel.crops];
+  MKTSET.active = mktSel.crop;
+  MKTSET.profiles[mktSel.crop] = {market:mktSel.market, cq:mktSel.cq};
+  MKTSET.dateMode = mktSel.dateMode;
+  if(mktSel.dateMode==='특정 날짜') MKTSET.dateValue = document.getElementById('mktDateInput').value || '2026-08-18';
+  MKTSET.viewAll = false; MKTSET.inited = true;
+  closeModal('mktModal'); renderMktBars();
+  toast('ok', MKTSET.active+' · '+mktSel.market+(mktSel.cq?' · '+mktSel.cq:'')+' 기준으로 보여드릴게요');
+}
+/* 품목 칩 전환: 프로필이 있으면 즉시, 없으면 그 품목의 시장부터 물어봐요 */
+function mktSwitch(c){
+  MKTSET.active = c;
+  if(!mktProfile(c)){
+    openMktset();
+    toast('info', c+'의 판로를 아직 몰라요 — 시장을 골라주세요');
+    return;
+  }
+  MKTSET.viewAll = false;
+  renderMktBars();
+}
+function renderMktBars(){
+  const p = mktProfile(MKTSET.active) || {};
+  const [trust, trustCls] = mktTrust();
+  const chips = MKTSET.crops.map(c=>
+    `<button class="crop-chip${!MKTSET.viewAll && c===MKTSET.active?' on':''}" onclick="mktSwitch('${c}')">${c}</button>`).join('')
+    + `<button class="crop-chip add" onclick="openMktset()" aria-label="품목 추가">＋</button>`;
+  const cond = MKTSET.viewAll
+    ? `<span class="mkt-cond"><b>전체 보기 중</b> — 전국 · 전체 품목</span>`
+    : `<span class="mkt-cond"><b>${p.market||'시장 미설정'}</b>${p.cq?' · '+p.cq:''} · ${mktDateLabel()}</span>`;
+  const html = `
+    <div class="crop-chips">${chips}</div>
+    ${cond}
+    <span class="badge ${trustCls}" style="flex-shrink:0">${trust}</span>
+    <div style="flex:1"></div>
+    ${MKTSET.viewAll?'<button class="btn btn-out btn-sm" onclick="openMktset()">내 조건 보기</button>':'<button class="btn btn-neu btn-sm" onclick="openMktset()">변경</button>'}`;
+  const d1 = document.getElementById('mktBarDash'); if(d1) d1.innerHTML = html;
+  const d2 = document.getElementById('mktBarMap'); if(d2) d2.innerHTML = html;
+  /* 차트·요약 텍스트에 반영 */
+  document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
+    if(el.textContent.indexOf('가격 추이')>-1){
+      el.innerHTML = (MKTSET.viewAll?'전체 품목':MKTSET.active)+' 가격 추이 · 예측 <span style="font-size:12px;color:var(--mut);font-weight:400">'
+        + (MKTSET.viewAll?'전국 평균':(p.market||'')+(p.cq?' · '+p.cq:'')) + ' · ' + mktDateLabel() + ' · 원/kg</span>';
+    }
+  });
+}
+renderMktBars();
 
 /* ══════════ 행정서류 — 내 서류함 + 4단계 위저드 ══════════ */
 const DOCS_KEY = 'agri_docs_v1';

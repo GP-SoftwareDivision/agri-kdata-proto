@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=85">
-<link rel="stylesheet" href="css/mobile.css?v=85">
+<link rel="stylesheet" href="css/style.css?v=87">
+<link rel="stylesheet" href="css/mobile.css?v=87">
 </head>
 <body>
 
@@ -251,25 +251,7 @@
   <!-- ── 대시보드 ── -->
   <section id="page-dashboard" class="page">
     <div class="wrap">
-      <div class="card filterbar">
-        <div style="display:flex;align-items:center;gap:10px"><span class="flabel">품목</span>
-          <div class="select" data-select><button class="select-btn" onclick="tglSelect(this)">양파 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-            <div class="select-list"><div class="select-opt" onclick="pickOpt(this)">배추</div><div class="select-opt" onclick="pickOpt(this)">무</div><div class="select-opt" onclick="pickOpt(this)">마늘</div><div class="select-opt sel" onclick="pickOpt(this)">양파</div><div class="select-opt" onclick="pickOpt(this)">고추</div></div>
-          </div></div>
-        <div class="fdiv"></div>
-        <div style="display:flex;align-items:center;gap:10px"><span class="flabel">지역</span>
-          <div class="select" data-select><button class="select-btn" onclick="tglSelect(this)">경북 청송군 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-            <div class="select-list"><div class="select-opt sel" onclick="pickOpt(this)">경북 청송군</div><div class="select-opt" onclick="pickOpt(this)">전남 무안군</div><div class="select-opt" onclick="pickOpt(this)">경남 창녕군</div><div class="select-opt" onclick="pickOpt(this)">제주 서귀포시</div></div>
-          </div></div>
-        <div class="fdiv"></div>
-        <div style="display:flex;align-items:center;gap:10px"><span class="flabel">기준일</span>
-          <div style="height:36px;border:1px solid var(--bd2);border-radius:8px;display:flex;align-items:center;padding:0 12px;background:#fff;font-weight:700">2026-08-19</div></div>
-        <div style="flex:1"></div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="toggle on" onclick="this.classList.toggle('on');toast('info', this.classList.contains('on') ? '내 농가 기준으로 표시해요' : '전체 기준으로 표시해요')"></div>
-          <span style="font-size:13px;font-weight:700;color:var(--g700)">내 농가 기준</span>
-        </div>
-      </div>
+      <div class="card filterbar" id="mktBarDash"></div>
 
       <div class="kpis">
         <div class="card kpi">
@@ -460,26 +442,7 @@ docker run --rm -p 8080:8080 \
       <!-- 좌상단: 타이틀 + 필터 -->
       <div class="mf mf-panel mf-tl">
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div style="display:flex;align-items:center;gap:8px"><span class="flabel">품목</span>
-            <div class="select" data-select style="min-width:96px"><button class="select-btn" onclick="tglSelect(this)">양파 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-              <div class="select-list">
-                <div class="select-opt" onclick="pickItem(this)">배추</div>
-                <div class="select-opt" onclick="pickItem(this)">무</div>
-                <div class="select-opt" onclick="pickItem(this)">마늘</div>
-                <div class="select-opt sel" onclick="pickItem(this)">양파</div>
-                <div class="select-opt" onclick="pickItem(this)">고추</div>
-              </div>
-            </div></div>
-          <div style="display:flex;align-items:center;gap:8px"><span class="flabel">기준일</span>
-            <div class="select" data-select style="min-width:132px"><button class="select-btn" onclick="tglSelect(this)">2026-08-19 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
-              <div class="select-list">
-                <div class="select-opt sel" onclick="pickDate(this)">2026-08-19</div>
-                <div class="select-opt" onclick="pickDate(this)">2026-08-18</div>
-                <div class="select-opt" onclick="pickDate(this)">2026-08-17</div>
-                <div class="select-opt" onclick="pickDate(this)">2026-08-14</div>
-                <div class="select-opt" onclick="pickDate(this)">2026-08-12</div>
-              </div>
-            </div></div>
+          <div id="mktBarMap" class="mkt-inline"></div>
           <div class="metric-seg" id="metricSeg">
             <button class="on" onclick="setMetric('price',this)">평균 경락가</button>
             <button onclick="setMetric('net',this)">내 예상 순수익</button>
@@ -1643,8 +1606,48 @@ docker run --rm -p 8080:8080 \
   </div>
 </div>
 
+
+<!-- 판로 조건 설정: 품목(최대 5) → 시장 → 청과(선택) → 날짜 -->
+<div class="overlay" id="mktModal">
+  <div class="modal md-modal">
+    <div class="m-head" style="padding-bottom:8px">
+      <div>
+        <div class="m-title" style="font-size:19px">판로 조건 설정</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px" id="mktStepLbl">설정한 조건 기준으로만 보여드려요</div>
+      </div>
+      <button class="m-x" onclick="closeModal('mktModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="md-body" data-fade id="mktBody">
+      <div>
+        <div class="q-lbl">어떤 작물을 키우세요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">최대 5개</span></div>
+        <div class="pick-grid" id="mktCrops"></div>
+      </div>
+      <div>
+        <div class="q-lbl"><b id="mktCropName">양파</b>는 주로 어디에 내세요?</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="mktMarkets"></div>
+      </div>
+      <div>
+        <div class="q-lbl">어느 청과로 볼까요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">고르면 더 정확해져요</span></div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="mktCqs"></div>
+        <div class="tcap" id="mktCqNote">청과까지 고르면 그 청과의 실측 경락가로 보여드려요. 건너뛰면 시장 전체 평균으로 보여드려요.</div>
+      </div>
+      <div>
+        <div class="q-lbl">언제 자료를 볼까요?</div>
+        <div style="display:flex;flex-direction:column;gap:8px" id="mktDates"></div>
+        <input type="date" class="inp" id="mktDateInput" style="display:none;margin-top:8px" min="2025-08-19" max="2026-08-18" value="2026-08-18">
+        <div class="tcap">경락 자료는 다음 날 아침에 집계돼요 — 오늘 자료는 내일 볼 수 있어요. 특정 날짜는 최근 1년까지 고를 수 있어요.</div>
+      </div>
+    </div>
+    <div class="m-foot" id="mktFoot" style="align-items:center">
+      <button style="font-size:12.5px;color:var(--sub);text-decoration:underline;text-underline-offset:3px;margin-right:auto" onclick="mktViewAll()">조건 없이 전체 보기</button>
+      <button class="btn btn-neu" onclick="closeModal('mktModal')">취소</button>
+      <button class="btn btn-pri" onclick="mktApply()">적용</button>
+    </div>
+  </div>
+</div>
+
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=85"></script>
-<script src="js/mobile-flow.js?v=85"></script>
+<script src="js/app.js?v=87"></script>
+<script src="js/mobile-flow.js?v=87"></script>
 </body>
 </html>
