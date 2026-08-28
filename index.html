@@ -14,8 +14,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=105">
-<link rel="stylesheet" href="css/mobile.css?v=105">
+<link rel="stylesheet" href="css/style.css?v=112">
+<link rel="stylesheet" href="css/mobile.css?v=112">
 </head>
 <body>
 
@@ -1605,6 +1605,16 @@ docker run --rm -p 8080:8080 \
 
 
 <!-- 판로 조건 설정: 품목(최대 5) → 시장 → 청과(선택) → 날짜 -->
+<div class="overlay" id="favModal">
+  <div class="modal" style="max-width:420px">
+    <div class="m-head">
+      <div class="m-title" style="font-size:18px">즐겨찾기</div>
+      <button class="m-x" onclick="closeModal('favModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div id="favModalBody" style="display:flex;flex-direction:column;gap:8px;padding:6px 0 4px"></div>
+  </div>
+</div>
+
 <div class="overlay" id="mktModal">
   <div class="modal md-modal">
     <div class="m-head" style="padding-bottom:8px">
@@ -1643,7 +1653,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=105"></script>
-<script src="js/mobile-flow.js?v=105"></script>
+<script src="js/app.js?v=112"></script>
+<script src="js/mobile-flow.js?v=112"></script>
 </body>
 </html>

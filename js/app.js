@@ -120,6 +120,7 @@ function nav(id){
   if(id==='map') setTimeout(function(){
     if(typeof initPanMap === 'function') initPanMap();
     if(panMap && panMap.invalidateSize) panMap.invalidateSize();
+    if(typeof lockNationZoom === 'function') lockNationZoom();
   }, 180);
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof closeNotif === 'function') closeNotif();
@@ -1079,6 +1080,7 @@ const MKT_MARKETS = [
 ];
 const MKTSET = {
   crop: '양파',
+  market: '대구 북부 도매시장', cq: '효성청과',   /* 현재 조회 조건 — 비우면 전국 평균 */
   date: '2026-08-18', preset: '어제',            /* 어제 | 7일 | 30일 | null(직접 선택) */
   favs: [
     {crop:'양파', market:'대구 북부 도매시장', cq:'효성청과'},
@@ -1102,14 +1104,13 @@ const TRUST_TIP = '청과(도매법인)의 실측 경락가를 그대로 쓰기 
 const TRUST_B = '<span class="trust-b">신뢰<span class="tip">'+TRUST_TIP+'</span></span>';
 
 /* ── 기본 검색기 + 즐겨찾기 렌더 (대시보드 · 지도 공용) ── */
+const PENCIL_SVG = '<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M9.9 1.8a1.5 1.5 0 0 1 2.12 2.12L4.6 11.35l-2.85.73.73-2.85 7.42-7.43Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
 function renderMktBars(){
-  const f = mktFav(MKTSET.crop);
-  const fm = f && f.market ? mktMarket(f.market) : null;
-  const cond = fm
-    ? `<span class="mkt-cond"><b>${fm.s}</b>${f.cq?' · '+f.cq:''}</span>${f.cq?TRUST_B:''}`
-    : `<span class="mkt-cond">전국 평균 기준</span>`;
+  const curMk = mktMarket(MKTSET.market);
+  const trust = MKTSET.cq ? TRUST_B : '';
   const cropOpt = (list, star) => list.map(c=>
     `<div class="select-opt${c===MKTSET.crop?' sel':''}" onclick="mktPickCrop('${c}')"><span>${star?'<b class="star">★</b> ':''}${c}</span></div>`).join('');
+  const searchVal = curMk ? curMk.s + (MKTSET.cq?' · '+MKTSET.cq:'') : '';
   const find = `
     <div class="mkt-row mkt-row-find">
       <span class="flabel">작물</span>
@@ -1120,7 +1121,14 @@ function renderMktBars(){
           <div class="select-grp">그 외 작물 <span>시세 조회만</span></div>${cropOpt(MKT_CROPS_EXTRA,false)}
         </div>
       </div>
-      ${cond}
+      <div class="select mkt-search" data-select>
+        <input class="inp ms-inp" placeholder="시장·청과 검색 — 비우면 전국 평균" value="${searchVal}"
+          onfocus="this.select();mktSearchOpen(this,true)" oninput="mktSearchOpen(this)" onclick="event.stopPropagation()">
+        ${curMk?'<button class="ms-x" onclick="mktSearchClear(event)" aria-label="조건 지우기">✕</button>':''}
+        <div class="select-list ms-list"></div>
+      </div>
+      ${trust}
+      <button class="btn btn-neu btn-sm mkt-favbtn" onclick="openFavModal()">즐겨찾기</button>
     </div>`;
   const dates = `
     <div class="mkt-row mkt-row-dates">
@@ -1133,8 +1141,9 @@ function renderMktBars(){
   const favs = `
     <div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
       const mk = mktMarket(fv.market);
-      return `<button class="fav-chip${fv.crop===MKTSET.crop && fv.market?' on':''}" onclick="favApply(${i})">
-        <span class="star">★</span>${fv.crop}${mk?' <span class="fm">'+mk.s+'</span>':''}
+      return `<button class="fav-chip${fv.crop===MKTSET.crop && fv.market && fv.market===MKTSET.market?' on':''}" onclick="favApply(${i})">
+        <span class="fedit" onclick="event.stopPropagation();favEdit(${i})" aria-label="${fv.crop} 즐겨찾기 수정">${PENCIL_SVG}</span>
+        ${fv.crop}${mk?' <span class="fm">'+mk.s+'</span>':''}
         ${!fv.market?'<span class="fv-need">설정 필요</span>':fv.cq?TRUST_B:''}
         <span class="fx" onclick="favRemove(event,${i})" aria-label="${fv.crop} 즐겨찾기 빼기">✕</span>
       </button>`;}).join('')}
@@ -1152,9 +1161,56 @@ function renderMktBars(){
   document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
     if(el.textContent.indexOf('가격 추이')>-1){
       el.innerHTML = MKTSET.crop+' 가격 추이 · 예측 <span style="font-size:12px;color:var(--mut);font-weight:400">'
-        + (fm ? fm.n+(f.cq?' · '+f.cq:'') : '전국 평균') + ' · ' + mktDateLabel() + ' · 원/kg</span>';
+        + (curMk ? curMk.n+(MKTSET.cq?' · '+MKTSET.cq:'') : '전국 평균') + ' · ' + mktDateLabel() + ' · 원/kg</span>';
     }
   });
+}
+
+/* ── 시장·청과 검색: 포커스 시 전체 목록, 입력 시 필터 ── */
+function mktSearchOpen(inp, isFocus){
+  const wrap = inp.closest('.mkt-search');
+  document.querySelectorAll('.select.open').forEach(el=>{ if(el!==wrap) el.classList.remove('open'); });
+  wrap.classList.add('open');
+  /* 포커스 직후에는 현재 표시값을 필터로 쓰지 않고 전체 목록을 보여준다 */
+  const q = isFocus ? '' : inp.value.trim();
+  const rows = [];
+  MKT_MARKETS.forEach(m=>{
+    const mHit = !q || m.n.includes(q) || m.s.includes(q);
+    const cqHits = (m.cq||[]).filter(c=>!q || c.includes(q) || mHit);
+    if(!mHit && !cqHits.length) return;
+    rows.push(`<div class="select-opt" onmousedown="mktSearchPick('${m.n}',null)"><span><b>${m.n}</b></span><span class="dup">${m.d||'시장 평균'}</span></div>`);
+    cqHits.forEach(c=>rows.push(`<div class="select-opt ms-cq" onmousedown="mktSearchPick('${m.n}','${c}')"><span>${c}</span><span class="dup">청과 실측</span></div>`));
+  });
+  wrap.querySelector('.ms-list').innerHTML = rows.length ? rows.join('')
+    : '<div class="select-empty">검색 결과가 없어요</div>';
+}
+function mktSearchPick(market, cq){
+  MKTSET.market = market; MKTSET.cq = cq;
+  renderMktBars(); mktZoomTo(market);
+  const mk = mktMarket(market);
+  toast('ok', mk.s+(cq?' · '+cq:'')+' 기준으로 보여드릴게요');
+}
+function mktSearchClear(ev){
+  ev.stopPropagation();
+  MKTSET.market = null; MKTSET.cq = null;
+  renderMktBars();
+  toast('info','조건을 비워 전국 평균 기준으로 보여드려요');
+}
+/* 지도에서는 그 시장으로 확대하고 시장 팝업을 띄운다 */
+function mktZoomTo(marketN){
+  const mk = mktMarket(marketN);
+  if(currentPage==='map' && mk && typeof panMap!=='undefined' && panMap && typeof mkRef!=='undefined' && mkRef[mk.map]){
+    const m = MARKETS.find(x=>x.id===mk.map);
+    /* flyTo 아크가 잠깐 전국 밖으로 축소하며 날아가므로, 비행 동안만 최소 줌을 풀어 준다 */
+    const minZ = panMap.getMinZoom();
+    panMap.setMinZoom(5.5);
+    let flown = false;
+    panMap.once('moveend', ()=>{ flown = true; panMap.setMinZoom(minZ); });
+    panMap.flyTo([m.lat, m.lng], 9.5, {duration:.8});
+    /* 탭이 백그라운드라 rAF 가 멈춘 환경에서는 애니메이션 없이 즉시 이동 */
+    setTimeout(()=>{ if(!flown){ panMap.setView([m.lat, m.lng], 9.5, {animate:false}); panMap.setMinZoom(minZ); } }, 1300);
+    setTimeout(()=>{ try{ mkRef[mk.map].openPopup(); }catch(e){} }, 900);
+  }
 }
 
 /* ── 기본 검색기 동작 ── */
@@ -1162,6 +1218,8 @@ function mktPickCrop(c){
   if(event) event.stopPropagation();
   document.querySelectorAll('.mkt-crop-sel.open').forEach(el=>el.classList.remove('open'));
   MKTSET.crop = c;
+  const f = mktFav(c);
+  if(f && f.market){ MKTSET.market = f.market; MKTSET.cq = f.cq; }   /* 즐겨찾기 세팅 자동 반영 */
   if(!MKT_CROPS_CORE.includes(c)) toast('info', c+'는 AI 예측 없이 시세 조회만 제공해요');
   renderMktBars();
 }
@@ -1175,16 +1233,9 @@ function mktPickDateValue(v){ if(v){ MKTSET.date = v; MKTSET.preset = null; rend
 function favApply(i){
   const f = MKTSET.favs[i];
   if(!f.market){ favEdit(i); return; }        /* 설정 필요 → 이어서 설정하도록 */
-  MKTSET.crop = f.crop;
-  renderMktBars();
-  const mk = mktMarket(f.market);
-  /* 지도에서는 그 시장으로 확대하고 시장(청과) 정보를 띄운다 */
-  if(currentPage==='map' && mk && typeof panMap!=='undefined' && panMap && typeof mkRef!=='undefined' && mkRef[mk.map]){
-    const m = MARKETS.find(x=>x.id===mk.map);
-    panMap.flyTo([m.lat, m.lng], 9.5, {duration:.8});
-    setTimeout(()=>{ try{ mkRef[mk.map].openPopup(); }catch(e){} }, 900);
-  }
-  toast('ok', f.crop+' · '+mk.s+(f.cq?' · '+f.cq:'')+' 기준으로 보여드릴게요');
+  MKTSET.crop = f.crop; MKTSET.market = f.market; MKTSET.cq = f.cq;
+  renderMktBars(); mktZoomTo(f.market);
+  toast('ok', f.crop+' · '+mktMarket(f.market).s+(f.cq?' · '+f.cq:'')+' 기준으로 보여드릴게요');
 }
 function favRemove(ev, i){
   ev.stopPropagation();
@@ -1269,12 +1320,26 @@ function mktSave(){
   if(!item.market){
     toast('info', "시장 설정이 남아서 '설정 필요'로 담아뒀어요");
   } else {
-    MKTSET.crop = item.crop;
+    MKTSET.crop = item.crop; MKTSET.market = item.market; MKTSET.cq = item.cq;
     toast('ok', '즐겨찾기에 담았어요 — '+item.crop+' · '+mktMarket(item.market).s+(item.cq?' · '+item.cq:''));
   }
   renderMktBars();
 }
 const mktApply = mktSave;   /* 모바일 래퍼 호환 */
+/* 모바일: 즐겨찾기 버튼 → 바텀시트 목록 */
+function openFavModal(){
+  const body = document.getElementById('favModalBody');
+  body.innerHTML = MKTSET.favs.map((fv,i)=>{
+    const mk = mktMarket(fv.market);
+    return `<div class="share-org" onclick="closeModal('favModal');favApply(${i})">
+      <button class="fav-edit" onclick="event.stopPropagation();closeModal('favModal');favEdit(${i})" aria-label="${fv.crop} 수정">${PENCIL_SVG}</button>
+      <div style="flex:1"><div class="on">${fv.crop}</div><div class="od">${mk?mk.s+(fv.cq?' · '+fv.cq:''):'시장을 아직 안 골랐어요'}</div></div>
+      ${!fv.market?'<span class="fv-need">설정 필요</span>':fv.cq?TRUST_B:''}
+    </div>`;}).join('')
+    + (MKTSET.favs.length<5?`<button class="btn btn-out" style="width:100%" onclick="closeModal('favModal');favAdd()">＋ 즐겨찾기 추가</button>`:'')
+    + (MKTSET.favs.length?'':'<div class="tcap" style="text-align:center;padding:8px 0">아직 담아 둔 즐겨찾기가 없어요.</div>');
+  openModal('favModal');
+}
 function favDelete(){
   if(mktFavIdx>=0) MKTSET.favs.splice(mktFavIdx,1);
   closeModal('mktModal'); renderMktBars();
@@ -1834,6 +1899,16 @@ function ensureEmdGroup(sigCd){
 
 /* ── 뷰 전환 (전국 / 시도 포커스 / 읍면동 단독) ── */
 /* 좌측 필터·우측 통계 패널에 지도가 가리지 않도록 여백 확보 */
+let koreaBounds = null, natZoomLocked = false;
+function lockNationZoom(){
+  /* 컨테이너가 0 크기일 때 fit 하면 엉뚱한 줌이 나오므로, 실제 크기가 잡힌 뒤에만 잠근다 */
+  if(natZoomLocked || !panMap || !koreaBounds) return;
+  if(panMap.getSize().y < 150) return;
+  panMap.setMinZoom(5.5);
+  panMap.fitBounds(koreaBounds, fitPad());
+  panMap.setMinZoom(panMap.getZoom());
+  natZoomLocked = true;
+}
 function fitPad(){
   if(document.documentElement.classList.contains('m')){
     /* 모바일: 지도 위 플로팅 패널이 없으므로 여백 최소화 */
@@ -2029,7 +2104,7 @@ function initPanMap(){
   .then(function(res){
     GEO.sido = res[0]; GEO.sig = res[1];
     GEO.sig.features.forEach(f=>{ const sd=f.properties.SIG_CD.slice(0,2); (sigBySido[sd]=sigBySido[sd]||[]).push(f); });
-    panMap = L.map('panMap', {zoomControl:true, attributionControl:false, scrollWheelZoom:true, doubleClickZoom:false, zoomSnap:.25, zoomDelta:.5, minZoom:5.5, maxZoom:12, wheelPxPerZoomLevel:90});
+    panMap = L.map('panMap', {zoomControl:false, attributionControl:false, scrollWheelZoom:true, doubleClickZoom:false, zoomSnap:.25, zoomDelta:.5, minZoom:5.5, maxZoom:12, wheelPxPerZoomLevel:90});
     /* 드릴다운 타일 전용 pane — 포커스 시 그림자+오프셋으로 떠 보이게 (참조: web_bi sigfocus) */
     panMap.createPane('drill');
     panMap.getPane('drill').style.zIndex = 450;
@@ -2038,7 +2113,9 @@ function initPanMap(){
     panMap.on('movestart', function(){ if(Date.now() >= suppressUntil) userMoved = true; });
     groups.sido = buildGroup(GEO.sido.features, 'sido');
     panMap.addLayer(groups.sido);
-    panMap.fitBounds(L.geoJSON(GEO.sido).getBounds(), fitPad());
+    koreaBounds = L.geoJSON(GEO.sido).getBounds();
+    panMap.fitBounds(koreaBounds, fitPad());
+    lockNationZoom();                       /* 전국이 보이는 레벨 이하로는 축소 금지 */
     buildMarkets();
     refreshAll();
   })

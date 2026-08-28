@@ -480,5 +480,10 @@ html.m .mkt-row-dates{flex-wrap:wrap}
 html.m .mkt-dates{display:flex;flex:1}
 html.m .mkt-dates button{flex:1;padding:7px 0;font-size:12px;white-space:nowrap}
 html.m .mkt-date-inp{flex:1;width:auto !important;min-width:120px}
-html.m .mkt-row-favwrap{flex-wrap:wrap;gap:8px}
-html.m .mkt-row-favwrap .flabel{flex:1 1 100%}
+/* 모바일: 즐겨찾기는 인라인 블록 대신 버튼 → 바텀시트 */
+html.m .mkt-row-favwrap{display:none}
+html.m #mktFavMap{display:none}
+html.m .mkt-favbtn{display:inline-flex;margin-left:auto;flex-shrink:0}
+html.m .mkt-row-find{flex-wrap:wrap;gap:8px}
+html.m .mkt-search{flex:1 1 100%;order:5}
+html.m .mkt-favbtn{order:4}
