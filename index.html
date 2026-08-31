@@ -3,7 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<script>if(/[?&]m=1/.test(location.search)||location.pathname.indexOf('/mobile')>-1)document.documentElement.classList.add('m');</script>
+<script>(function(){
+/* 모바일 진입 판정: ?m=1|0 이 최우선(강제), 그 외엔 /mobile 경로 또는 실제 모바일 기기(UA)면 모바일 UI */
+var q=/[?&]m=(1|0)/.exec(location.search);
+var ua=navigator.userAgent;
+var mob=/iPhone|iPod/.test(ua)||(/Android/.test(ua)&&/Mobile/.test(ua))||/Windows Phone/.test(ua);
+if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.documentElement.classList.add('m');
+})();</script>
 <title>agriG — 영농 판로·행정지원 디자인 시안</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
@@ -14,8 +20,8 @@
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=112">
-<link rel="stylesheet" href="css/mobile.css?v=112">
+<link rel="stylesheet" href="css/style.css?v=113">
+<link rel="stylesheet" href="css/mobile.css?v=113">
 </head>
 <body>
 
@@ -1635,7 +1641,7 @@ docker run --rm -p 8080:8080 \
         </div>
       </div>
       <div>
-        <div class="q-lbl"><b id="mktCropName">작물</b>은 주로 어디에 내세요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">꼭 골라야 해요</span></div>
+        <div class="q-lbl"><b id="mktCropName">작물</b><span id="mktCropJosa">은</span> 주로 어디에 내세요? <span style="font-size:12.5px;color:var(--mut);font-weight:400">꼭 골라야 해요</span></div>
         <div style="display:flex;flex-direction:column;gap:8px" id="mktMarkets"></div>
       </div>
       <div>
@@ -1653,7 +1659,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=112"></script>
-<script src="js/mobile-flow.js?v=112"></script>
+<script src="js/app.js?v=113"></script>
+<script src="js/mobile-flow.js?v=113"></script>
 </body>
 </html>

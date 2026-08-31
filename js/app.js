@@ -1081,24 +1081,26 @@ const MKT_MARKETS = [
 const MKTSET = {
   crop: '양파',
   market: '대구 북부 도매시장', cq: '효성청과',   /* 현재 조회 조건 — 비우면 전국 평균 */
-  date: '2026-08-18', preset: '어제',            /* 어제 | 7일 | 30일 | null(직접 선택) */
+  /* 조회 기간은 항상 from~to 범위 (주식 차트처럼 최근 7일·30일 추이를 본다) */
+  dateFrom: '2026-08-18', dateTo: '2026-08-18', preset: '어제',   /* 어제 | 7일 | 30일 | null(직접 선택) */
   favs: [
     {crop:'양파', market:'대구 북부 도매시장', cq:'효성청과'},
     {crop:'마늘', market:null, cq:null},          /* 설정을 끝내지 않은 예시 → '설정 필요' */
   ],
   inited: false,
 };
-const MKT_PRESETS = {'어제':'2026-08-18','7일':'2026-08-12','30일':'2026-07-20'};
+const MKT_PRESETS = {'어제':['2026-08-18','2026-08-18'],'7일':['2026-08-12','2026-08-18'],'30일':['2026-07-20','2026-08-18']};
 let mktSel = null;        /* 즐겨찾기 편집 임시값 */
 let mktFavIdx = -1;       /* 편집 중인 즐겨찾기 index (-1 = 새로 추가) */
 
 function mktFav(crop){ return MKTSET.favs.find(f=>f.crop===crop) || null; }
 function mktMarket(n){ return MKT_MARKETS.find(m=>m.n===n) || null; }
+function mdShort(d){ return d ? d.slice(5).replace('-','/') : ''; }
 function mktDateLabel(){
   if(MKTSET.preset==='어제') return '어제 (08/18)';
-  if(MKTSET.preset==='7일') return '최근 7일 평균';
-  if(MKTSET.preset==='30일') return '최근 30일 평균';
-  return MKTSET.date;
+  if(MKTSET.preset==='7일') return '최근 7일 (08/12~08/18)';
+  if(MKTSET.preset==='30일') return '최근 30일 (07/20~08/18)';
+  return mdShort(MKTSET.dateFrom)+'~'+mdShort(MKTSET.dateTo);
 }
 const TRUST_TIP = '청과(도매법인)의 실측 경락가를 그대로 쓰기 때문에, 시장 평균으로 추정한 값보다 데이터 신뢰도가 높아요.';
 const TRUST_B = '<span class="trust-b">신뢰<span class="tip">'+TRUST_TIP+'</span></span>';
@@ -1113,16 +1115,15 @@ function renderMktBars(){
   const searchVal = curMk ? curMk.s + (MKTSET.cq?' · '+MKTSET.cq:'') : '';
   const find = `
     <div class="mkt-row mkt-row-find">
-      <span class="flabel">작물</span>
-      <div class="select mkt-crop-sel" data-select>
+      <div class="select mkt-crop-sel fld" data-select data-label="작물 선택">
         <button class="select-btn" onclick="tglSelect(this)">${MKTSET.crop} <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
         <div class="select-list">
           <div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>${cropOpt(MKT_CROPS_CORE,true)}
           <div class="select-grp">그 외 작물 <span>시세 조회만</span></div>${cropOpt(MKT_CROPS_EXTRA,false)}
         </div>
       </div>
-      <div class="select mkt-search" data-select>
-        <input class="inp ms-inp" placeholder="시장·청과 검색 — 비우면 전국 평균" value="${searchVal}"
+      <div class="select mkt-search fld" data-select data-label="시장·청과 검색">
+        <input class="inp ms-inp" placeholder="비워두면 전체" value="${searchVal}"
           onfocus="this.select();mktSearchOpen(this,true)" oninput="mktSearchOpen(this)" onclick="event.stopPropagation()">
         ${curMk?'<button class="ms-x" onclick="mktSearchClear(event)" aria-label="조건 지우기">✕</button>':''}
         <div class="select-list ms-list"></div>
@@ -1132,11 +1133,15 @@ function renderMktBars(){
     </div>`;
   const dates = `
     <div class="mkt-row mkt-row-dates">
-      <span class="flabel">날짜</span>
       <div class="metric-seg seg-sm mkt-dates">${['어제','7일','30일'].map(p=>
         `<button class="${MKTSET.preset===p?'on':''}" onclick="mktPickPreset('${p}')">${p}</button>`).join('')}</div>
-      <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18"
-        value="${MKTSET.date}" onchange="mktPickDateValue(this.value)">
+      <div class="mkt-range fld" data-label="조회 기간">
+        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="시작일"
+          value="${MKTSET.dateFrom}" onchange="mktPickDateFrom(this.value)">
+        <span class="mr-sep">~</span>
+        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="종료일"
+          value="${MKTSET.dateTo}" onchange="mktPickDateTo(this.value)">
+      </div>
     </div>`;
   const favs = `
     <div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
@@ -1201,15 +1206,26 @@ function mktZoomTo(marketN){
   const mk = mktMarket(marketN);
   if(currentPage==='map' && mk && typeof panMap!=='undefined' && panMap && typeof mkRef!=='undefined' && mkRef[mk.map]){
     const m = MARKETS.find(x=>x.id===mk.map);
+    /* 모바일은 검색기 아래에 지도가 있어 확대가 안 보인다 — 지도를 화면에 먼저 데려온다 */
+    const isM = document.documentElement.classList.contains('m');
+    if(isM){
+      const s = osScroller(document.getElementById('page-map')), pan = document.getElementById('panMap');
+      if(s && pan) setTimeout(()=>{
+        s.scrollTop = pan.getBoundingClientRect().top - s.getBoundingClientRect().top + s.scrollTop - 8;
+      }, 60);
+    }
+    /* 중심은 마커 그대로 둔다 — 중심을 옮기면 조준점이 옆 지역을 잡아 드릴이 튄다.
+       모바일 팝업이 지도 높이를 넘는 문제는 CSS(컴팩트 팝업 + 지도 480px)로 해결 */
+    const tgt = L.latLng(m.lat, m.lng);
     /* flyTo 아크가 잠깐 전국 밖으로 축소하며 날아가므로, 비행 동안만 최소 줌을 풀어 준다 */
     const minZ = panMap.getMinZoom();
     panMap.setMinZoom(5.5);
     let flown = false;
     panMap.once('moveend', ()=>{ flown = true; panMap.setMinZoom(minZ); });
-    panMap.flyTo([m.lat, m.lng], 9.5, {duration:.8});
+    panMap.flyTo(tgt, 9.5, {duration:.8});
     /* 탭이 백그라운드라 rAF 가 멈춘 환경에서는 애니메이션 없이 즉시 이동 */
-    setTimeout(()=>{ if(!flown){ panMap.setView([m.lat, m.lng], 9.5, {animate:false}); panMap.setMinZoom(minZ); } }, 1300);
-    setTimeout(()=>{ try{ mkRef[mk.map].openPopup(); }catch(e){} }, 900);
+    setTimeout(()=>{ if(!flown){ panMap.setView(tgt, 9.5, {animate:false}); panMap.setMinZoom(minZ); } }, 1300);
+    setTimeout(()=>{ try{ mkRef[mk.map].openPopup(); }catch(e){} }, 1400);
   }
 }
 
@@ -1224,10 +1240,12 @@ function mktPickCrop(c){
   renderMktBars();
 }
 function mktPickPreset(p){
-  MKTSET.preset = p; MKTSET.date = MKT_PRESETS[p];
+  MKTSET.preset = p; MKTSET.dateFrom = MKT_PRESETS[p][0]; MKTSET.dateTo = MKT_PRESETS[p][1];
   renderMktBars();
 }
-function mktPickDateValue(v){ if(v){ MKTSET.date = v; MKTSET.preset = null; renderMktBars(); } }
+/* 직접 선택도 from~to — 한쪽이 다른 쪽을 넘어가면 같은 날로 맞춰 준다 */
+function mktPickDateFrom(v){ if(!v) return; MKTSET.dateFrom = v; if(v > MKTSET.dateTo) MKTSET.dateTo = v; MKTSET.preset = null; renderMktBars(); }
+function mktPickDateTo(v){ if(!v) return; MKTSET.dateTo = v; if(v < MKTSET.dateFrom) MKTSET.dateFrom = v; MKTSET.preset = null; renderMktBars(); }
 
 /* ── 즐겨찾기 동작 ── */
 function favApply(i){
@@ -1271,7 +1289,11 @@ function mktRenderModal(){
     '<div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>' + opt(MKT_CROPS_CORE,true)
     + '<div class="select-grp">그 외 작물 <span>시세 조회만</span></div>' + opt(MKT_CROPS_EXTRA,false);
   /* ② 시장 — 작물을 고르기 전에는 잠가서 한 흐름씩 끝내도록 유도 */
-  document.getElementById('mktCropName').textContent = mktSel.crop || '작물';
+  const cropN = mktSel.crop || '작물';
+  document.getElementById('mktCropName').textContent = cropN;
+  const last = cropN.charCodeAt(cropN.length-1);
+  const josa = document.getElementById('mktCropJosa');
+  if(josa) josa.textContent = (last>=0xAC00 && last<=0xD7A3 && (last-0xAC00)%28>0) ? '은' : '는';
   const mBox = document.getElementById('mktMarkets');
   if(!mktSel.crop){
     mBox.innerHTML = '<div class="mkt-wait">먼저 작물을 골라주세요 — 고르면 여기가 열려요.</div>';
@@ -2083,8 +2105,14 @@ function updateCrosshair(){
     if(!(PANEL.level === lv && PANEL.code === hit)){
       PANEL = {level:lv, code:hit};
       renderSel(); markRank();
+      /* scrollIntoView 는 조상 스크롤(페이지 전체)까지 끌어내리므로 순위 목록 안에서만 스크롤 */
       const row = document.querySelector('#rankList .rank-row.sel');
-      if(row && row.scrollIntoView) row.scrollIntoView({block:'nearest'});
+      const rvp = osScroller(document.getElementById('rankScroll'));
+      if(row && rvp){
+        const rt = row.getBoundingClientRect(), vt = rvp.getBoundingClientRect();
+        if(rt.top < vt.top) rvp.scrollTop += rt.top - vt.top;
+        else if(rt.bottom > vt.bottom) rvp.scrollTop += rt.bottom - vt.bottom;
+      }
     }
   } else {
     el.classList.remove('has');
