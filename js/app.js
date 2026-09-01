@@ -1861,7 +1861,7 @@ function buildGroup(features, level){
       const code = p.CTPRVN_CD || p.SIG_CD || p.EMD_CD;
       const name = level==='sido' ? SIDO_DATA[code].full : (p.SIG_KOR_NM || p.EMD_KOR_NM);
       lyrs[level][code] = lyr; bnds[level][code] = lyr.getBounds();
-      const lm = L.marker(lyr.getBounds().getCenter(), {icon:L.divIcon({className:'custom-label', html:'<span class="label-text">'+name+'</span>'}), interactive:false, pane: level==='sido' ? 'markerPane' : 'drill'});
+      const lm = L.marker(lyr.getBounds().getCenter(), {icon:L.divIcon({className:'custom-label', html:'<span class="label-text">'+name+'</span>'}), interactive:false, pane: level==='sido' ? 'markerPane' : 'drillLabels'});
       group.addLayer(lm); lbls[level][code] = lm;
       lyr.on('mouseover', function(e){
         if(lyr.options.ghost) return;
@@ -1958,6 +1958,9 @@ function flyPad(b, dur, minZ){
 function setFloat(on){
   const p = panMap.getPane('drill');
   if(p) p.classList.toggle('float-pane', !!on);
+  /* 라벨 pane 은 타일과 같은 오프셋만 따라간다 (그림자는 글자가 번져서 제외) */
+  const lp = panMap.getPane('drillLabels');
+  if(lp) lp.classList.toggle('float-labels', !!on);
 }
 /* 지도 중심에 있는 시도 코드 (bounds 근사) */
 function sidoAtCenter(){
@@ -2136,6 +2139,11 @@ function initPanMap(){
     /* 드릴다운 타일 전용 pane — 포커스 시 그림자+오프셋으로 떠 보이게 (참조: web_bi sigfocus) */
     panMap.createPane('drill');
     panMap.getPane('drill').style.zIndex = 450;
+    /* 지역명 라벨 전용 pane — 라벨을 drill pane 에 같이 넣으면 폴리곤 <svg> 와 DOM 순서를
+       다투다가 일부 라벨이 타일 아래로 깔린다. 타일(450) 위, 판로 마커(600) 아래로 분리. */
+    panMap.createPane('drillLabels');
+    panMap.getPane('drillLabels').style.zIndex = 460;
+    panMap.getPane('drillLabels').style.pointerEvents = 'none';
     panMap.on('zoomend', onZoomEnd);
     panMap.on('move zoom', queueCrosshair);
     panMap.on('movestart', function(){ if(Date.now() >= suppressUntil) userMoved = true; });

@@ -437,6 +437,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
   left:-3px; top:-8px;
   filter:drop-shadow(0 10px 13px rgba(16,24,40,.34));
 }
+/* 지역명 라벨 pane: 떠 있는 타일과 위치만 맞추고 그림자는 걸지 않는다 */
+.leaflet-pane.float-labels{left:-3px; top:-8px}
 /* 지도 위 팝업은 패널보다 아래, 마커 툴팁은 패널보다 위 */
 .leaflet-tooltip.mk-tip{z-index:900}
 
