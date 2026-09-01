@@ -793,8 +793,29 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .trust-b{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:6px;background:var(--g100);color:var(--g700);font-size:10.5px;font-weight:800;cursor:help;position:relative;flex-shrink:0}
 .trust-b .tip{position:fixed;left:0;top:0;transform:translateX(-50%);background:#1A1E24;color:#fff;font-size:11.5px;font-weight:400;padding:9px 13px;border-radius:8px;white-space:normal;width:252px;line-height:1.6;z-index:2000;text-align:left;box-shadow:0 8px 22px rgba(0,0,0,.28);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s var(--ease),visibility 0s linear .18s}
 .trust-b:hover .tip{opacity:1;visibility:visible;transition:opacity .18s var(--ease)}
+/* 단계형 진행바 (PC·모바일 공용 — stepFlow 가 헤더 아래에 끼워 넣는다) */
+.sheet-prog{height:4px;background:#EDF0EE;flex-shrink:0}
+.sheet-prog i{display:block;height:100%;background:var(--g600);width:0;transition:width .3s var(--ease)}
 /* 즐겨찾기 설정 모달: 잠금 안내 · 중복 작물 */
 .mkt-wait{padding:16px;border:1.5px dashed var(--bd2);border-radius:10px;color:var(--mut);font-size:13px;text-align:center}
+/* 단계마다 내용 높이가 달라 모달이 출렁이지 않도록 최소 높이 확보 */
+#mktModal .md-body{min-height:300px}
+/* ① 작물: 드롭다운 대신 목록을 펼쳐 2열 큰 카드로 바로 고른다 (PC·모바일 공용) */
+#mktCropSelect .select-btn{display:none}
+#mktCropSelect .select-list{position:static;opacity:1;transform:none;pointer-events:auto;
+  box-shadow:none;border:none;padding:0;min-width:0;background:transparent}
+#mktCropList{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#mktCropList .select-grp{grid-column:1/-1;padding:8px 2px 0}
+#mktCropList .select-grp:not(:first-child){margin-top:10px;border-top:1px solid var(--bd);padding-top:14px}
+#mktCropList .select-opt{border:1px solid var(--bd2);border-radius:12px;padding:15px 14px;
+  font-size:15.5px;font-weight:600;background:#fff}
+#mktCropList .select-opt.sel{border:1.5px solid var(--g600);background:var(--g50);
+  box-shadow:0 0 0 2.5px rgba(14,122,70,.10);padding:14px 13px}   /* 1.5px 보더로 커진 만큼 패딩 보정 */
+/* ②③ 시장·청과 행도 고르기 좋게 */
+#mktModal .share-org{padding:16px}
+#mktModal .share-org .on{font-size:16px}
+#mktModal .share-org .od{font-size:12.5px;margin-top:3px}
+.mkt-del-link{font-size:12.5px;color:var(--red,#D9534F);text-decoration:underline;text-underline-offset:3px;margin-right:auto}
 .select-opt.dis{opacity:.45;cursor:default}
 .select-opt .dup{font-size:11px;color:var(--mut);font-weight:400}
 /* 지도 플로팅: 검색기 카드 + 즐겨찾기 카드 세로 스택 */

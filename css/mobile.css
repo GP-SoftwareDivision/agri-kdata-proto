@@ -504,21 +504,7 @@ html.m .mkt-row-find,html.m .mkt-row-dates{padding-top:7px}
 html.m #mktModal .md-body{padding:18px 18px 26px;gap:20px}
 html.m #mktModal .q-lbl{font-size:19px;margin-bottom:14px}
 html.m #mktModal .mkt-wait{padding:22px 16px;font-size:14px}
-/* ① 작물: 드롭다운 대신 목록을 펼쳐 2열 큰 카드로 바로 고른다 */
-html.m #mktCropSelect .select-btn{display:none}
-html.m #mktCropSelect .select-list{position:static;opacity:1;transform:none;pointer-events:auto;
-  box-shadow:none;border:none;padding:0;min-width:0;background:transparent}
-html.m #mktCropList{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-html.m #mktCropList .select-grp{grid-column:1/-1;padding:8px 2px 0}
-html.m #mktCropList .select-grp:not(:first-child){margin-top:10px;border-top:1px solid var(--bd);padding-top:14px}
-html.m #mktCropList .select-opt{border:1px solid var(--bd2);border-radius:12px;padding:15px 14px;
-  font-size:15.5px;font-weight:600;background:#fff}
-html.m #mktCropList .select-opt.sel{border:1.5px solid var(--g600);background:var(--g50);
-  box-shadow:0 0 0 2.5px rgba(14,122,70,.10);padding:14px 13px}   /* 1.5px 보더로 커진 만큼 패딩 보정 */
-/* ②③ 시장·청과 행도 터치하기 좋게 */
-html.m #mktModal .share-org{padding:16px}
-html.m #mktModal .share-org .on{font-size:16px}
-html.m #mktModal .share-org .od{font-size:12.5px;margin-top:3px}
+/* ① 작물 카드 그리드·②③ 행 확대는 style.css 로 공용화 (PC 도 같은 flow) */
 
 /* ── 판로 마커 팝업: 360~480px 지도 안에 들어오도록 컴팩트 + 내부 스크롤 ── */
 html.m .map-full #panMap{height:480px}

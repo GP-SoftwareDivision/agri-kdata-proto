@@ -248,12 +248,17 @@ function toast(type, msg){
 /* ══════════ 모달 ══════════ */
 function openModal(id){
   document.getElementById(id).classList.add('open');
+  /* 지도 툴팁이 모달 위에 남지 않도록 (z 900 > overlay 110) */
+  if($mapTip){ tipHover = false; $mapTip.classList.remove('show'); }
   /* 숨겨진 동안 바뀐 콘텐츠 높이를 반영 */
   if(typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 30);
 }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(typeof updateCrosshairTip === 'function') setTimeout(updateCrosshairTip, 0);   /* 닫히면 조준점 툴팁 복귀 */
+}
 document.querySelectorAll('.overlay').forEach(ov=>{
-  ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('open'); });
+  ov.addEventListener('click', e=>{ if(e.target===ov){ ov.classList.remove('open'); setTimeout(updateCrosshairTip, 0); } });
 });
 
 /* ══════════ 마이페이지 — 마이데이터 공통기능 (규약 준수) ══════════ */
@@ -1267,6 +1272,50 @@ function favAdd(){
 }
 function favEdit(i){ mktFavIdx = i; openMktset(); }
 
+/* ══════════ 단계형 진행 엔진 (PC·모바일 공용) ══════════
+   모달 본문의 섹션을 한 번에 하나씩만 보여 준다 — "한 화면에 한 가지 일".
+   진행 표시는 텍스트(n/m) 대신 헤더 아래 풀폭 프로그레스바로 통일.
+   모바일은 헤더 ← (.sheet-back)로, PC 는 푸터 [이전] 버튼으로 되돌아간다. */
+function sheetSections(host){
+  const vp = host.querySelector('[data-overlayscrollbars-viewport]');
+  const root = vp || host;
+  /* OverlayScrollbars 가 끼워 넣은 os-* 엘리먼트는 섹션이 아니다 */
+  return Array.prototype.filter.call(root.children, el => !/(^|\s)os-/.test(el.className || ''));
+}
+function stepFlow(cfg){
+  const secs = cfg.sections; let i = 0;
+  const modal = cfg.foot.closest('.modal');
+  let prog = modal.querySelector('.sheet-prog');
+  if(!prog){
+    prog = document.createElement('div');
+    prog.className = 'sheet-prog'; prog.innerHTML = '<i></i>';
+    const head = modal.querySelector('.m-head');
+    if(head && head.nextSibling) modal.insertBefore(prog, head.nextSibling); else modal.appendChild(prog);
+  }
+  const back = modal.querySelector('.sheet-back');
+  function goBack(){ if(i===0){ cfg.cancel(); } else { i--; show(); } }
+  function show(){
+    secs.forEach((el, j)=>{ el.style.display = j===i ? '' : 'none'; });
+    prog.querySelector('i').style.width = Math.round((i+1)/secs.length*100)+'%';
+    if(cfg.stepLabel) cfg.stepLabel.textContent = cfg.labelPrefix;
+    if(back) back.onclick = goBack;
+    let html = cfg.footLead ? cfg.footLead() : '';
+    if(cfg.prevInFoot) html += '<button class="btn btn-neu" id="'+cfg.key+'Prev">'+(i===0?'취소':'이전')+'</button>';
+    html += '<button class="btn btn-pri"'+(cfg.prevInFoot?'':' style="flex:1"')+' id="'+cfg.key+'Next"></button>';
+    cfg.foot.innerHTML = html;
+    const prev = document.getElementById(cfg.key+'Prev');
+    if(prev) prev.onclick = goBack;
+    const next = document.getElementById(cfg.key+'Next');
+    next.textContent = i===secs.length-1 ? cfg.doneLabel : '다음';
+    next.onclick = function(){
+      if(cfg.validate && !cfg.validate(i)) return;
+      if(i===secs.length-1){ cfg.done(); } else { i++; show(); }
+    };
+    if(typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 30);
+  }
+  show();
+}
+
 /* ── 즐겨찾기 설정 모달: 작물 → 시장(필수) → 청과(보조) 를 한 흐름씩 ── */
 function openMktset(){
   const f = mktFavIdx>=0 ? MKTSET.favs[mktFavIdx] : null;
@@ -1348,6 +1397,31 @@ function mktSave(){
   renderMktBars();
 }
 const mktApply = mktSave;   /* 모바일 래퍼 호환 */
+/* PC 도 모바일과 같은 단계형 흐름으로 (모바일은 mobile-flow.js 가 같은 엔진으로 감싼다) */
+if(!document.documentElement.classList.contains('m')){
+  const _openMktsetPC = openMktset;
+  openMktset = function(){
+    _openMktsetPC();
+    stepFlow({
+      key:'mk',
+      sections: sheetSections(document.getElementById('mktBody')),
+      foot: document.getElementById('mktFoot'),
+      stepLabel: document.getElementById('mktStepLbl'),
+      labelPrefix: '작물 → 시장 → 청과 순서로 하나씩 고르면 돼요',
+      doneLabel: '저장',
+      prevInFoot: true,
+      footLead: ()=> mktFavIdx>=0
+        ? '<button id="mktDel" class="mkt-del-link" onclick="favDelete()">즐겨찾기에서 빼기</button>' : '',
+      validate: function(i){
+        if(i===0 && !mktSel.crop){ toast('err','작물을 골라주세요'); return false; }
+        if(i===1 && !mktSel.market){ toast('err','시장을 골라주세요'); return false; }
+        return true;
+      },
+      cancel: function(){ closeModal('mktModal'); },
+      done: function(){ mktSave(); },
+    });
+  };
+}
 /* 모바일: 즐겨찾기 버튼 → 바텀시트 목록 */
 function openFavModal(){
   const body = document.getElementById('favModalBody');
@@ -1820,7 +1894,10 @@ function tipHtml(level, code){
   return '<div class="tip-name">'+ (level==='sido' ? SIDO_DATA[code].full : nameOf(level, code)) +
          '</div><div class="tip-val">'+m.title+' <b>'+m.fmt(valOf(level,code))+m.unit+'</b></div>';
 }
+/* 지도 툴팁(z 900)은 모달(.overlay z 110)보다 위층이라, 모달이 열려 있으면 아예 띄우지 않는다 */
+function modalOpen(){ return !!document.querySelector('.overlay.open'); }
 function showMapTip(html, e){
+  if(modalOpen()) return;
   const t = ensureTip();
   tipHover = true;
   t.classList.remove('ch');
@@ -1835,6 +1912,7 @@ function hideMapTip(){
 /* 조준점이 가리키는 타일에 hover 와 동일한 툴팁 표시 */
 function updateCrosshairTip(){
   const t = ensureTip();
+  if(modalOpen()){ tipHover = false; t.classList.remove('show'); return; }
   const ch = document.getElementById('crosshair');
   if(tipHover || !ch || !ch.classList.contains('has') || currentPage !== 'map'){
     if(!tipHover) t.classList.remove('show');

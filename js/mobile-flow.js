@@ -343,40 +343,10 @@ window.goDocView = function(v){
 /* 시트 안의 섹션 div 를 한 번에 하나씩 보여주고 [이전/다음] 으로 잇는다 */
 /* data-fade 컨테이너는 OverlayScrollbars 가 자식을 뷰포트로 감싸므로,
    실제 콘텐츠 섹션은 뷰포트 안에서 찾는다 */
-function sheetSections(host){
-  var vp = host.querySelector('[data-overlayscrollbars-viewport]');
-  var root = vp || host;
-  return Array.prototype.filter.call(root.children, function(el){
-    return !/(^|\s)os-/.test(el.className || '');
-  });
-}
-function sheetSteps(cfg){
-  var secs = cfg.sections, i = 0;
-  /* 진행 표시는 텍스트(n/m) 대신 헤더 아래 풀폭 프로그레스바로 통일 */
-  var modal = cfg.foot.closest('.modal');
-  var prog = modal.querySelector('.sheet-prog');
-  if(!prog){
-    prog = document.createElement('div');
-    prog.className = 'sheet-prog'; prog.innerHTML = '<i></i>';
-    var head = modal.querySelector('.m-head');
-    if(head && head.nextSibling) modal.insertBefore(prog, head.nextSibling); else modal.appendChild(prog);
-  }
-  var back = modal.querySelector('.sheet-back');
-  function show(){
-    secs.forEach(function(el, j){ el.style.display = j===i ? '' : 'none'; });
-    prog.querySelector('i').style.width = Math.round((i+1)/secs.length*100)+'%';
-    if(cfg.stepLabel) cfg.stepLabel.textContent = cfg.labelPrefix;
-    if(back) back.onclick = function(){ if(i===0){ cfg.cancel(); } else { i--; show(); } };
-    cfg.foot.innerHTML = '<button class="btn btn-pri" style="flex:1" id="'+cfg.key+'Next"></button>';
-    var next = document.getElementById(cfg.key+'Next');
-    next.textContent = i===secs.length-1 ? cfg.doneLabel : '다음';
-    next.onclick = function(){
-      if(cfg.validate && !cfg.validate(i)) return;
-      if(i===secs.length-1){ cfg.done(); } else { i++; show(); }
-    };
-  }
-  show();
-}
+/* 단계형 진행 엔진은 app.js 의 stepFlow/sheetSections 를 PC 와 공용으로 쓴다.
+   (모바일은 헤더 ← 로, PC 는 푸터 [이전] 로 되돌아가는 것만 다르다) */
+var sheetSections = window.sheetSections;
+var sheetSteps = window.stepFlow;
 
 /* 내려받기: 항목 → 기간 → 형식 → 받는 방법 (4단계) */
 var _openDownload = window.openDownload;
