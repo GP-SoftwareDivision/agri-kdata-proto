@@ -1174,34 +1174,68 @@ function mktDatesHtml(st, D){
       </div>
     </div>`;
 }
-/* 모바일 지도: 조건설정부를 접어 두고 작물·조회기간·즐겨찾기만 보여 준다 */
+/* 모바일 지도: 지도 위에 겹치는 컴팩트 한 줄 — 작물 · 조회기간 · ★
+   바를 누르거나 아래로 끌어내리면 조건설정 모달이 열린다 (핸들러는 bindCondDrag) */
 function mktSummaryHtml(){
   return `
-    <div class="mkt-sum">
+    <div class="mkt-sum" id="mktSumBar">
       <button class="mkt-sum-main" onclick="openMktCond()">
         <span class="ms-crop">${MKTSET.crop}</span>
+        <span class="ms-dot">·</span>
         <span class="ms-date">${mktDateLabel()}</span>
       </button>
-      <button class="btn btn-neu btn-sm mkt-cond-btn" onclick="openMktCond()">조건설정</button>
-      <button class="btn btn-neu btn-sm mkt-favbtn" onclick="openFavModal()" aria-label="즐겨찾기">${STAR_SVG}</button>
+      <button class="mb-ico fav-ic" onclick="event.stopPropagation();openFavModal()" aria-label="즐겨찾기">${STAR_SVG}</button>
+      <span class="mkt-sum-grip" aria-hidden="true"></span>
     </div>`;
 }
-/* 지도 ↔ 목록 전환 세그 */
-function mktViewSegHtml(){
-  return `
-    <div class="mkt-row mkt-row-view">
-      <div class="metric-seg seg-sm map-viewseg">
-        <button class="${mapView==='map'?'on':''}" onclick="setMapView('map')">지도</button>
-        <button class="${mapView==='table'?'on':''}" onclick="setMapView('table')">목록</button>
-      </div>
-    </div>`;
+/* 지도 ↔ 목록 전환 — 세그가 아니라 아이콘 토글 하나 */
+const LIST_SVG = '<svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M6 4.5h9M6 9h9M6 13.5h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="3" cy="4.5" r="1.1" fill="currentColor"/><circle cx="3" cy="9" r="1.1" fill="currentColor"/><circle cx="3" cy="13.5" r="1.1" fill="currentColor"/></svg>';
+const MAP_SVG = '<svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M6.6 3.2 2.5 4.9v10l4.1-1.7 4.8 1.7 4.1-1.7v-10l-4.1 1.7-4.8-1.7Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.6 3.2v10M11.4 4.9v10" stroke="currentColor" stroke-width="1.5"/></svg>';
+const SEARCH_SVG = '<svg width="17" height="17" viewBox="0 0 18 18" fill="none"><circle cx="8" cy="8" r="5.2" stroke="currentColor" stroke-width="1.7"/><path d="M11.9 11.9 15.5 15.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+function mktViewIconHtml(){
+  const toList = mapView === 'map';
+  const lbl = toList ? '목록으로 보기' : '지도로 보기';
+  return `<button class="mb-ico view-ico" onclick="setMapView('${toList?'table':'map'}')" title="${lbl}" aria-label="${lbl}">${toList?LIST_SVG:MAP_SVG}</button>`;
 }
-function renderMktBars(){
+/* PC 지도: 컨테이너 없이 한 줄 — 작물 · 돋보기 · 기간 · ★(호버 목록) · 보기 전환 */
+function mktPcBarHtml(){
   const curMk = mktMarket(MKTSET.market);
-  const find = mktFindHtml(MKTSET, false);
-  const dates = mktDatesHtml(MKTSET, false);
-  const favs = `
-    <div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
+  const cond = curMk ? curMk.n + (MKTSET.cq ? ' · ' + MKTSET.cq : '') : '전국 평균';
+  const cropOpt = (list, star) => list.map(c=>
+    `<div class="select-opt${c===MKTSET.crop?' sel':''}" onclick="mktPickCrop('${c}')"><span>${star?'<b class="star">★</b> ':''}${c}</span></div>`).join('');
+  return `
+    <div class="mkt-row mkt-pcbar">
+      <div class="select mkt-crop-sel" data-select>
+        <button class="select-btn" onclick="tglSelect(this)">${MKTSET.crop} <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+        <div class="select-list">
+          <div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>${cropOpt(MKT_CROPS_CORE,true)}
+          <div class="select-grp">그 외 작물 <span>시세 조회만</span></div>${cropOpt(MKT_CROPS_EXTRA,false)}
+        </div>
+      </div>
+      <button class="mb-ico" onclick="openMktSearch()" title="시장·청과 검색 — 지금 ${cond}" aria-label="시장·청과 검색">${SEARCH_SVG}</button>
+      ${MKTSET.cq ? TRUST_B : ''}
+      <div class="metric-seg seg-sm mkt-dates">${['어제','7일','30일'].map(p=>
+        `<button class="${MKTSET.preset===p?'on':''}" onclick="mktPickPreset('${p}')">${p}</button>`).join('')}</div>
+      <div class="mkt-range">
+        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="시작일"
+          value="${MKTSET.dateFrom}" onchange="mktPickDateFrom(this.value)">
+        <span class="mr-sep">~</span>
+        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="종료일"
+          value="${MKTSET.dateTo}" onchange="mktPickDateTo(this.value)">
+      </div>
+      <div class="fav-ic-wrap">
+        <button class="mb-ico fav-ic" onclick="openFavModal()" aria-label="즐겨찾기">${STAR_SVG}</button>
+        <div class="fav-pop">
+          <div class="fav-pop-t">즐겨찾기 <span>내가 정해 둔 작물·시장</span></div>
+          ${mktFavListHtml()}
+        </div>
+      </div>
+      ${mktViewIconHtml()}
+    </div>`;
+}
+/* 즐겨찾기 칩 목록 (PC 호버 팝오버 · 대시보드 공용) */
+function mktFavListHtml(){
+  return `<div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
       const mk = mktMarket(fv.market);
       return `<button class="fav-chip${fv.crop===MKTSET.crop && fv.market && fv.market===MKTSET.market?' on':''}" onclick="favApply(${i})">
         <span class="fedit" onclick="event.stopPropagation();favEdit(${i})" aria-label="${fv.crop} 즐겨찾기 수정">${PENCIL_SVG}</span>
@@ -1211,14 +1245,26 @@ function renderMktBars(){
       </button>`;}).join('')}
       ${MKTSET.favs.length<5?'<button class="fav-add" onclick="favAdd()">＋ 추가</button>':''}
     </div>`;
+}
+function renderMktBars(){
+  const curMk = mktMarket(MKTSET.market);
+  const find = mktFindHtml(MKTSET, false);
+  const dates = mktDatesHtml(MKTSET, false);
+  const favs = mktFavListHtml();
   const d1 = document.getElementById('mktBarDash');
   if(d1) d1.innerHTML = `<div class="mkt-row-top">${find}${dates}</div>
     <div class="mkt-row-favwrap"><span class="flabel">즐겨찾기</span>${favs}</div>`;
-  /* 지도 카드: 모바일은 접힌 요약 + 조건설정 모달, PC 는 검색기를 그대로 편다 */
+  /* 지도 조건설정부: 모바일은 지도 위 컴팩트 한 줄, PC 는 컨테이너 없는 한 줄 */
   const d2 = document.getElementById('mktBarMap');
-  if(d2) d2.innerHTML = (M_UI ? mktSummaryHtml() : find + dates) + mktViewSegHtml();
-  const d3 = document.getElementById('mktFavMap');
-  if(d3) d3.innerHTML = `<div class="fav-t">즐겨찾기 <span>내가 정해 둔 작물·시장으로 빠르게</span></div>` + favs;
+  if(d2){
+    d2.innerHTML = M_UI ? mktSummaryHtml() : mktPcBarHtml();
+    if(M_UI) bindCondDrag();
+  }
+  /* 지도 우측 하단(모바일) · 목록 필터 줄의 보기 전환 아이콘 */
+  ['mapViewFab','mapViewFab2'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = mktViewIconHtml();
+  });
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof segObserve === 'function') segObserve();
   /* 차트 제목에 반영 */
@@ -1228,6 +1274,52 @@ function renderMktBars(){
         + (curMk ? curMk.n+(MKTSET.cq?' · '+MKTSET.cq:'') : '전국 평균') + ' · ' + mktDateLabel() + ' · 원/kg</span>';
     }
   });
+}
+
+/* ── 모바일: 조건 바를 아래로 끌어내려도 조건설정이 열린다 (탭은 onclick 이 처리) ── */
+function bindCondDrag(){
+  const bar = document.getElementById('mktSumBar');
+  if(!bar || bar.dataset.drag) return;
+  bar.dataset.drag = '1';
+  let y0 = null, fired = false;
+  bar.addEventListener('touchstart', e=>{ y0 = e.touches[0].clientY; fired = false; }, {passive:true});
+  bar.addEventListener('touchmove', e=>{
+    if(y0 === null || fired) return;
+    if(e.touches[0].clientY - y0 > 24){ fired = true; y0 = null; openMktCond(); }
+  }, {passive:true});
+  bar.addEventListener('touchend', ()=>{ y0 = null; }, {passive:true});
+}
+
+/* ── PC: 시장·청과 검색 팝업 (주소검색처럼 — 고르면 그때 지도가 이동) ── */
+function openMktSearch(){
+  openModal('mktSearchModal');
+  mktSearchModalFill();
+  setTimeout(()=>{ const i = document.getElementById('mktSearchInput'); if(i){ i.value = ''; i.focus(); } }, 60);
+}
+function mktSearchModalFill(){
+  const inp = document.getElementById('mktSearchInput');
+  const q = inp ? inp.value.trim() : '';
+  const rows = [];
+  MKT_MARKETS.forEach(m=>{
+    const mHit = !q || m.n.includes(q) || m.s.includes(q);
+    const cqHits = (m.cq||[]).filter(c=>!q || c.includes(q) || mHit);
+    if(!mHit && !cqHits.length) return;
+    rows.push(`<div class="select-opt" onclick="mktSearchModalPick('${m.n}',null)"><span><b>${m.n}</b></span><span class="dup">${m.d||'시장 평균'}</span></div>`);
+    cqHits.forEach(c=>rows.push(`<div class="select-opt ms-cq" onclick="mktSearchModalPick('${m.n}','${c}')"><span>${c}</span><span class="dup">청과 실측</span></div>`));
+  });
+  const head = `<div class="select-opt" onclick="mktSearchModalPick(null,null)"><span><b>전국 평균으로 보기</b></span><span class="dup">조건 비우기</span></div>`;
+  document.getElementById('mktSearchList').innerHTML = rows.length ? head + rows.join('')
+    : head + '<div class="select-empty">검색 결과가 없어요</div>';
+}
+function mktSearchModalPick(market, cq){
+  closeModal('mktSearchModal');
+  if(!market){ MKTSET.market = null; MKTSET.cq = null; renderMktBars(); refreshMapDeps();
+    toast('info','조건을 비워 전국 평균 기준으로 보여드려요'); return; }
+  mktSearchPick(market, cq);
+}
+/* 조건이 바뀌면 표·차트 제목도 같이 따라간다 */
+function refreshMapDeps(){
+  if(typeof mapView !== 'undefined' && mapView === 'table' && typeof renderMapTable === 'function') renderMapTable();
 }
 
 /* ── 모바일 조건설정 모달: 초안을 편집하고 '적용' 에서만 반영 ── */
@@ -2898,5 +2990,8 @@ document.addEventListener('mouseover', e=>{
   const pan = document.getElementById('panMap');
   const ch = document.getElementById('crosshair');
   if(pan && ch) pan.appendChild(ch);
+  /* 보기 전환 아이콘은 지도 우측 하단에 얹는다 */
+  const fab = document.getElementById('mapViewFab');
+  if(pan && fab) pan.appendChild(fab);
   mapTab('map');                     /* 첫 진입은 지도 탭 */
 })();
