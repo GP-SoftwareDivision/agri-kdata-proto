@@ -835,3 +835,53 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mf-fav .fav-chip{height:31px;font-size:12.5px;padding:0 11px}
 .mf-fav .fav-add{height:31px;font-size:12px}
 
+
+/* ══════════ 판로 지도: 목록(표) 보기 · 탭 · 차트 (PC 기준) ══════════ */
+/* 지도 ↔ 목록 세그 — 검색기 카드 안 한 줄 */
+.mkt-row-view{padding-top:2px}
+.map-viewseg{width:100%}
+.map-viewseg button{flex:1}
+/* 보기 모드에 따라 지도/표를 맞바꾼다 */
+.map-full[data-view="table"] #panMap,
+.map-full[data-view="table"] #crosshair,
+.map-full[data-view="table"] #mapCrumb,
+.map-full[data-view="table"] #mapLegend,
+.map-full[data-view="table"] .mf-labels,
+.map-full[data-view="table"] .mf-mkt{display:none}
+.map-full[data-view="map"] #mapTable{display:none}
+/* PC: 표는 검색기·전광판 아래를 채운다 (top 은 syncTableTop 이 계산) */
+.mf-table{left:16px;right:16px;top:200px;bottom:16px;background:#fff;border:1px solid var(--bd);
+  border-radius:14px;box-shadow:0 8px 28px rgba(16,24,40,.12);display:flex;flex-direction:column;
+  overflow:hidden;pointer-events:auto}
+html:not(.m) .map-full[data-view="table"] .mf-right{display:none}
+.mt-filters{display:flex;align-items:center;gap:10px;padding:18px 18px 12px;flex-wrap:wrap;flex-shrink:0}
+.mt-fld{flex:0 1 220px;min-width:150px}
+.mt-sel{width:100%;height:38px;border:1px solid var(--bd2);border-radius:8px;background:#fff;
+  padding:0 30px 0 12px;font-size:13.5px;font-weight:600;font-family:inherit;color:var(--txt);
+  appearance:none;-webkit-appearance:none;cursor:pointer;transition:border .15s;
+  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236E7681' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center}
+.mt-sel:hover{border-color:var(--g400)}
+.mt-sel:focus{outline:none;border:1.5px solid var(--g600)}
+.mt-sel:disabled{background-color:var(--bg);color:var(--mut);cursor:not-allowed}
+.mt-count{margin-left:auto;font-size:12px;font-weight:700;color:var(--sub)}
+.mt-scroll{flex:1;min-height:0;overflow:auto}
+.mt-table{width:100%;border-collapse:collapse;font-size:13px}
+.mt-table th{position:sticky;top:0;z-index:2;background:#F7F9F8;border-bottom:1px solid var(--bd);
+  padding:9px 12px;text-align:left;font-size:11.5px;font-weight:800;color:var(--sub);white-space:nowrap}
+.mt-table th span{display:block;font-weight:500;font-size:10.5px;color:var(--mut)}
+.mt-table th.num,.mt-table td.num{text-align:right}
+.mt-table td{padding:10px 12px;border-bottom:1px solid #F1F4F2;white-space:nowrap}
+.mt-table tbody tr{cursor:pointer;transition:background .13s}
+.mt-table tbody tr:hover{background:var(--g50)}
+.mt-table tbody tr.sel{background:var(--g100)}
+.mt-table td.rk{color:var(--mut);font-weight:800;font-size:11.5px;text-align:center}
+.mt-table td.nm{font-weight:700}
+.mt-table td.num{font-variant-numeric:tabular-nums;font-weight:700}
+.mt-table td.up{color:var(--g700)}
+.mt-table td.down{color:#D9534F}
+.mt-empty{padding:26px 12px;text-align:center;color:var(--mut);font-weight:400}
+/* 지도 페이지 차트 — 대시보드와 같은 차트를 낮게 */
+#mapPriceChart{height:172px;width:100%}
+/* 모바일 탭은 PC 에서 숨긴다 */
+.map-tabs{display:none}

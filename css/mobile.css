@@ -514,3 +514,57 @@ html.m .mkp-body{padding:8px 12px;gap:5px;overflow-y:auto;min-height:0;flex:1}
 html.m .mkp-body > div[style*="border-top"]{display:none}   /* 긴 설명문은 모바일에서 생략 */
 html.m .mkp-tags{display:none}
 html.m .mkp-foot{padding:8px 12px 10px}
+
+/* ══════════ 판로 지도 모바일 재구성 ══════════
+   세로 순서: 조건 바 → 전광판 → 탭메뉴 → 탭 페이지 */
+html.m .mf-tl{order:1}
+html.m .mf-stats{order:2}
+html.m .map-tabs{order:3}
+html.m #mapTable{order:4}
+html.m .map-full #panMap{order:4}
+html.m .mf-crumb{order:5}
+html.m .mf-legend{order:6}
+html.m .mf-right{order:7}
+/* 지역명·판로 토글은 상시표시라 버튼 자체를 없앤다 */
+html.m .mf-labels,html.m .mf-mkt{display:none !important}
+/* 탭 페이지: 활성 탭에 속한 요소만 보인다 (mapTab 이 .pane-on 을 붙인다) */
+html.m #page-map [data-pane]:not(.pane-on){display:none !important}
+/* 탭 메뉴 */
+html.m .map-tabs{display:flex;gap:6px;margin:12px 12px 0;padding:4px;border-radius:12px;
+  background:#EDF1EF;border:1px solid var(--bd)}
+html.m .mt-item{flex:1;padding:9px 0;border-radius:9px;background:transparent;
+  font-size:13.5px;font-weight:700;color:var(--sub);transition:background .16s,color .16s}
+html.m .mt-item.on{background:#fff;color:var(--g700);box-shadow:0 2px 6px rgba(16,24,40,.10)}
+/* 접힌 조건 바: 작물 · 조회기간 · 조건설정 · ★ */
+html.m .mkt-sum{display:flex;align-items:center;gap:8px}
+html.m .mkt-sum-main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;
+  gap:2px;padding:6px 2px;background:transparent;text-align:left}
+html.m .ms-crop{font-size:17px;font-weight:900;letter-spacing:-.3px}
+html.m .ms-date{font-size:12px;color:var(--sub)}
+html.m .mkt-cond-btn,html.m .mkt-favbtn{flex-shrink:0}
+html.m .mkt-favbtn{width:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#F0A500}
+html.m .mkt-row-view{padding-top:10px;margin-top:10px;border-top:1px solid var(--bd)}
+/* 조건설정 모달 본문 */
+html.m #mktCondBody{display:flex;flex-direction:column;gap:16px;padding:8px 16px 12px}
+html.m #mktCondBody .mkt-row-find,html.m #mktCondBody .mkt-row-dates{flex-wrap:wrap;gap:10px;padding-top:7px}
+html.m #mktCondBody .mkt-crop-sel{flex:1 1 100%;width:auto}
+html.m #mktCondBody .mkt-crop-sel .select-btn{height:44px}
+html.m #mktCondBody .mkt-search{flex:1 1 100%;order:2}
+html.m #mktCondBody .ms-inp{height:44px}
+html.m #mktCondBody .mkt-dates{display:flex;flex:1 1 100%}
+html.m #mktCondBody .mkt-dates button{flex:1}
+html.m #mktCondBody .mkt-range{flex:1 1 100%}
+html.m #mktCondBody .mkt-range .mkt-date-inp{flex:1;width:auto !important;min-width:0;height:38px}
+/* 목록(표) — 세로 플로우 카드 */
+html.m .mf-table{position:static;margin:12px 12px 0;box-shadow:none}
+html.m .mt-filters{padding:14px 14px 10px;gap:12px}
+html.m .mt-fld{flex:1 1 100%}
+html.m .mt-sel{height:44px;font-size:14px}
+html.m .mt-count{margin-left:0}
+html.m .mt-scroll{max-height:52vh}
+html.m .mt-table{font-size:12.5px}
+html.m .mt-table td,html.m .mt-table th{padding:9px 10px}
+/* 정보·차트·순위 카드 */
+html.m #mapPriceChart{height:240px}
+html.m #rankScroll{max-height:none}
+html.m #mfRank{max-height:none}

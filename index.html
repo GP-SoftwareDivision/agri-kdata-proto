@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=115">
-<link rel="stylesheet" href="css/mobile.css?v=115">
+<link rel="stylesheet" href="css/style.css?v=118">
+<link rel="stylesheet" href="css/mobile.css?v=118">
 </head>
 <body>
 
@@ -441,20 +441,17 @@ docker run --rm -p 8080:8080 \
 
   <!-- ── 판로 지도 ── -->
   <section id="page-map" class="page">
-    <div class="map-full">
-      <div id="panMap"></div>
-      <div class="crosshair" id="crosshair"><i></i><b id="chName"></b></div>
+    <div class="map-full" data-view="map" data-tab="map">
+      <div id="panMap" data-pane="map"></div>
+      <div class="crosshair" id="crosshair" data-pane="map"><i></i><b id="chName"></b></div>
 
-      <!-- 좌상단: 기본 검색기(작물·날짜) + 즐겨찾기 — 분리된 두 카드 -->
+      <!-- 좌상단: 기본 검색기(작물·날짜) + 즐겨찾기 — 분리된 두 카드 (모바일은 접힌 바로 대체) -->
       <div class="mf mf-tlwrap">
         <div class="mf-panel mf-tl"><div id="mktBarMap" class="mkt-inline"></div></div>
         <div class="mf-panel mf-fav" id="mktFavMap"></div>
       </div>
 
-      <!-- 지도 내 위치 브레드크럼 -->
-      <div class="mf mf-crumb" id="mapCrumb"></div>
-
-      <!-- 상단 통계: 한 카드로 통합 -->
+      <!-- 상단 통계: 전광판 (모바일 상시 노출) -->
       <div class="mf mf-stats">
         <div class="stat-merge">
           <div class="si"><div class="t">전국 평균 경락가</div><div class="v" id="mf-avg">1,229<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span></div></div>
@@ -463,9 +460,42 @@ docker run --rm -p 8080:8080 \
         </div>
       </div>
 
-      <!-- 우측: 선택 지역 + 순위 -->
+      <!-- 모바일: 지도 / 순위 / 정보 / 차트 탭 -->
+      <div class="mf map-tabs" id="mapTabs">
+        <button class="mt-item on" data-tab="map" onclick="mapTab('map')">지도</button>
+        <button class="mt-item" data-tab="rank" onclick="mapTab('rank')">순위</button>
+        <button class="mt-item" data-tab="info" onclick="mapTab('info')">정보</button>
+        <button class="mt-item" data-tab="chart" onclick="mapTab('chart')">차트</button>
+      </div>
+
+      <!-- 목록(테이블) 보기 — 시도 › 시군구 › 읍면동 필터 -->
+      <div class="mf mf-table" id="mapTable" data-pane="map">
+        <div class="mt-filters">
+          <div class="fld mt-fld" data-label="시도"><select class="mt-sel" id="tfSido" onchange="tfChange('sido',this.value)"></select></div>
+          <div class="fld mt-fld" data-label="시군구"><select class="mt-sel" id="tfSig" onchange="tfChange('sig',this.value)"></select></div>
+          <div class="fld mt-fld" data-label="읍면동"><select class="mt-sel" id="tfEmd" onchange="tfChange('emd',this.value)"></select></div>
+          <span class="mt-count" id="mtCount"></span>
+        </div>
+        <div class="mt-scroll" data-fade>
+          <table class="mt-table">
+            <thead><tr>
+              <th style="width:34px">#</th><th>지역</th>
+              <th class="num">평균 경락가<span>원/kg</span></th>
+              <th class="num">내 예상 순수익<span>%</span></th>
+              <th class="num">일평균 반입량<span>톤</span></th>
+              <th class="num">운송비<span>원/kg</span></th>
+            </tr></thead>
+            <tbody id="mapTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 지도 내 위치 브레드크럼 -->
+      <div class="mf mf-crumb" id="mapCrumb" data-pane="map"></div>
+
+      <!-- 우측: 선택 지역 + 차트 + 순위 -->
       <div class="mf mf-right">
-        <div class="mf-panel" style="padding:16px 20px;display:flex;flex-direction:column;gap:11px">
+        <div class="mf-panel" id="mfInfo" data-pane="info" style="padding:16px 20px;display:flex;flex-direction:column;gap:11px">
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div style="display:flex;align-items:center;gap:8px">
               <div style="font-size:17px;font-weight:900;letter-spacing:-.3px" id="sr-name">서울특별시</div>
@@ -501,20 +531,25 @@ docker run --rm -p 8080:8080 \
           </div>
         </div>
 
-        <div class="mf-panel" style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0">
+        <div class="mf-panel" id="mfChart" data-pane="chart" style="padding:14px 16px 10px;display:flex;flex-direction:column;gap:6px">
+          <div class="sec-t" style="font-size:14px" id="mapChartTitle">가격 추이 · 예측</div>
+          <div id="mapPriceChart"></div>
+        </div>
+
+        <div class="mf-panel" id="mfRank" data-pane="rank" style="padding:16px 18px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0">
           <div class="sec-t" style="font-size:14px" id="rankTitle">시도별 순위 · 평균 경락가</div>
           <div id="rankScroll" data-fade style="overflow-y:auto;flex:1;min-height:0"><div id="rankList" style="display:flex;flex-direction:column;gap:2px"></div></div>
         </div>
       </div>
 
-      <!-- 좌하단: 판로/지역명 토글 -->
+      <!-- 좌하단: 판로/지역명 토글 (모바일은 상시표시라 숨김) -->
       <div class="mf mf-mkt" onclick="toggleMarkets()" id="mktToggle">
         <svg width="14" height="17" viewBox="0 0 34 42" fill="none"><path d="M17 41C17 41 31 25.6 31 16.2 31 8.4 24.7 2 17 2S3 8.4 3 16.2C3 25.6 17 41 17 41Z" fill="currentColor"/></svg>
         <span>판로 ON</span></div>
       <div class="mf mf-labels" onclick="toggleLabels()" id="lblToggle">지역명 ON</div>
 
       <!-- 우하단: 범례 -->
-      <div class="mf mf-legend" id="mapLegend"></div>
+      <div class="mf mf-legend" id="mapLegend" data-pane="map"></div>
     </div>
   </section>
 
@@ -1610,6 +1645,21 @@ docker run --rm -p 8080:8080 \
 </div>
 
 
+<!-- 모바일: 조회 조건 설정 (작물 · 시장/청과 · 기간) — 초안을 고치고 '적용'에서만 반영 -->
+<div class="overlay" id="mktCondModal">
+  <div class="modal" style="max-width:460px">
+    <div class="m-head">
+      <div>
+        <div class="m-title" style="font-size:18px">조회 조건</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px">작물 · 시장 · 기간을 고르고 적용해요</div>
+      </div>
+      <button class="m-x" onclick="closeModal('mktCondModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+    <div id="mktCondBody" class="mkt-inline"></div>
+    <div class="m-foot"><button class="btn btn-pri" style="width:100%" onclick="mktCondApply()">적용</button></div>
+  </div>
+</div>
+
 <!-- 판로 조건 설정: 품목(최대 5) → 시장 → 청과(선택) → 날짜 -->
 <div class="overlay" id="favModal">
   <div class="modal" style="max-width:420px">
@@ -1659,7 +1709,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=115"></script>
-<script src="js/mobile-flow.js?v=115"></script>
+<script src="js/app.js?v=118"></script>
+<script src="js/mobile-flow.js?v=118"></script>
 </body>
 </html>

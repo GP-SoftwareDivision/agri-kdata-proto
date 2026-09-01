@@ -121,6 +121,8 @@ function nav(id){
     if(typeof initPanMap === 'function') initPanMap();
     if(panMap && panMap.invalidateSize) panMap.invalidateSize();
     if(typeof lockNationZoom === 'function') lockNationZoom();
+    if(typeof syncTableTop === 'function') syncTableTop();
+    if(typeof initMapChart === 'function') initMapChart();   /* 모바일은 차트 탭에서 다시 시도 */
   }, 180);
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof closeNotif === 'function') closeNotif();
@@ -129,11 +131,24 @@ function nav(id){
 }
 
 /* ══════════ amCharts 시세 차트 ══════════ */
+/* 대시보드와 판로 지도가 같은 차트를 쓴다 — 엘리먼트 id 만 다르다 */
 function initChart(){
   if(chartInited || !document.getElementById('priceChart')) return;
   if(!window.am5 || !window.am5xy){ setTimeout(initChart, 300); return; }
   chartInited = true;
-  const root = am5.Root.new("priceChart");
+  buildPriceChart('priceChart');
+}
+let mapChartInited = false;
+function initMapChart(){
+  if(mapChartInited) return;
+  const el = document.getElementById('mapPriceChart');
+  if(!el || !el.clientHeight) return;              /* 숨겨진 탭에서는 크기가 0이라 나중에 */
+  if(!window.am5 || !window.am5xy){ setTimeout(initMapChart, 300); return; }
+  mapChartInited = true;
+  buildPriceChart('mapPriceChart');
+}
+function buildPriceChart(elId){
+  const root = am5.Root.new(elId);
   root.setThemes([am5themes_Animated.new(root)]);
   const chart = root.container.children.push(am5xy.XYChart.new(root, {panX:false, panY:false, layout:root.verticalLayout, paddingLeft:0}));
 
@@ -1097,6 +1112,8 @@ const MKTSET = {
 const MKT_PRESETS = {'어제':['2026-08-18','2026-08-18'],'7일':['2026-08-12','2026-08-18'],'30일':['2026-07-20','2026-08-18']};
 let mktSel = null;        /* 즐겨찾기 편집 임시값 */
 let mktFavIdx = -1;       /* 편집 중인 즐겨찾기 index (-1 = 새로 추가) */
+/* 지도 ↔ 목록 보기. renderMktBars() 가 스크립트 평가 중에 읽으므로 여기서 미리 선언한다 (TDZ 방지) */
+let mapView = 'map';
 
 function mktFav(crop){ return MKTSET.favs.find(f=>f.crop===crop) || null; }
 function mktMarket(n){ return MKT_MARKETS.find(m=>m.n===n) || null; }
@@ -1112,16 +1129,21 @@ const TRUST_B = '<span class="trust-b">신뢰<span class="tip">'+TRUST_TIP+'</sp
 
 /* ── 기본 검색기 + 즐겨찾기 렌더 (대시보드 · 지도 공용) ── */
 const PENCIL_SVG = '<svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M9.9 1.8a1.5 1.5 0 0 1 2.12 2.12L4.6 11.35l-2.85.73.73-2.85 7.42-7.43Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
-function renderMktBars(){
-  const curMk = mktMarket(MKTSET.market);
-  const trust = MKTSET.cq ? TRUST_B : '';
+const STAR_SVG = '<svg width="17" height="17" viewBox="0 0 18 18" fill="none"><path d="M9 1.8l2.16 4.38 4.84.7-3.5 3.41.83 4.81L9 12.83l-4.33 2.27.83-4.81L2 6.88l4.84-.7L9 1.8Z" fill="currentColor"/></svg>';
+const M_UI = document.documentElement.classList.contains('m');
+
+/* 검색기 마크업은 두 곳에서 쓴다 — 실제 상태(MKTSET) 와 모바일 조건설정 모달의 초안(MKTDRAFT).
+   D=true 면 핸들러가 초안을 건드리는 mktD* 계열로 바뀐다. */
+function mktFindHtml(st, D){
+  const F = D ? 'mktD' : 'mkt';
+  const curMk = mktMarket(st.market);
   const cropOpt = (list, star) => list.map(c=>
-    `<div class="select-opt${c===MKTSET.crop?' sel':''}" onclick="mktPickCrop('${c}')"><span>${star?'<b class="star">★</b> ':''}${c}</span></div>`).join('');
-  const searchVal = curMk ? curMk.s + (MKTSET.cq?' · '+MKTSET.cq:'') : '';
-  const find = `
+    `<div class="select-opt${c===st.crop?' sel':''}" onclick="${F}PickCrop('${c}')"><span>${star?'<b class="star">★</b> ':''}${c}</span></div>`).join('');
+  const searchVal = curMk ? curMk.s + (st.cq?' · '+st.cq:'') : '';
+  return `
     <div class="mkt-row mkt-row-find">
       <div class="select mkt-crop-sel fld" data-select data-label="작물 선택">
-        <button class="select-btn" onclick="tglSelect(this)">${MKTSET.crop} <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+        <button class="select-btn" onclick="tglSelect(this)">${st.crop} <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
         <div class="select-list">
           <div class="select-grp">5대 작물 <span>AI 예측·분석 제공</span></div>${cropOpt(MKT_CROPS_CORE,true)}
           <div class="select-grp">그 외 작물 <span>시세 조회만</span></div>${cropOpt(MKT_CROPS_EXTRA,false)}
@@ -1129,25 +1151,55 @@ function renderMktBars(){
       </div>
       <div class="select mkt-search fld" data-select data-label="시장·청과 검색">
         <input class="inp ms-inp" placeholder="비워두면 전체" value="${searchVal}"
-          onfocus="this.select();mktSearchOpen(this,true)" oninput="mktSearchOpen(this)" onclick="event.stopPropagation()">
-        ${curMk?'<button class="ms-x" onclick="mktSearchClear(event)" aria-label="조건 지우기">✕</button>':''}
+          onfocus="this.select();${F}SearchOpen(this,true)" oninput="${F}SearchOpen(this)" onclick="event.stopPropagation()">
+        ${curMk?`<button class="ms-x" onclick="${F}SearchClear(event)" aria-label="조건 지우기">✕</button>`:''}
         <div class="select-list ms-list"></div>
       </div>
-      ${trust}
-      <button class="btn btn-neu btn-sm mkt-favbtn" onclick="openFavModal()">즐겨찾기</button>
+      ${st.cq ? TRUST_B : ''}
+      ${D ? '' : '<button class="btn btn-neu btn-sm mkt-favbtn" onclick="openFavModal()" aria-label="즐겨찾기">'+STAR_SVG+'</button>'}
     </div>`;
-  const dates = `
+}
+function mktDatesHtml(st, D){
+  const F = D ? 'mktD' : 'mkt';
+  return `
     <div class="mkt-row mkt-row-dates">
       <div class="metric-seg seg-sm mkt-dates">${['어제','7일','30일'].map(p=>
-        `<button class="${MKTSET.preset===p?'on':''}" onclick="mktPickPreset('${p}')">${p}</button>`).join('')}</div>
+        `<button class="${st.preset===p?'on':''}" onclick="${F}PickPreset('${p}')">${p}</button>`).join('')}</div>
       <div class="mkt-range fld" data-label="조회 기간">
         <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="시작일"
-          value="${MKTSET.dateFrom}" onchange="mktPickDateFrom(this.value)">
+          value="${st.dateFrom}" onchange="${F}PickDateFrom(this.value)">
         <span class="mr-sep">~</span>
         <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="종료일"
-          value="${MKTSET.dateTo}" onchange="mktPickDateTo(this.value)">
+          value="${st.dateTo}" onchange="${F}PickDateTo(this.value)">
       </div>
     </div>`;
+}
+/* 모바일 지도: 조건설정부를 접어 두고 작물·조회기간·즐겨찾기만 보여 준다 */
+function mktSummaryHtml(){
+  return `
+    <div class="mkt-sum">
+      <button class="mkt-sum-main" onclick="openMktCond()">
+        <span class="ms-crop">${MKTSET.crop}</span>
+        <span class="ms-date">${mktDateLabel()}</span>
+      </button>
+      <button class="btn btn-neu btn-sm mkt-cond-btn" onclick="openMktCond()">조건설정</button>
+      <button class="btn btn-neu btn-sm mkt-favbtn" onclick="openFavModal()" aria-label="즐겨찾기">${STAR_SVG}</button>
+    </div>`;
+}
+/* 지도 ↔ 목록 전환 세그 */
+function mktViewSegHtml(){
+  return `
+    <div class="mkt-row mkt-row-view">
+      <div class="metric-seg seg-sm map-viewseg">
+        <button class="${mapView==='map'?'on':''}" onclick="setMapView('map')">지도</button>
+        <button class="${mapView==='table'?'on':''}" onclick="setMapView('table')">목록</button>
+      </div>
+    </div>`;
+}
+function renderMktBars(){
+  const curMk = mktMarket(MKTSET.market);
+  const find = mktFindHtml(MKTSET, false);
+  const dates = mktDatesHtml(MKTSET, false);
   const favs = `
     <div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
       const mk = mktMarket(fv.market);
@@ -1162,7 +1214,9 @@ function renderMktBars(){
   const d1 = document.getElementById('mktBarDash');
   if(d1) d1.innerHTML = `<div class="mkt-row-top">${find}${dates}</div>
     <div class="mkt-row-favwrap"><span class="flabel">즐겨찾기</span>${favs}</div>`;
-  const d2 = document.getElementById('mktBarMap'); if(d2) d2.innerHTML = find + dates;
+  /* 지도 카드: 모바일은 접힌 요약 + 조건설정 모달, PC 는 검색기를 그대로 편다 */
+  const d2 = document.getElementById('mktBarMap');
+  if(d2) d2.innerHTML = (M_UI ? mktSummaryHtml() : find + dates) + mktViewSegHtml();
   const d3 = document.getElementById('mktFavMap');
   if(d3) d3.innerHTML = `<div class="fav-t">즐겨찾기 <span>내가 정해 둔 작물·시장으로 빠르게</span></div>` + favs;
   if(typeof segSyncSoon === 'function') segSyncSoon();
@@ -1176,8 +1230,36 @@ function renderMktBars(){
   });
 }
 
+/* ── 모바일 조건설정 모달: 초안을 편집하고 '적용' 에서만 반영 ── */
+let MKTDRAFT = null;
+function openMktCond(){
+  MKTDRAFT = {crop:MKTSET.crop, market:MKTSET.market, cq:MKTSET.cq,
+              dateFrom:MKTSET.dateFrom, dateTo:MKTSET.dateTo, preset:MKTSET.preset};
+  renderMktCond();
+  openModal('mktCondModal');
+}
+function renderMktCond(){
+  const b = document.getElementById('mktCondBody'); if(!b) return;
+  b.innerHTML = mktFindHtml(MKTDRAFT, true) + mktDatesHtml(MKTDRAFT, true);
+  if(typeof segSyncSoon === 'function') segSyncSoon();
+  if(typeof segObserve === 'function') segObserve();
+}
+function mktCondApply(){
+  if(!MKTDRAFT) return;
+  const moved = MKTDRAFT.market && MKTDRAFT.market !== MKTSET.market;
+  MKTSET.crop = MKTDRAFT.crop; MKTSET.market = MKTDRAFT.market; MKTSET.cq = MKTDRAFT.cq;
+  MKTSET.dateFrom = MKTDRAFT.dateFrom; MKTSET.dateTo = MKTDRAFT.dateTo; MKTSET.preset = MKTDRAFT.preset;
+  closeModal('mktCondModal');
+  renderMktBars();
+  if(typeof renderMapTable === 'function') renderMapTable();
+  if(moved) mktZoomTo(MKTSET.market);
+  toast('ok','조건을 적용했어요');
+}
+
 /* ── 시장·청과 검색: 포커스 시 전체 목록, 입력 시 필터 ── */
-function mktSearchOpen(inp, isFocus){
+function mktSearchOpen(inp, isFocus){ mktSearchFill(inp, isFocus, false); }
+function mktSearchFill(inp, isFocus, D){
+  const F = D ? 'mktD' : 'mkt';
   const wrap = inp.closest('.mkt-search');
   document.querySelectorAll('.select.open').forEach(el=>{ if(el!==wrap) el.classList.remove('open'); });
   wrap.classList.add('open');
@@ -1188,12 +1270,29 @@ function mktSearchOpen(inp, isFocus){
     const mHit = !q || m.n.includes(q) || m.s.includes(q);
     const cqHits = (m.cq||[]).filter(c=>!q || c.includes(q) || mHit);
     if(!mHit && !cqHits.length) return;
-    rows.push(`<div class="select-opt" onmousedown="mktSearchPick('${m.n}',null)"><span><b>${m.n}</b></span><span class="dup">${m.d||'시장 평균'}</span></div>`);
-    cqHits.forEach(c=>rows.push(`<div class="select-opt ms-cq" onmousedown="mktSearchPick('${m.n}','${c}')"><span>${c}</span><span class="dup">청과 실측</span></div>`));
+    rows.push(`<div class="select-opt" onmousedown="${F}SearchPick('${m.n}',null)"><span><b>${m.n}</b></span><span class="dup">${m.d||'시장 평균'}</span></div>`);
+    cqHits.forEach(c=>rows.push(`<div class="select-opt ms-cq" onmousedown="${F}SearchPick('${m.n}','${c}')"><span>${c}</span><span class="dup">청과 실측</span></div>`));
   });
   wrap.querySelector('.ms-list').innerHTML = rows.length ? rows.join('')
     : '<div class="select-empty">검색 결과가 없어요</div>';
 }
+
+/* ── 조건설정 모달 초안(MKTDRAFT) 편집 핸들러 — '적용' 전까지 실제 상태는 그대로 ── */
+function mktDPickCrop(c){
+  if(typeof event !== 'undefined' && event) event.stopPropagation();
+  document.querySelectorAll('#mktCondBody .select.open').forEach(el=>el.classList.remove('open'));
+  MKTDRAFT.crop = c;
+  const f = mktFav(c);
+  if(f && f.market){ MKTDRAFT.market = f.market; MKTDRAFT.cq = f.cq; }   /* 즐겨찾기 세팅 자동 반영 */
+  if(!MKT_CROPS_CORE.includes(c)) toast('info', c+'는 AI 예측 없이 시세 조회만 제공해요');
+  renderMktCond();
+}
+function mktDSearchOpen(inp, isFocus){ mktSearchFill(inp, isFocus, true); }
+function mktDSearchPick(market, cq){ MKTDRAFT.market = market; MKTDRAFT.cq = cq; renderMktCond(); }
+function mktDSearchClear(ev){ ev.stopPropagation(); MKTDRAFT.market = null; MKTDRAFT.cq = null; renderMktCond(); }
+function mktDPickPreset(p){ MKTDRAFT.preset = p; MKTDRAFT.dateFrom = MKT_PRESETS[p][0]; MKTDRAFT.dateTo = MKT_PRESETS[p][1]; renderMktCond(); }
+function mktDPickDateFrom(v){ if(!v) return; MKTDRAFT.dateFrom = v; if(v > MKTDRAFT.dateTo) MKTDRAFT.dateTo = v; MKTDRAFT.preset = null; renderMktCond(); }
+function mktDPickDateTo(v){ if(!v) return; MKTDRAFT.dateTo = v; if(v < MKTDRAFT.dateFrom) MKTDRAFT.dateFrom = v; MKTDRAFT.preset = null; renderMktCond(); }
 function mktSearchPick(market, cq){
   MKTSET.market = market; MKTSET.cq = cq;
   renderMktBars(); mktZoomTo(market);
@@ -1914,6 +2013,8 @@ function updateCrosshairTip(){
   const t = ensureTip();
   if(modalOpen()){ tipHover = false; t.classList.remove('show'); return; }
   const ch = document.getElementById('crosshair');
+  /* 지도가 안 보이는 상태(목록 보기·모바일 다른 탭)면 조준점 툴팁도 띄우지 않는다 */
+  if(ch && !ch.offsetParent){ tipHover = false; t.classList.remove('show'); return; }
   if(tipHover || !ch || !ch.classList.contains('has') || currentPage !== 'map'){
     if(!tipHover) t.classList.remove('show');
     return;
@@ -2239,6 +2340,7 @@ function initPanMap(){
 /* ── 렌더 일괄 ── */
 function refreshAll(){
   paintVisible(); renderCrumb(); renderSel(); renderRank(); renderLegend(); renderStats();
+  if(mapView === 'table') renderMapTable();
   if(!chSwitching) queueCrosshair();
 }
 function paintVisible(){
@@ -2259,6 +2361,100 @@ function renderCrumb(){
   }
   el.innerHTML = html;
 }
+/* ── 지역별 파생값 (표·정보 패널 공용) ── */
+function mapValue(metric, lv, code){ const keep = mapMetric; mapMetric = metric; const v = valOf(lv, code); mapMetric = keep; return v; }
+function volOf(lv, code){ const sd = SIDO_DATA[code.slice(0,2)]; return lv==='sido' ? sd.vol : Math.max(3, Math.round(sd.vol*(0.05+(h32(code+'v')%200)/1000))); }
+function feeOf(lv, code){ const sd = SIDO_DATA[code.slice(0,2)]; return lv==='sido' ? sd.fee : Math.max(8, sd.fee + (h32(code+'f')%30)-15); }
+
+/* ══════════ 지도 ↔ 목록(표) 전환 · 시도/시군구/읍면동 필터 ══════════ */
+let TF = {sido:'', sig:'', emd:''};          /* 표 필터 — 비우면 상위 전체 */
+function setMapView(v){
+  mapView = v;
+  const mf = document.querySelector('.map-full'); if(!mf) return;
+  mf.dataset.view = v;
+  renderMktBars();                            /* 세그 활성 표시 갱신 */
+  if(v==='table'){ renderTableFilters(); renderMapTable(); syncTableTop(); }
+  else if(panMap && panMap.invalidateSize) setTimeout(()=>panMap.invalidateSize(), 60);
+  if(typeof updateCrosshairTip === 'function') updateCrosshairTip();
+}
+/* PC 는 표가 절대배치라 검색기·전광판 카드 아래로 내려 준다 (카드 높이가 가변) */
+function syncTableTop(){
+  const t = document.getElementById('mapTable'), mf = document.querySelector('.map-full');
+  if(!t || !mf || document.documentElement.classList.contains('m')) return;
+  const box = mf.getBoundingClientRect();
+  let b = box.top;
+  ['.mf-tlwrap','.mf-stats'].forEach(s=>{ const el = document.querySelector(s); if(el) b = Math.max(b, el.getBoundingClientRect().bottom); });
+  t.style.top = Math.round(b - box.top + 12) + 'px';
+}
+function tfSigList(sd){ return (sigBySido[sd]||[]).map(f=>({v:f.properties.SIG_CD, n:f.properties.SIG_KOR_NM})); }
+function tfEmdList(sig){ return (emdBySig[sig]||[]).map(f=>({v:f.properties.EMD_CD, n:f.properties.EMD_KOR_NM})); }
+function fillSel(el, list, ph, val){
+  if(!el) return;
+  el.innerHTML = '<option value="">'+ph+'</option>'
+    + list.map(o=>'<option value="'+o.v+'"'+(o.v===val?' selected':'')+'>'+o.n+'</option>').join('');
+}
+function renderTableFilters(){
+  fillSel(document.getElementById('tfSido'), Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '시도 전체', TF.sido);
+  const sig = document.getElementById('tfSig');
+  fillSel(sig, TF.sido ? tfSigList(TF.sido) : [], TF.sido ? '시군구 전체' : '시도를 먼저 골라주세요', TF.sig);
+  if(sig) sig.disabled = !TF.sido;
+  const emd = document.getElementById('tfEmd');
+  fillSel(emd, TF.sig ? tfEmdList(TF.sig) : [], TF.sig ? '읍면동 전체' : '시군구를 먼저 골라주세요', TF.emd);
+  if(emd) emd.disabled = !TF.sig;
+}
+function tfChange(k, v){
+  if(k==='sido'){ TF.sido = v; TF.sig = ''; TF.emd = ''; }
+  else if(k==='sig'){ TF.sig = v; TF.emd = ''; }
+  else { TF.emd = v; }
+  /* 읍면동 목록은 7MB 라 시군구를 고른 시점에 지연 로드한다 */
+  if(k==='sig' && v && !GEO.emd){ ensureEmdIndex(()=>{ renderTableFilters(); renderMapTable(); }); }
+  renderTableFilters(); renderMapTable();
+}
+function tableRows(){
+  if(TF.emd) return [['emd', TF.emd]];
+  if(TF.sig) return (emdBySig[TF.sig]||[]).map(f=>['emd', f.properties.EMD_CD]);
+  if(TF.sido) return (sigBySido[TF.sido]||[]).map(f=>['sig', f.properties.SIG_CD]);
+  return Object.keys(SIDO_DATA).map(cd=>['sido', cd]);
+}
+function renderMapTable(){
+  const body = document.getElementById('mapTableBody'); if(!body) return;
+  const rows = tableRows().map(([lv,c])=>({lv, c,
+    n: lv==='sido' ? SIDO_DATA[c].full : nameOf(lv,c),
+    p: mapValue('price',lv,c), net: mapValue('net',lv,c), vol: volOf(lv,c), fee: feeOf(lv,c)
+  })).sort((a,b)=>b.p-a.p);
+  const cnt = document.getElementById('mtCount');
+  if(cnt) cnt.textContent = rows.length ? rows.length+'곳' : '';
+  body.innerHTML = rows.length ? rows.map((r,i)=>`
+    <tr class="${(PANEL.level===r.lv&&PANEL.code===r.c)?'sel':''}" data-code="${r.c}" onclick="tableRowClick('${r.lv}','${r.c}')">
+      <td class="rk">${i+1}</td>
+      <td class="nm">${r.n}</td>
+      <td class="num">${Math.round(r.p).toLocaleString()}</td>
+      <td class="num ${r.net>=0?'up':'down'}">${(r.net>=0?'+':'')+r.net.toFixed(1)}</td>
+      <td class="num">${r.vol.toLocaleString()}</td>
+      <td class="num">${r.fee.toLocaleString()}</td>
+    </tr>`).join('')
+    : '<tr><td colspan="6" class="mt-empty">표시할 지역이 없어요 — 필터를 확인해주세요.</td></tr>';
+  if(typeof osUpdateFades === 'function') osUpdateFades();
+}
+function tableRowClick(lv, c){
+  PANEL = {level:lv, code:c};
+  renderSel(); markRank();
+  document.querySelectorAll('#mapTableBody tr').forEach(tr=>tr.classList.toggle('sel', tr.dataset.code===c));
+}
+
+/* ══════════ 모바일 탭 (지도 · 순위 · 정보 · 차트) ══════════ */
+function mapTab(t){
+  const mf = document.querySelector('.map-full'); if(!mf) return;
+  mf.dataset.tab = t;
+  document.querySelectorAll('#mapTabs .mt-item').forEach(b=>b.classList.toggle('on', b.dataset.tab===t));
+  document.querySelectorAll('#page-map [data-pane]').forEach(el=>
+    el.classList.toggle('pane-on', (el.dataset.pane||'').split(' ').indexOf(t)>-1));
+  if(t==='map' && panMap && panMap.invalidateSize) setTimeout(()=>panMap.invalidateSize(), 80);
+  if(t==='chart') setTimeout(initMapChart, 140);
+  if(t==='rank' && typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 60);
+  if(typeof updateCrosshairTip === 'function') updateCrosshairTip();   /* 지도를 벗어나면 툴팁도 내린다 */
+}
+
 function panelSido(){ return SIDO_DATA[PANEL.code.slice(0,2)] || SIDO_DATA['11']; }
 function renderSel(){
   const sd = panelSido();
@@ -2267,8 +2463,8 @@ function renderSel(){
   document.getElementById('sr-name').textContent = nameOf(PANEL.level, PANEL.code);
   document.getElementById('sr-price').innerHTML = Math.round(price).toLocaleString()+'<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span>';
   document.getElementById('sr-net').innerHTML = (net>=0?'+':'')+net.toFixed(1)+'<span style="font-size:11px;font-weight:500;color:var(--sub)">%</span>';
-  const volJit = PANEL.level==='sido' ? sd.vol : Math.max(3, Math.round(sd.vol*(0.05+(h32(PANEL.code+'v')%200)/1000)));
-  const feeJit = PANEL.level==='sido' ? sd.fee : Math.max(8, sd.fee + (h32(PANEL.code+'f')%30)-15);
+  const volJit = volOf(PANEL.level, PANEL.code);
+  const feeJit = feeOf(PANEL.level, PANEL.code);
   document.getElementById('sr-vol').innerHTML = volJit.toLocaleString()+'<span style="font-size:11px;font-weight:500;color:var(--sub)">톤</span>';
   document.getElementById('sr-fee').innerHTML = feeJit.toLocaleString()+'<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span>';
   document.getElementById('sr-ch').textContent = sd.ch;
@@ -2277,11 +2473,7 @@ function renderSel(){
   document.getElementById('sr-badge').textContent = '순수익 '+rank+'위';
   document.getElementById('sr-badge').className = 'badge '+(rank<=3?'bg-ok':'bg-mut');
 }
-function mapMetricSafe(metric){
-  const keep = mapMetric; mapMetric = metric;
-  const v = valOf(PANEL.level, PANEL.code);
-  mapMetric = keep; return v;
-}
+function mapMetricSafe(metric){ return mapValue(metric, PANEL.level, PANEL.code); }
 function renderRank(){
   const m = METRIC_META[mapMetric];
   const lvName = VIEW.level==='nation' ? '시도별' : VIEW.level==='sido' ? SIDO_DATA[VIEW.sido].n+' 시군구' : nameOf('sig',VIEW.sig)+' 읍면동';
@@ -2701,13 +2893,10 @@ document.addEventListener('mouseover', e=>{
 /* ══════════ 모바일(/mobile · ?m=1) 보정 ══════════ */
 (function(){
   if(!document.documentElement.classList.contains('m')) return;
-  /* 지도 위 오버레이(조준점·판로/지역명 토글)를 지도 컨테이너 안으로 옮겨
-     세로 플로우 레이아웃에서도 지도 위에 겹쳐 보이게 한다 */
+  /* 조준점을 지도 컨테이너 안으로 옮겨 세로 플로우에서도 지도 위에 겹쳐 보이게 한다.
+     (지역명·판로 토글은 상시표시로 바뀌어 버튼 자체를 쓰지 않는다) */
   const pan = document.getElementById('panMap');
-  if(pan){
-    ['crosshair','mktToggle','lblToggle'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) pan.appendChild(el);
-    });
-  }
+  const ch = document.getElementById('crosshair');
+  if(pan && ch) pan.appendChild(ch);
+  mapTab('map');                     /* 첫 진입은 지도 탭 */
 })();
