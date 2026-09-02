@@ -366,7 +366,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .bell-badge{position:absolute;top:-6px;right:-7px;min-width:16px;height:16px;border-radius:999px;background:var(--red);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
 
 /* ── 전체화면 지도 + 플로팅 오버레이 ─────────────── */
-.map-full{position:relative;height:calc(100vh - 60px);overflow:hidden;background:#e0efff}
+.map-full{position:relative;height:calc(100vh - 60px);overflow:hidden;background:#e0efff;
+  transition:background-color .45s var(--ease)}
 .map-full #panMap{position:absolute;inset:0;width:100%;height:100%;border-radius:0;background:#e0efff}
 .mf{position:absolute;z-index:800}
 .mf-panel{background:#fff;border:1px solid var(--bd);border-radius:14px;box-shadow:0 8px 28px rgba(16,24,40,.12)}
@@ -648,6 +649,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .osfade::before{top:0;background:linear-gradient(to bottom,var(--fade-c,#fff) 12%,rgba(255,255,255,0))}
 .osfade::after{bottom:0;background:linear-gradient(to top,var(--fade-c,#fff) 12%,rgba(255,255,255,0))}
 .osfade.fade-top::before{opacity:1}
+.mf-table.osfade::before{display:none}   /* sticky thead 가 상단을 덮는다 */
 .osfade.fade-bot::after{opacity:1}
 
 /* ══════════ 마이데이터 화면설계서 v3.0 대응 ══════════ */
@@ -828,8 +830,12 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mkt-pcbar .mkt-crop-sel .select-btn{height:38px;box-shadow:0 2px 8px rgba(16,24,40,.10)}
 /* 지역 select 3종 */
 .rgn-sels{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto}
-.rgn-fld{flex:1 1 0;min-width:78px}
-.rgn-fld .mt-sel{box-shadow:0 2px 8px rgba(16,24,40,.10);padding:0 24px 0 9px;font-size:12.5px}
+.rgn-sel{flex:1 1 0;min-width:78px}
+.rgn-sel .select-btn{height:38px;padding:0 9px;font-size:12.5px;font-weight:600;gap:6px;
+  box-shadow:0 2px 8px rgba(16,24,40,.10);overflow:hidden}
+.rgn-sel .select-btn svg{flex-shrink:0}
+.rgn-list{max-height:300px;overflow-y:auto;min-width:180px}
+.rgn-sel.disabled .select-btn{color:var(--mut)}
 /* 아이콘 버튼 (보기 전환 · ★ · 돋보기) */
 .mb-ico{width:38px;height:38px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
   border:1px solid var(--bd2);border-radius:9px;background:#fff;color:var(--sub);position:relative;
@@ -876,13 +882,13 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mkt-dates{background:rgba(255,255,255,.94);box-shadow:0 4px 14px rgba(16,24,40,.10);flex-shrink:0}
 .mkt-dates button{min-width:44px;padding:7px 0;text-align:center;justify-content:center}
 /* 검색 팝업 목록 */
-.ms-search-wrap{padding:0 24px 12px}
-.ms-list-wrap{position:relative;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);margin-bottom:14px}
-/* 위·아래 그래디언트로 더 스크롤할 내용이 있음을 넌지시 알린다 */
-.ms-list-wrap::before,.ms-list-wrap::after{content:'';position:absolute;left:0;right:0;height:24px;pointer-events:none;z-index:2}
-.ms-list-wrap::before{top:0;background:linear-gradient(#fff 12%,rgba(255,255,255,0))}
-.ms-list-wrap::after{bottom:0;background:linear-gradient(rgba(255,255,255,0),#fff 88%)}
-.ms-modal-list{max-height:336px;overflow-y:auto;padding:10px 14px 22px}
+.ms-search-wrap{padding:10px 24px 16px}
+/* 구분선은 좌우 24px 여백을 두고 그린다 (완전히 가르지 않게) */
+.ms-list-wrap{position:relative;margin-bottom:14px;
+  background-image:linear-gradient(var(--bd),var(--bd)),linear-gradient(var(--bd),var(--bd));
+  background-size:calc(100% - 48px) 1px,calc(100% - 48px) 1px;
+  background-position:24px 0,24px 100%;background-repeat:no-repeat}
+.ms-modal-list{max-height:336px;overflow-y:auto;padding:12px 14px 24px}
 .ms-modal-list .select-opt{padding:12px 10px;border-radius:9px}
 
 
@@ -895,6 +901,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .map-full[data-view="table"] .mf-labels,
 .map-full[data-view="table"] .mf-mkt{display:none}
 .map-full[data-view="map"] #mapTable{display:none}
+/* 목록 보기에서는 배경을 짙은 녹색으로 (지도 대신 표가 주인공) */
+.map-full[data-view="table"]{background:var(--g700)}
 /* PC: 표는 검색기·전광판 아래를 채운다 (top 은 syncTableTop 이 계산) */
 .mf-table{left:16px;right:404px;top:200px;bottom:16px;background:#fff;border:1px solid var(--bd);
   border-radius:14px;box-shadow:0 8px 28px rgba(16,24,40,.12);display:flex;flex-direction:column;
@@ -909,8 +917,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mt-sel:hover{border-color:var(--g400)}
 .mt-sel:focus{outline:none;border:1.5px solid var(--g600)}
 .mt-sel:disabled{background-color:var(--bg);color:var(--mut);cursor:not-allowed}
-.mt-count{margin-left:auto;font-size:12px;font-weight:700;color:var(--sub)}
-.mt-scroll{flex:1;min-height:0;overflow:auto}
+
+.mt-scroll{flex:1;min-height:0;overflow:auto;padding:0 6px 10px}
 .mt-table{width:100%;border-collapse:collapse;font-size:13px}
 .mt-table th{position:sticky;top:0;z-index:2;background:#F7F9F8;border-bottom:1px solid var(--bd);
   padding:9px 12px;text-align:left;font-size:11.5px;font-weight:800;color:var(--sub);white-space:nowrap}
@@ -940,6 +948,6 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 #mfRank{padding:18px 18px !important}
 #mfChart{padding:16px 18px 12px !important}
 .mf-table{border-radius:14px}
-.mt-filters{padding:16px 18px 12px}
-.mt-table th{padding:11px 14px}
-.mt-table td{padding:12px 14px}
+.mt-filters{padding:18px 20px 14px}
+.mt-table th{padding:12px 14px}
+.mt-table td{padding:13px 14px}

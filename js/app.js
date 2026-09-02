@@ -1258,13 +1258,24 @@ function mktFavListHtml(pop){
       ${(!pop && MKTSET.favs.length<5)?'<button class="fav-add" onclick="favAdd()">＋ 추가</button>':''}
     </div>`;
 }
-/* ── 지역 select (시도 › 시군구 › 읍면동) — 지도·목록 공통 ── */
-function rgnSelsHtml(){
-  return `
-    <div class="fld rgn-fld" data-label="시도"><select class="mt-sel" id="tfSido" onchange="tfChange('sido',this.value)"></select></div>
-    <div class="fld rgn-fld" data-label="시군구"><select class="mt-sel" id="tfSig" onchange="tfChange('sig',this.value)"></select></div>
-    <div class="fld rgn-fld" data-label="읍면동"><select class="mt-sel" id="tfEmd" onchange="tfChange('emd',this.value)"></select></div>`;
+/* ── 지역 select (시도 › 시군구 › 읍면동) — 디자인시스템 커스텀 셀렉트, 지도·목록 공통 ── */
+const CHEV_SVG = '<svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg>';
+function rgnSelHtml(kind, label, cur, list, ph, disabled){
+  const hit = list.find(o=>o.v===cur);
+  return `<div class="select rgn-sel fld${disabled?' disabled':''}" data-select data-label="${label}">
+    <button class="select-btn"${disabled?'':' onclick="tglSelect(this)"'}>${hit?hit.n:ph} ${CHEV_SVG}</button>
+    <div class="select-list rgn-list">
+      <div class="select-opt${cur?'':' sel'}" onclick="tfPick('${kind}','')">${ph}</div>
+      ${list.map(o=>`<div class="select-opt${o.v===cur?' sel':''}" onclick="tfPick('${kind}','${o.v}')">${o.n}</div>`).join('')}
+    </div>
+  </div>`;
 }
+function tfPick(kind, v){
+  if(typeof event !== 'undefined' && event) event.stopPropagation();
+  document.querySelectorAll('.rgn-sel.open').forEach(e=>e.classList.remove('open'));
+  tfChange(kind, v);
+}
+
 function renderMktBars(){
   const curMk = mktMarket(MKTSET.market);
   const find = mktFindHtml(MKTSET, false);
@@ -1275,6 +1286,11 @@ function renderMktBars(){
     <div class="mkt-row-favwrap"><span class="flabel">즐겨찾기</span>${favs}</div>`;
   /* 지도 조건설정부: 모바일은 지도 위 컴팩트 한 줄, PC 는 컨테이너 없는 한 줄 */
   const d2 = document.getElementById('mktBarMap');
+  /* 현황판은 조건바 행 안에 들어가 있다 — innerHTML 을 갈아엎기 전에 밖으로 꺼내 두지 않으면
+     통째로 사라진다 (기간 세그를 누르면 패널이 없어지던 버그) */
+  const mapRoot = document.querySelector('.map-full');
+  const stEl = document.querySelector('.mf-stats');
+  if(!M_UI && stEl && mapRoot && stEl.parentElement !== mapRoot) mapRoot.appendChild(stEl);
   if(d2){
     d2.innerHTML = M_UI ? mktSummaryHtml() : mktPcBarHtml();
     if(M_UI) bindCondDrag();
@@ -1287,7 +1303,7 @@ function renderMktBars(){
   /* 지역 select 는 지도·목록 공통 — PC 는 상단 줄, 모바일은 탭 아래 한 줄 */
   const rg = document.getElementById(M_UI ? 'rgnSelsM' : 'rgnSels');
   /* 지역 목록은 지도 데이터(SIDO_DATA·GEO)가 준비된 뒤에만 채운다 — 스크립트 평가 중에는 아직 TDZ */
-  if(rg){ rg.innerHTML = rgnSelsHtml(); if(rgnReady) renderTableFilters(); }
+  if(rg && rgnReady) renderTableFilters();
   /* 기간 세그는 우측 현황판 옆 (PC) */
   const ds = document.getElementById('mktDateSeg');
   if(ds) ds.innerHTML = ['어제','7일','30일'].map(p=>
@@ -2410,7 +2426,8 @@ function updateCrosshair(){
   }
   if(hit){
     el.classList.add('has');
-    if(!(PANEL.level === lv && PANEL.code === hit)){
+    /* select 로 명시적으로 고른 지역이 비행 중 조준점에 덮이지 않게 (suppressUntil 동안 유지) */
+    if(!(PANEL.level === lv && PANEL.code === hit) && Date.now() >= suppressUntil){
       PANEL = {level:lv, code:hit};
       renderSel(); markRank();
       /* scrollIntoView 는 조상 스크롤(페이지 전체)까지 끌어내리므로 순위 목록 안에서만 스크롤 */
@@ -2522,13 +2539,12 @@ function fillSel(el, list, ph, val){
     + list.map(o=>'<option value="'+o.v+'"'+(o.v===val?' selected':'')+'>'+o.n+'</option>').join('');
 }
 function renderTableFilters(){
-  fillSel(document.getElementById('tfSido'), Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '시도 전체', TF.sido);
-  const sig = document.getElementById('tfSig');
-  fillSel(sig, TF.sido ? tfSigList(TF.sido) : [], TF.sido ? '시군구 전체' : '시도를 먼저 골라주세요', TF.sig);
-  if(sig) sig.disabled = !TF.sido;
-  const emd = document.getElementById('tfEmd');
-  fillSel(emd, TF.sig ? tfEmdList(TF.sig) : [], TF.sig ? '읍면동 전체' : '시군구를 먼저 골라주세요', TF.emd);
-  if(emd) emd.disabled = !TF.sig;
+  const host = document.getElementById(M_UI ? 'rgnSelsM' : 'rgnSels');
+  if(!host) return;
+  host.innerHTML =
+      rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '시도 전체', false)
+    + rgnSelHtml('sig','시군구', TF.sig, TF.sido ? tfSigList(TF.sido) : [], TF.sido ? '시군구 전체' : '시도를 먼저 골라주세요', !TF.sido)
+    + rgnSelHtml('emd','읍면동', TF.emd, TF.sig ? tfEmdList(TF.sig) : [], TF.sig ? '읍면동 전체' : '시군구를 먼저 골라주세요', !TF.sig);
 }
 function tfChange(k, v){
   if(k==='sido'){ TF.sido = v; TF.sig = ''; TF.emd = ''; }
@@ -2545,17 +2561,43 @@ function tfApplyToMap(){
   tfSyncing = true;
   try{
     if(TF.emd && emdBySig[TF.sig]){
+      /* 읍면동 → 읍면동 레벨 */
       PANEL = {level:'emd', code:TF.emd};
       if(VIEW.level !== 'emd' || VIEW.sig !== TF.sig) enterEmdView(TF.sig); else { renderSel(); markRank(); }
     } else if(TF.sig){
+      /* 시군구 → 시군구 레벨(시도 포커스) + 그 시군구로 이동 */
       PANEL = {level:'sig', code:TF.sig};
-      if(VIEW.level === 'nation' || VIEW.sido !== TF.sido) focusSidoView(TF.sido); else { renderSel(); markRank(); }
+      if(VIEW.level !== 'sido' || VIEW.sido !== TF.sido) focusSidoView(TF.sido, true);
+      renderSel(); markRank();
+      flyRegion(bnds.sig[TF.sig], SIGUNGU_ZOOM + 0.25, null);
     } else if(TF.sido){
-      if(VIEW.level !== 'sido' || VIEW.sido !== TF.sido) focusSidoView(TF.sido);
-      else { PANEL = {level:'sido', code:TF.sido}; renderSel(); markRank(); }
-    } else if(VIEW.level !== 'nation'){ showNationView(); }
+      /* 시도 → 시도 레벨을 유지한 채 그 시도로 확대·이동 (시군구를 펼치지 않는다) */
+      if(VIEW.level !== 'nation') showNationView(true);
+      PANEL = {level:'sido', code:TF.sido};
+      renderSel(); markRank();
+      flyRegion(bnds.sido[TF.sido], null, SIGUNGU_ZOOM - 0.25);
+    } else {
+      if(VIEW.level !== 'nation') showNationView(true);
+      flyRegion(koreaBounds, null, null);
+    }
   } finally { tfSyncing = false; }
 }
+/* 지역 bounds 로 비행 — minZ 는 최소 줌 보장, maxZ 는 그 이상 확대 금지(레벨 자동 전환 방지) */
+function flyRegion(b, minZ, maxZ){
+  if(!b || !panMap || panMap === 'loading') return;
+  const o = fitPad();
+  const pad = L.point(o.paddingTopLeft[0]+o.paddingBottomRight[0], o.paddingTopLeft[1]+o.paddingBottomRight[1]);
+  let z = panMap.getBoundsZoom(b, false, pad);
+  if(minZ != null) z = Math.max(z, minZ);
+  if(maxZ != null) z = Math.min(z, maxZ);
+  /* 줌은 패딩(플로팅 패널)을 고려해 정하되, 중심은 지역의 실제 중심으로 잡는다.
+     조준점이 곧 선택이라, 패딩된 중심으로 가면 조준점이 옆 지역에 떨어진다 */
+  const c = b.getCenter();
+  suppressUntil = Date.now() + 1000;      /* 비행 중 줌 기반 레벨 전환 억제 */
+  userMoved = false;
+  panMap.flyTo(c, z, {duration:.6});
+}
+
 /* 반대 방향 — 지도·표에서 지역을 고르면 select 도 따라 바뀐다 */
 function syncTFfromPanel(){
   if(tfSyncing || !PANEL.code) return;
@@ -2579,10 +2621,9 @@ function renderMapTable(){
     n: lv==='sido' ? SIDO_DATA[c].full : nameOf(lv,c),
     p: mapValue('price',lv,c), net: mapValue('net',lv,c), vol: volOf(lv,c), fee: feeOf(lv,c)
   })).sort((a,b)=>b.p-a.p);
-  const cnt = document.getElementById('mtCount');
-  if(cnt) cnt.textContent = rows.length ? rows.length+'곳' : '';
   body.innerHTML = rows.length ? rows.map((r,i)=>`
-    <tr class="${(PANEL.level===r.lv&&PANEL.code===r.c)?'sel':''}" data-code="${r.c}" onclick="tableRowClick('${r.lv}','${r.c}')">
+    <tr class="${(PANEL.level===r.lv&&PANEL.code===r.c)?'sel':''}" data-code="${r.c}"
+      onmouseenter="tableRowHover('${r.lv}','${r.c}')" onclick="tableRowDrill('${r.lv}','${r.c}')">
       <td class="rk">${i+1}</td>
       <td class="nm">${r.n}</td>
       <td class="num">${Math.round(r.p).toLocaleString()}</td>
@@ -2593,10 +2634,17 @@ function renderMapTable(){
     : '<tr><td colspan="6" class="mt-empty">표시할 지역이 없어요 — 필터를 확인해주세요.</td></tr>';
   if(typeof osUpdateFades === 'function') osUpdateFades();
 }
-function tableRowClick(lv, c){
+/* 지도와 같은 규칙: 올리면 정보만 바뀌고, 클릭하면 그 하위 레벨로 들어간다 */
+function tableRowHover(lv, c){
+  if(PANEL.level===lv && PANEL.code===c) return;
   PANEL = {level:lv, code:c};
   renderSel(); markRank();
   document.querySelectorAll('#mapTableBody tr').forEach(tr=>tr.classList.toggle('sel', tr.dataset.code===c));
+}
+function tableRowDrill(lv, c){
+  if(lv==='sido'){ tfChange('sido', c); return; }        /* 시도 → 그 시도의 시군구 목록 */
+  if(lv==='sig'){ tfChange('sig', c); return; }          /* 시군구 → 그 시군구의 읍면동 목록 */
+  tableRowHover(lv, c);                                   /* 읍면동은 더 내려갈 곳이 없다 */
 }
 
 /* ══════════ 모바일 탭 (지도 · 순위 · 정보 · 차트) ══════════ */
@@ -2978,6 +3026,23 @@ function osBindFade(host, inst){
   OS_FADES.push(upd);
   upd();
 }
+/* OverlayScrollbars 없이 페이드만 — 스크롤러 자신이 아니라 부모(고정)에 페이드를 얹는다.
+   (스크롤러에 얹으면 ::before/::after 가 콘텐츠와 함께 스크롤돼 버린다) */
+function bindPlainFade(scroller, host){
+  if(!scroller || scroller.dataset.pfade) return;
+  scroller.dataset.pfade = '1';
+  host = host || scroller.parentElement;
+  if(!host) return;
+  host.classList.add('osfade');
+  const upd = ()=>{
+    const max = scroller.scrollHeight - scroller.clientHeight, t = scroller.scrollTop;
+    host.classList.toggle('fade-top', max > 4 && t > 4);
+    host.classList.toggle('fade-bot', max > 4 && t < max - 4);
+  };
+  scroller.addEventListener('scroll', upd, {passive:true});
+  OS_FADES.push(upd);
+  upd();
+}
 /* 목록을 다시 그린 뒤 호출 (콘텐츠 높이가 바뀌므로) */
 function osUpdateFades(){ (OS_FADES||[]).forEach(f=>{ try{ f(); }catch(e){} }); }
 /* 스크롤 중 또는 스크롤바 영역 hover 시에만 스크롤바를 노출한다 */
@@ -3023,6 +3088,10 @@ function initScrollAreas(){
   /* innerHTML 이 통째로 교체되는 영역은 바깥 래퍼를 스크롤 호스트로 삼는다
      (호스트를 직접 교체하면 라이브러리가 만든 viewport 구조가 사라진다) */
   ['rcptScroll','rankScroll','termsScrollBody','rcptScrollBody','notifScroll'].forEach(id=>osInit(document.getElementById(id)));
+  /* OverlayScrollbars 를 씌우면 DOM 이 재구성돼 레이아웃이 깨지는 목록은 평범한 스크롤 + 페이드로 */
+  bindPlainFade(document.getElementById('mktSearchList'));
+  bindPlainFade(document.getElementById('dsScrollDemo'));
+  document.querySelectorAll('.mt-scroll').forEach(el=>bindPlainFade(el));
   document.querySelectorAll('.md-body').forEach(el=>osInit(el));
 }
 initScrollAreas();
