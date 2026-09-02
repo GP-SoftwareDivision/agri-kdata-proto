@@ -776,9 +776,16 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .fav-edit{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;color:var(--sub);background:var(--bg);flex-shrink:0}
 .fav-edit:hover{color:var(--g700);background:var(--g100)}
 /* 날짜: 작은 세그 + 상시 datepicker */
-.mkt-range{display:flex;align-items:center;gap:5px;flex-shrink:0}
-.mr-sep{color:var(--mut);font-size:12px;flex-shrink:0}
-.mkt-date-inp{height:40px;width:126px;padding:0 8px;font-size:12.5px;flex-shrink:0}
+.mkt-range{display:flex;align-items:center;gap:2px;flex-shrink:0;height:40px;padding:0 10px;
+  border:1px solid var(--bd2);border-radius:8px;background:#fff;transition:border .15s}
+.mkt-range:focus-within{border:1.5px solid var(--g600)}
+.mr-dash{color:var(--mut);font-size:12.5px;flex-shrink:0}
+.mkt-date-inp{height:36px;width:104px;padding:0;font-size:12.5px;flex-shrink:0;border:none;background:transparent;
+  font-family:inherit;color:var(--txt);cursor:pointer;text-align:center}
+.mkt-date-inp:focus{outline:none}
+/* 달력 아이콘 제거 — 대신 입력 아무 곳이나 누르면 달력이 열린다 (dpOpen) */
+.mkt-date-inp::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
+.mkt-date-inp::-webkit-inner-spin-button{display:none}
 /* 즐겨찾기 칩 */
 .fav-chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px;border:1px solid var(--bd2);border-radius:99px;background:#fff;font-size:13px;font-weight:600;color:var(--txt);transition:all .18s var(--ease);cursor:pointer}
 .fav-chip:hover{border-color:var(--g400);background:var(--g50)}
@@ -955,3 +962,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .fv-trust-row,.fv-warn-row{position:static;flex-shrink:0}
 /* 스크롤 목록 공통 박스 — 페이드가 목록 테두리 안쪽에 걸리도록 감싸는 래퍼 */
 .scrollbox{position:relative;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+/* 날짜 입력 표시 텍스트 오버레이 (로캘 무관 YYYY-MM-DD) */
+.dp{position:relative;display:inline-flex;align-items:center}
+.dp .mkt-date-inp{color:transparent}
+.dp-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;font-size:12.5px;font-weight:600;color:var(--txt);font-variant-numeric:tabular-nums}

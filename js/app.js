@@ -1122,6 +1122,18 @@ let mapView = 'map';
 
 function mktFav(crop){ return MKTSET.favs.find(f=>f.crop===crop) || null; }
 function mktMarket(n){ return MKT_MARKETS.find(m=>m.n===n) || null; }
+/* 달력 아이콘을 감췄으므로 입력 아무 곳이나 누르면 달력이 열리게 한다.
+   showPicker 는 사용자 제스처가 없으면 예외를 던지므로 감싸 둔다 (핸드북 9장) */
+function dpOpen(el){ try{ if(el.showPicker) el.showPicker(); }catch(e){} }
+/* 날짜 입력: 브라우저 로캘이 'YYYY. MM. DD.' 로 그려서 표시 텍스트를 직접 덮어 YYYY-MM-DD 를 보장한다.
+   input 은 그대로 두어 달력·검증은 네이티브를 쓴다 */
+function dpHtml(val, handler, label){
+  return `<span class="dp">
+    <input type="date" class="mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="${label}"
+      value="${val}" onchange="${handler}(this.value)" onclick="dpOpen(this)">
+    <span class="dp-txt">${val}</span>
+  </span>`;
+}
 function mdShort(d){ return d ? d.slice(5).replace('-','/') : ''; }
 function mktDateLabel(){
   if(MKTSET.preset==='어제') return '어제 (08/18)';
@@ -1172,11 +1184,9 @@ function mktDatesHtml(st, D){
       <div class="metric-seg mkt-dates">${['어제','7일','30일'].map(p=>
         `<button class="${st.preset===p?'on':''}" onclick="${F}PickPreset('${p}')">${p}</button>`).join('')}</div>
       <div class="mkt-range fld" data-label="조회 기간">
-        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="시작일"
-          value="${st.dateFrom}" onchange="${F}PickDateFrom(this.value)">
-        <span class="mr-sep">~</span>
-        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="종료일"
-          value="${st.dateTo}" onchange="${F}PickDateTo(this.value)">
+        ${dpHtml(st.dateFrom, F+'PickDateFrom', '시작일')}
+        <span class="mr-dash">–</span>
+        ${dpHtml(st.dateTo, F+'PickDateTo', '종료일')}
       </div>
     </div>`;
 }
@@ -1185,6 +1195,7 @@ function mktDatesHtml(st, D){
 function mktSummaryHtml(){
   return `
     <div class="mkt-sum" id="mktSumBar">
+      <span class="mkt-sum-view" onclick="event.stopPropagation()">${mktViewIconHtml()}</span>
       <button class="mkt-sum-main" onclick="openMktCond()">
         <span class="ms-crop">${MKTSET.crop}</span>
         <span class="ms-dot">·</span>
@@ -2547,9 +2558,9 @@ function renderTableFilters(){
   const host = document.getElementById(M_UI ? 'rgnSelsM' : 'rgnSels');
   if(!host) return;
   host.innerHTML =
-      rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '시도 전체', false)
-    + rgnSelHtml('sig','시군구', TF.sig, TF.sido ? tfSigList(TF.sido) : [], TF.sido ? '시군구 전체' : '시도를 먼저 골라주세요', !TF.sido)
-    + rgnSelHtml('emd','읍면동', TF.emd, TF.sig ? tfEmdList(TF.sig) : [], TF.sig ? '읍면동 전체' : '시군구를 먼저 골라주세요', !TF.sig);
+      rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '전체', false)
+    + rgnSelHtml('sig','시군구', TF.sig, TF.sido ? tfSigList(TF.sido) : [], '전체', !TF.sido)
+    + rgnSelHtml('emd','읍면동', TF.emd, TF.sig ? tfEmdList(TF.sig) : [], '전체', !TF.sig);
 }
 function tfChange(k, v){
   if(k==='sido'){ TF.sido = v; TF.sig = ''; TF.emd = ''; }

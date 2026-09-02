@@ -483,7 +483,7 @@ html.m .mkt-date-inp{flex:1;width:auto !important;min-width:120px}
 /* 모바일: 즐겨찾기는 인라인 블록 대신 버튼 → 바텀시트 */
 html.m .mkt-row-favwrap{display:none}
 html.m #mktFavMap{display:none}
-html.m .mkt-favbtn{display:inline-flex;margin-left:auto;flex-shrink:0}
+html.m .mkt-favbtn{display:inline-flex;flex-shrink:0}
 html.m .mkt-row-find{flex-wrap:wrap;gap:8px}
 html.m .mkt-search{flex:1 1 100%;order:5}
 html.m .mkt-favbtn{order:4}
@@ -493,7 +493,7 @@ html.m .mf-tl .mkt-inline{flex-direction:column;align-items:stretch;gap:10px}
 html.m .mf-tl .mkt-row{flex-wrap:wrap}
 /* 터치 타깃 확보: 작물 셀렉트는 남는 폭을 쓰고, 입력 높이를 44px 로 */
 html.m .mkt-crop-sel{flex:1 1 auto;width:auto;min-width:130px}
-html.m .mkt-crop-sel .select-btn{height:44px}
+html.m .mkt-crop-sel .select-btn{height:40px}
 html.m .ms-inp{height:44px}
 /* 조회 기간(from~to)은 세그 아래 한 줄을 통째로 */
 html.m .mkt-range{flex:1 1 100%;order:2}
@@ -611,3 +611,19 @@ html.m #mktDateSeg{display:none}
 html.m #panMap .mf-viewfab{right:14px;bottom:16px;z-index:955}
 /* 즐겨찾기 목록 모달 — 바텀시트 여백 */
 html.m #favModalBody{padding:16px 16px calc(20px + env(safe-area-inset-bottom)) !important}
+
+/* ── 모바일: 지도일 때는 지역 select 를 숨겨 공간을 아낀다 (지도로 직접 고른다) ── */
+html.m .map-full[data-view="map"] .rgn-bar{display:none}
+html.m .mf-crumb{display:none !important}          /* 하단 '전국' 브레드크럼 칩 제거 */
+/* 조건바: 보기 전환 → 작물 선택(좁게) → ★ 순서 */
+html.m .mkt-row-find{gap:8px}
+html.m .mkt-crop-sel{flex:0 1 150px;width:auto;min-width:0}
+html.m .mkt-favbtn{width:40px;height:40px;flex-shrink:0}
+html.m .mkt-range{flex:1 1 100%;justify-content:center}
+html.m .mkt-range .mkt-date-inp{flex:0 1 auto;width:auto !important;min-width:0;height:36px}
+/* 대시보드 정보 패널은 1열로 (바둑판 배치 금지) */
+html.m .kpis{grid-template-columns:1fr !important}
+/* 조건바 안 보기 전환 아이콘 (지도 우측 하단 fab 과 별개로 항상 닿는 자리) */
+html.m .mkt-sum{padding:8px 8px 8px 8px}
+html.m .mkt-sum-view{flex-shrink:0;display:inline-flex}
+html.m .mkt-sum-view .mb-ico{width:34px;height:34px;box-shadow:none}
