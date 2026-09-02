@@ -658,7 +658,7 @@ html.m .mkt-sum-main{order:2}
 html.m .fab{display:none !important}
 /* 헤더: 로고 대신 현재 화면 이름 */
 html.m .gnb-logo{display:none}
-html.m .gnb-page{display:block;font-size:17px;font-weight:900;color:var(--txt);letter-spacing:-.3px}
+html.m .gnb-page{display:block;font-size:17px;font-weight:700;color:var(--txt)}   /* 전체 메뉴 타이틀과 동일 규격 */
 /* 하단 탭바: 아래로 스크롤하면 감춘다 */
 html.m .tabbar{transition:transform .26s var(--ease)}
 html.m .tabbar.tb-hide{transform:translateY(110%)}
@@ -1015,3 +1015,12 @@ html.m #onbModal.st-steps .m-head{padding-left:10px}   /* ← 버튼이 있는 �
 html.m #onbBody{padding:24px 20px 18px}
 html.m .onb-intro{padding-left:20px;padding-right:20px}
 html.m .onb-done{padding-left:22px;padding-right:22px}
+
+/* ── 전체 메뉴 다듬기 ── */
+html.m .am-head{padding:16px 18px 12px}
+/* 서비스: 흰 박스 하나에 3×2 로 */
+html.m #amSvc{grid-template-columns:repeat(3,1fr);background:#fff;border-radius:16px;
+  padding:12px 4px;gap:4px 0;margin-bottom:18px}
+/* 흰 박스들은 대시보드처럼 테두리 없이 */
+html.m .am-user{border:none}
+html.m .am-rows{border:none}
