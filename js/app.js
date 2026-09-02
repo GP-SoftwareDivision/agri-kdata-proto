@@ -1362,6 +1362,22 @@ function renderMktBars(){
   });
 }
 
+/* 행정서류 현황 카드 → 아래 '이어서 작성' 카드로 스크롤 (모바일은 그 카드가 아래에 있다) */
+function goDocDraft(){
+  const el = document.getElementById('docDraftCard');
+  const page = document.getElementById('page-dashboard');
+  const vp = osScroller(page);
+  if(!el || !vp){ nav('docs'); return; }
+  const card = el.closest('.card') || el;
+  const y = card.getBoundingClientRect().top - vp.getBoundingClientRect().top + vp.scrollTop - 12;
+  const target = Math.max(0, Math.min(y, vp.scrollHeight - vp.clientHeight));
+  try{ vp.scrollTo({top:target, behavior:'smooth'}); }catch(e){}
+  /* 스무스 스크롤이 무시되는 경우가 있어 확인 후 직접 이동 */
+  setTimeout(()=>{ if(Math.abs(vp.scrollTop - target) > 8) vp.scrollTop = target; }, 420);
+  card.classList.add('flash');
+  setTimeout(()=>card.classList.remove('flash'), 1200);
+}
+
 /* ── 모바일: 조건 바를 아래로 끌어내려도 조건설정이 열린다 (탭은 onclick 이 처리) ── */
 function bindCondDrag(){
   const bar = document.getElementById('mktSumBar');
@@ -2582,6 +2598,8 @@ function setMapView(v){
   const mf = document.querySelector('.map-full'); if(!mf) return;
   mf.dataset.view = v;
   renderMktBars();                            /* 세그 활성 표시 갱신 */
+  const tgt = v==='table' ? document.getElementById('mapTable') : document.getElementById('panMap');
+  if(tgt){ tgt.classList.remove('pane-in'); void tgt.offsetWidth; tgt.classList.add('pane-in'); }
   if(v==='table'){ renderTableFilters(); renderMapTable(); syncTableTop(); }
   else if(panMap && panMap.invalidateSize) setTimeout(()=>panMap.invalidateSize(), 60);
   if(typeof updateCrosshairTip === 'function') updateCrosshairTip();
@@ -2714,6 +2732,7 @@ function tableRowDrill(lv, c){
 /* ══════════ 모바일 탭 (지도 · 순위 · 정보 · 차트) ══════════ */
 function mapTab(t){
   const mf = document.querySelector('.map-full'); if(!mf) return;
+  const prev = mf.dataset.tab;
   mf.dataset.tab = t;
   document.querySelectorAll('#mapTabs .mt-item').forEach(b=>b.classList.toggle('on', b.dataset.tab===t));
   document.querySelectorAll('#page-map [data-pane]').forEach(el=>
@@ -2721,6 +2740,12 @@ function mapTab(t){
   if(t==='map' && panMap && panMap.invalidateSize) setTimeout(()=>panMap.invalidateSize(), 80);
   if(t==='chart') setTimeout(initMapChart, 140);
   if(t==='rank' && typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 60);
+  /* 탭이 실제로 바뀌었을 때만 슬라이드+페이드 */
+  if(prev !== t){
+    document.querySelectorAll('#page-map [data-pane].pane-on').forEach(el=>{
+      el.classList.remove('pane-in'); void el.offsetWidth; el.classList.add('pane-in');
+    });
+  }
   if(typeof updateCrosshairTip === 'function') updateCrosshairTip();   /* 지도를 벗어나면 툴팁도 내린다 */
 }
 

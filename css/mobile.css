@@ -467,10 +467,10 @@ html.m #page-chatbot .welcome .quick{display:flex !important;flex-direction:colu
 html.m #page-chatbot .welcome .quick button{display:flex !important;flex-direction:row;align-items:center;gap:10px;width:100%;text-align:left;padding:14px 16px}
 html.m #page-chatbot .welcome .quick button .q{flex:1;min-width:0}
 /* ── 대시보드 KPI: 상단 2열 타일 + 하단은 풀폭 가로 행 ── */
-html.m .kpis .kpi:nth-child(n+3){grid-column:1/-1;display:grid;grid-template-columns:1fr auto;column-gap:14px;row-gap:2px;align-items:center;padding:14px 18px}
-html.m .kpis .kpi:nth-child(n+3) .kpi-lb{grid-column:1;font-size:13px}
-html.m .kpis .kpi:nth-child(n+3)>div:nth-child(2){grid-column:2;grid-row:1/span 2;font-size:18px !important;font-weight:900;text-align:right;letter-spacing:-.3px}
-html.m .kpis .kpi:nth-child(n+3)>div:nth-child(3){grid-column:1;grid-row:2}
+html.m .kpis .kpi:nth-child(3){grid-column:1/-1;display:grid;grid-template-columns:1fr auto;column-gap:14px;row-gap:2px;align-items:center;padding:14px 18px}
+html.m .kpis .kpi:nth-child(3) .kpi-lb{grid-column:1;font-size:13px}
+html.m .kpis .kpi:nth-child(3)>div:nth-child(2){grid-column:2;grid-row:1/span 2;font-size:18px !important;font-weight:900;text-align:right;letter-spacing:-.3px}
+html.m .kpis .kpi:nth-child(3)>div:nth-child(3){grid-column:1;grid-row:2}
 /* 조건 바 모바일: 검색기(작물/날짜) 세로 스택 + 즐겨찾기 랩 */
 html.m #mktBarDash{padding:12px 16px !important;gap:8px}
 html.m .mkt-row-top{flex-direction:column;align-items:stretch;gap:8px}
@@ -656,7 +656,7 @@ html.m .mkt-dashbar .mkt-dates{order:3;flex:0 0 auto}
 html.m .mkt-dashbar .mkt-range{order:4;flex:1 1 100%;justify-content:center}
 /* 즐겨찾기 팝오버는 hover 대신 클릭으로 (모바일은 hover 가 없다) */
 html.m .fav-ic-wrap:hover .fav-pop{opacity:0;visibility:hidden;pointer-events:none}
-html.m .fav-ic-wrap.open .fav-pop{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+html.m .fav-ic-wrap.open .fav-pop{opacity:1;visibility:visible;pointer-events:auto;transform:none}
 /* 카드 안 가로 여백 부족으로 글자가 어색하게 끊기지 않게 */
 html.m .kpi{padding:16px 18px}
 html.m .kpi-lb{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -669,3 +669,17 @@ html.m .kpi-lb{word-break:keep-all}
 html.m .ch-item{word-break:keep-all}
 html.m .ch-item .t,html.m .ch-item .d{word-break:keep-all}
 html.m .grid-3 .card,html.m .grid-2 .card{padding:18px 18px}
+
+/* ── 모바일 대시보드 KPI: 라벨·설명은 좌측, 배지·값은 우측 ── */
+html.m .kpi{padding:16px 18px}
+html.m .kpis .kpi-2c{display:grid;grid-template-columns:1fr auto;column-gap:12px;row-gap:10px;align-items:center}
+html.m .kpis .kpi-2c .kpi-lb{display:contents}          /* 라벨 텍스트와 배지를 각각 그리드 칸으로 */
+html.m .kpis .kpi-2c .kpi-lb-t{grid-area:1/1;font-size:13px;color:var(--sub);font-weight:500}
+html.m .kpis .kpi-2c .kpi-tag{grid-area:1/2;justify-self:end}
+html.m .kpis .kpi-2c .kpi-val{grid-area:2/2;justify-self:end}
+html.m .kpis .kpi-2c > .up,html.m .kpis .kpi-2c > .down,
+html.m .kpis .kpi-2c > div:not(.kpi-lb):not(.kpi-val){grid-area:2/1;justify-self:start}
+html.m .kpis .kpi-2c .kpi-val{line-height:1.15}
+html.m .kpi-docs .kpi-v{font-size:24px}
+/* 이어서 작성 카드의 '전체' 링크는 모바일에서 감춘다 (하단 탭에 행정서류가 있다) */
+html.m .doc-all{display:none}

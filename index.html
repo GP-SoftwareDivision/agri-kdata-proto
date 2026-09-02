@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=144">
-<link rel="stylesheet" href="css/mobile.css?v=144">
+<link rel="stylesheet" href="css/style.css?v=152">
+<link rel="stylesheet" href="css/mobile.css?v=152">
 </head>
 <body>
 
@@ -261,14 +261,14 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
       <div class="card filterbar" id="mktBarDash"></div>
 
       <div class="kpis">
-        <div class="card kpi">
-          <div class="kpi-lb">오늘 도매 경락가 <span style="color:var(--mut)" id="dashCrop">양파 · 상품</span></div>
-          <div style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" id="dashPrice">1,240</span><span class="kpi-u">원/kg</span></div>
+        <div class="card kpi kpi-2c">
+          <div class="kpi-lb"><span class="kpi-lb-t">오늘 도매 경락가</span> <span class="badge bg-mut kpi-tag" id="dashCrop">양파 · 상품</span></div>
+          <div class="kpi-val" style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" id="dashPrice">1,240</span><span class="kpi-u">원/kg</span></div>
           <div class="up" style="font-size:12px" id="dashDiff">▲ 전일 대비 3.2%</div>
         </div>
-        <div class="card kpi hl">
-          <div class="kpi-lb">7일 후 예측가 <span class="badge bg-ok">AI 예측</span></div>
-          <div style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" style="color:var(--g700)" id="dashPred">1,305</span><span class="kpi-u">원/kg</span></div>
+        <div class="card kpi kpi-2c hl">
+          <div class="kpi-lb"><span class="kpi-lb-t">7일 후 예측가</span> <span class="badge bg-ok kpi-tag">AI 예측</span></div>
+          <div class="kpi-val" style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" style="color:var(--g700)" id="dashPred">1,305</span><span class="kpi-u">원/kg</span></div>
           <div class="up" style="font-size:12px" id="dashPredPct">▲ 오늘 대비 5.2% 상승 전망</div>
         </div>
         <div class="card kpi">
@@ -276,10 +276,10 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
           <div style="font-size:20px;font-weight:900;letter-spacing:-.4px">분산 출하 권장</div>
           <div style="font-size:12px;color:var(--sub)">8/22 ~ 8/29 · 신뢰도 <b style="color:var(--g700)">82%</b></div>
         </div>
-        <div class="card kpi" onclick="nav('docs')" style="cursor:pointer">
-          <div class="kpi-lb">행정서류 진행 현황</div>
-          <div style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v">2</span><span class="kpi-u">건 작성 중</span></div>
-          <div style="font-size:12px;color:var(--sub)">완료 5건 · 올해 절감 시간 <b style="color:var(--g700)">6.5시간</b></div>
+        <div class="card kpi kpi-2c kpi-docs" onclick="goDocDraft()" style="cursor:pointer">
+          <div class="kpi-lb"><span class="kpi-lb-t">행정서류 현황</span> <span class="badge bg-blue kpi-tag" id="dashDocTag">작성 중</span></div>
+          <div class="kpi-val" style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" id="dashDocN">2</span><span class="kpi-u">건</span></div>
+          <div style="font-size:12px;color:var(--sub)">완료 <b style="color:var(--g700)">5건</b></div>
         </div>
       </div>
 
@@ -338,17 +338,19 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
               <div style="width:28px;height:28px;border-radius:8px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center">
                 <svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M4 2.5H11L14.5 6V15.5H4V2.5Z" stroke="#2E6BD6" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 9H11.5M6.5 12H11.5" stroke="#2E6BD6" stroke-width="1.5" stroke-linecap="round"/></svg>
               </div>
-              <b style="font-size:15px">행정서류 이어서 작성</b>
+              <b style="font-size:15px" id="docDraftCard">행정서류 이어서 작성</b>
             </div>
-            <a href="#" style="font-size:12px" onclick="nav('docs');return false">전체</a>
+            <a href="#" class="doc-all" style="font-size:12px" onclick="nav('docs');return false">전체</a>
           </div>
           <div style="display:flex;flex-direction:column;gap:6px">
-            <b style="font-size:13px">농업경영회생자금 신청서</b>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <b style="font-size:13px">농업경영회생자금 신청서</b>
+              <span style="font-size:11.5px;color:var(--mut);flex-shrink:0">8/17 임시저장</span>
+            </div>
             <div style="display:flex;align-items:center;gap:10px">
               <div style="flex:1;height:6px;border-radius:999px;background:#EEF1EF"><div style="width:60%;height:6px;border-radius:999px;background:var(--blue)"></div></div>
               <b style="font-size:12px;color:var(--blue)">60%</b>
             </div>
-            <div style="font-size:12px;color:var(--sub)">증빙 3/4 수신 완료 · 8/17 임시저장</div>
           </div>
           <button class="btn btn-out btn-sm" onclick="openDocs('s2')">이어서 작성하기</button>
         </div>
@@ -364,7 +366,6 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
             <b style="font-size:13px;color:var(--orange-t)">원가 급증 감지 · 비료비</b>
             <div style="font-size:12px;color:var(--sub);margin-top:3px">최근 30일 지출이 평년 대비 +18% 상승했어요.</div>
           </div>
-          <div style="font-size:12px;color:var(--sub)">지난 7일간 새 리스크 없음 · 이상탐지 상시 가동 중</div>
         </div>
       </div>
     </div>
@@ -1752,7 +1753,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=144"></script>
-<script src="js/mobile-flow.js?v=144"></script>
+<script src="js/app.js?v=152"></script>
+<script src="js/mobile-flow.js?v=152"></script>
 </body>
 </html>

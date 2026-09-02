@@ -754,7 +754,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mkt-crop-sel .select-list{width:230px}
 /* 플로팅 라벨 — 박스 테두리 좌상단에 작은 라벨을 얹어 placeholder 공간을 확보 */
 .fld{position:relative}
-.fld::before{content:attr(data-label);position:absolute;top:-8px;left:-1px;background:var(--g600);padding:1px 5px;
+.fld::before{content:attr(data-label);position:absolute;top:-8px;left:7px;background:var(--g600);padding:1px 5px;
   font-size:10.5px;font-weight:700;color:#fff;line-height:1.3;border-radius:5px;z-index:2;
   pointer-events:none;white-space:nowrap}
 .mkt-row-find,.mkt-row-dates{padding-top:7px}   /* 라벨이 테두리 위로 솟는 만큼 헤드룸 */
@@ -767,7 +767,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .ms-cq{padding-left:26px}
 /* 검색·셀렉트 드롭다운이 이웃 패널·카드에 가리지 않도록 층 정리 */
 .select-list{z-index:160}
-.card.filterbar{position:relative;z-index:30}
+.card.filterbar{position:relative;z-index:30;overflow:visible}
 /* 모바일 전용 즐겨찾기 버튼 — PC 에서는 숨김 */
 .mkt-favbtn{display:none}
 /* 즐겨찾기 칩의 수정 아이콘 */
@@ -857,12 +857,12 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 
 /* 즐겨찾기: 아이콘에 올리면 목록이 슬라이드되며 내려온다 */
 .fav-ic-wrap{position:relative;flex-shrink:0}
-.fav-pop{position:absolute;top:100%;left:50%;padding-top:10px;width:max-content;max-width:440px;
-  opacity:0;visibility:hidden;pointer-events:none;z-index:870;
-  transform:translateX(-50%) translateY(-10px);
+/* ★ 가 바 왼쪽에 있어 중앙 정렬하면 화면 밖으로 잘린다 — 좌측 기준으로 편다 */
+.fav-pop{position:absolute;top:100%;left:0;padding-top:10px;width:max-content;max-width:min(440px,calc(100vw - 32px));
+  opacity:0;visibility:hidden;pointer-events:none;z-index:870;transform:translateY(-10px);
   transition:opacity .22s var(--ease),transform .22s var(--ease),visibility 0s linear .22s}
 .fav-ic-wrap:hover .fav-pop,.fav-pop:hover{opacity:1;visibility:visible;pointer-events:auto;
-  transform:translateX(-50%) translateY(0);transition:opacity .22s var(--ease),transform .22s var(--ease)}
+  transform:none;transition:opacity .22s var(--ease),transform .22s var(--ease)}
 .fav-pop-inner{background:#fff;border:1px solid var(--bd);border-radius:14px;
   box-shadow:0 12px 34px rgba(16,24,40,.18);overflow:hidden}
 .fav-pop-t{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;font-size:12.5px;font-weight:800;
@@ -981,3 +981,13 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 [class*="amcharts"] a[href*="amcharts"],g[aria-labelledby*="title"] a{display:none !important}
 /* 헤더의 화면 이름은 모바일 전용 */
 .gnb-page{display:none}
+
+/* ── 탭·보기 전환 애니메이션 (슬라이드 + 페이드) ── */
+@keyframes paneIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.pane-in{animation:paneIn .34s var(--ease)}
+/* 스크롤로 데려온 카드를 잠깐 강조 */
+@keyframes cardFlash{0%{box-shadow:0 0 0 0 rgba(14,122,70,.35)}100%{box-shadow:0 0 0 10px rgba(14,122,70,0)}}
+.card.flash{animation:cardFlash 1.1s var(--ease)}
+/* 즐겨찾기 팝오버가 조상 카드에 잘리지 않게 */
+.mf-tlwrap,.mf-tl,.mkt-inline,.mkt-dashbar,.mkt-pcbar{overflow:visible}
+.bg-blue{background:var(--blue-bg);color:var(--blue)}
