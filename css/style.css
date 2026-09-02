@@ -979,3 +979,5 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 .help-q{cursor:default}
 /* amCharts 워터마크 (dispose 가 막히는 경우 대비) */
 [class*="amcharts"] a[href*="amcharts"],g[aria-labelledby*="title"] a{display:none !important}
+/* 헤더의 화면 이름은 모바일 전용 */
+.gnb-page{display:none}

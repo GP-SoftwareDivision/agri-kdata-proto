@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=139">
-<link rel="stylesheet" href="css/mobile.css?v=139">
+<link rel="stylesheet" href="css/style.css?v=144">
+<link rel="stylesheet" href="css/mobile.css?v=144">
 </head>
 <body>
 
@@ -121,6 +121,7 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
       </div>
       <div style="font-size:17px;font-weight:900;color:var(--g700)">agriG</div>
     </div>
+    <div class="gnb-page" id="gnbPage"></div>
     <nav class="gnb-menu">
       <button class="gnb-item" data-nav="dashboard" onclick="nav('dashboard')">대시보드</button>
       <button class="gnb-item" data-nav="chatbot" onclick="nav('chatbot')">AI 챗봇</button>
@@ -207,7 +208,7 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
       <span>행정서류</span></button>
     <button class="tb-item" data-nav="chatbot" onclick="nav('chatbot')">
       <svg width="21" height="21" viewBox="0 0 18 18" fill="none"><path d="M9 2.5C5.1 2.5 2 5 2 8.2C2 10.2 3.2 12 5.1 13L4.4 15.7C4.3 16 4.6 16.2 4.9 16L8.2 13.9C8.5 13.9 8.7 14 9 14C12.9 14 16 11.4 16 8.2C16 5 12.9 2.5 9 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
-      <span>AI 챗봇</span></button>
+      <span>알농이</span></button>
     <button class="tb-item" id="tbAll" onclick="toggleAllMenu()">
       <svg width="21" height="21" viewBox="0 0 18 18" fill="none"><rect x="2.5" y="2.5" width="5" height="5" rx="1.3" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="2.5" width="5" height="5" rx="1.3" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="10.5" width="5" height="5" rx="1.3" stroke="currentColor" stroke-width="1.5"/><rect x="10.5" y="10.5" width="5" height="5" rx="1.3" stroke="currentColor" stroke-width="1.5"/></svg>
       <span>전체</span></button>
@@ -261,14 +262,14 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 
       <div class="kpis">
         <div class="card kpi">
-          <div class="kpi-lb">오늘 도매 경락가 <span style="color:var(--mut)">양파 · 상품</span></div>
-          <div style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v">1,240</span><span class="kpi-u">원/kg</span></div>
-          <div class="up" style="font-size:12px">▲ 전일 대비 3.2%</div>
+          <div class="kpi-lb">오늘 도매 경락가 <span style="color:var(--mut)" id="dashCrop">양파 · 상품</span></div>
+          <div style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" id="dashPrice">1,240</span><span class="kpi-u">원/kg</span></div>
+          <div class="up" style="font-size:12px" id="dashDiff">▲ 전일 대비 3.2%</div>
         </div>
         <div class="card kpi hl">
           <div class="kpi-lb">7일 후 예측가 <span class="badge bg-ok">AI 예측</span></div>
-          <div style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" style="color:var(--g700)">1,305</span><span class="kpi-u">원/kg</span></div>
-          <div class="up" style="font-size:12px">▲ 오늘 대비 5.2% 상승 전망</div>
+          <div style="display:flex;align-items:baseline;gap:5px"><span class="kpi-v" style="color:var(--g700)" id="dashPred">1,305</span><span class="kpi-u">원/kg</span></div>
+          <div class="up" style="font-size:12px" id="dashPredPct">▲ 오늘 대비 5.2% 상승 전망</div>
         </div>
         <div class="card kpi">
           <div class="kpi-lb">AI 출하 추천</div>
@@ -317,7 +318,7 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
       </div>
 
       <div class="grid-3">
-        <div class="card" style="padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+        <div class="card ask-card" style="padding:18px 20px;display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;gap:8px">
             <img class="mascot-sm" src="assets/alnongi.png" alt="">
             <b style="font-size:15px">알농이에게 물어보세요</b>
@@ -479,15 +480,21 @@ docker run --rm -p 8080:8080 \
         <div class="mt-filters">
           <span class="mf-viewfab2" id="mapViewFab2"></span>
         </div>
-        <div class="mt-scroll" data-fade>
+        <div class="mt-head">
           <table class="mt-table">
+            <colgroup><col class="c-rk"><col><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
             <thead><tr>
-              <th style="width:34px">#</th><th>지역</th>
+              <th>#</th><th>지역</th>
               <th class="num">평균 경락가<span>원/kg</span></th>
               <th class="num">내 예상 순수익<span>%</span></th>
               <th class="num">일평균 반입량<span>톤</span></th>
               <th class="num">운송비<span>원/kg</span></th>
             </tr></thead>
+          </table>
+        </div>
+        <div class="mt-scroll">
+          <table class="mt-table">
+            <colgroup><col class="c-rk"><col><col class="c-num"><col class="c-num"><col class="c-num"><col class="c-num"></colgroup>
             <tbody id="mapTableBody"></tbody>
           </table>
         </div>
@@ -1745,7 +1752,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=139"></script>
-<script src="js/mobile-flow.js?v=139"></script>
+<script src="js/app.js?v=144"></script>
+<script src="js/mobile-flow.js?v=144"></script>
 </body>
 </html>

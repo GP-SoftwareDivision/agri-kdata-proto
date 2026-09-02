@@ -626,3 +626,46 @@ html.m .kpis{grid-template-columns:1fr !important}
 html.m .mkt-sum{padding:8px 8px 8px 8px}
 html.m .mkt-sum-view{flex-shrink:0;display:inline-flex}
 html.m .mkt-sum-view .mb-ico{width:34px;height:34px;box-shadow:none}
+
+/* ══════════ 모바일 정리 (2026-09-02) ══════════ */
+/* 지도: 우측 하단 전환 fab · 범례 · 표 안 지도 아이콘 제거 (조건바에 전환 아이콘이 있다) */
+html.m #panMap .mf-viewfab,html.m .mf-viewfab,html.m .mf-viewfab2,html.m #mapLegend{display:none !important}
+/* 조건바가 다른 탭(순위·정보·차트)을 침범하지 않게 — 지도 탭에서만 겹친다 */
+html.m .map-full[data-view="map"] .mf-tlwrap{margin-bottom:0}
+html.m .map-full[data-view="map"][data-tab="map"] .mf-tlwrap{margin-bottom:-56px}
+/* 조건바 순서: 전환(분리) · ★ · 작물명 · 기간 */
+html.m .mkt-sum{gap:10px}
+html.m .mkt-sum-view{margin-right:2px;padding-right:10px;border-right:1px solid var(--bd)}
+html.m .mkt-sum .fav-ic{order:1}
+html.m .mkt-sum-main{order:2}
+/* 플로팅 알농이 버튼 제거 (하단 탭의 '알농이'로 간다) */
+html.m .fab{display:none !important}
+/* 헤더: 로고 대신 현재 화면 이름 */
+html.m .gnb-logo{display:none}
+html.m .gnb-page{display:block;font-size:17px;font-weight:900;color:var(--txt);letter-spacing:-.3px}
+/* 하단 탭바: 아래로 스크롤하면 감춘다 */
+html.m .tabbar{transition:transform .26s var(--ease)}
+html.m .tabbar.tb-hide{transform:translateY(110%)}
+/* 대시보드: 알농이 카드 제거 */
+html.m .ask-card{display:none !important}
+/* 대시보드 조건바: 1행 [★][작물][날짜탭] · 2행 [조회기간] */
+html.m .mkt-dashbar{flex-wrap:wrap;gap:8px}
+html.m .mkt-dashbar .fav-ic-wrap{order:1}
+html.m .mkt-dashbar .mkt-crop-sel{order:2;flex:1 1 auto}
+html.m .mkt-dashbar .mkt-dates{order:3;flex:0 0 auto}
+html.m .mkt-dashbar .mkt-range{order:4;flex:1 1 100%;justify-content:center}
+/* 즐겨찾기 팝오버는 hover 대신 클릭으로 (모바일은 hover 가 없다) */
+html.m .fav-ic-wrap:hover .fav-pop{opacity:0;visibility:hidden;pointer-events:none}
+html.m .fav-ic-wrap.open .fav-pop{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+/* 카드 안 가로 여백 부족으로 글자가 어색하게 끊기지 않게 */
+html.m .kpi{padding:16px 18px}
+html.m .kpi-lb{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+html.m .card .sec-t{font-size:15px;line-height:1.45;word-break:keep-all}
+html.m .card .sec-t span{display:block;margin-top:3px;line-height:1.5}
+/* 제목 + 범례가 한 줄에서 서로를 짓누르지 않게 세로로 쌓는다 */
+html.m .card > div[style*="justify-content:space-between"]{
+  flex-direction:column !important;align-items:flex-start !important;gap:8px}
+html.m .kpi-lb{word-break:keep-all}
+html.m .ch-item{word-break:keep-all}
+html.m .ch-item .t,html.m .ch-item .d{word-break:keep-all}
+html.m .grid-3 .card,html.m .grid-2 .card{padding:18px 18px}

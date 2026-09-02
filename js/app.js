@@ -115,7 +115,7 @@ function nav(id){
   // 챗봇 페이지에서는 플로팅 숨김
   document.getElementById('fab').style.display = (id==='chatbot') ? 'none' : '';
   if(id==='chatbot'){ closeChatPanel(); setTimeout(initChatWidget, 120); }
-  if(id==='dashboard') setTimeout(initChart, 150);
+  if(id==='dashboard'){ setTimeout(initChart, 150); if(typeof renderDashKpis === 'function') renderDashKpis(); }
   if(id==='docs' && !document.querySelector('.doc-view.on')) goDocView('home');
   if(id==='map') setTimeout(function(){
     if(typeof initPanMap === 'function') initPanMap();
@@ -129,6 +129,9 @@ function nav(id){
   /* 숨어 있던 동안은 높이가 0이라 페이드 계산이 틀어진다 — 보인 뒤 다시 계산 */
   if(typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 80);
   if(id !== 'map' && $mapTip) $mapTip.classList.remove('show');
+  if(typeof syncMobileHeader === 'function') syncMobileHeader();        /* 모바일 헤더에 화면 이름 */
+  if(typeof bindTabbarAutoHide === 'function') bindTabbarAutoHide(pg);  /* 스크롤 방향에 따른 탭바 */
+  document.querySelectorAll('.tabbar').forEach(tb=>tb.classList.remove('tb-hide'));
   if(typeof osScrollTop === 'function') osScrollTop(pg, 0);
 }
 
@@ -1253,7 +1256,7 @@ function mktFavIcHtml(){
   const need = MKTSET.favs.some(f=>!f.market);
   return `
     <div class="fav-ic-wrap">
-      <button class="mb-ico fav-ic" onclick="openFavModal()" aria-label="즐겨찾기">${STAR_SVG}
+      <button class="mb-ico fav-ic" onclick="favIcClick(this)" aria-label="즐겨찾기">${STAR_SVG}
         ${need?'<span class="fav-warn" aria-hidden="true">!</span>':''}
       </button>
       <div class="fav-pop">
@@ -1266,6 +1269,19 @@ function mktFavIcHtml(){
       </div>
     </div>`;
 }
+/* 모바일은 hover 가 없어 클릭으로 팝오버를 연다 (PC 는 hover 그대로) */
+function favIcClick(btn){
+  if(typeof event !== 'undefined' && event) event.stopPropagation();
+  if(!M_UI){ openFavModal(); return; }
+  const wrap = btn.closest('.fav-ic-wrap');
+  const on = wrap.classList.contains('open');
+  document.querySelectorAll('.fav-ic-wrap.open').forEach(w=>w.classList.remove('open'));
+  if(!on) wrap.classList.add('open');
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest || e.target.closest('.fav-ic-wrap')) return;
+  document.querySelectorAll('.fav-ic-wrap.open').forEach(w=>w.classList.remove('open'));
+});
 /* 즐겨찾기 칩 목록. pop=true 면 팝오버용 — 신뢰는 좌상단 배지, 설정필요는 느낌표로 줄인다 */
 function mktFavListHtml(pop){
   return `<div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
@@ -1389,7 +1405,23 @@ function mktSearchModalPick(market, cq){
 }
 /* 조건이 바뀌면 표·차트 제목도 같이 따라간다 */
 function refreshMapDeps(){
-  if(typeof mapView !== 'undefined' && mapView === 'table' && typeof renderMapTable === 'function') renderMapTable();
+  if(typeof renderDashKpis === 'function') renderDashKpis();
+  if(typeof panMap !== 'undefined' && panMap && panMap !== 'loading' && typeof refreshAll === 'function') refreshAll();
+  else if(typeof mapView !== 'undefined' && mapView === 'table' && typeof renderMapTable === 'function') renderMapTable();
+}
+/* 대시보드 KPI 도 같은 Mock 값을 쓴다 */
+function renderDashKpis(){
+  const set = (id, html)=>{ const el = document.getElementById(id); if(el) el.innerHTML = html; };
+  if(typeof SIDO_DATA === 'undefined') return;
+  const base = sidoPrice(PANEL && PANEL.code ? PANEL.code.slice(0,2) : '11');
+  const fc = 1 + (h32(curDateKey()+curCrop())%90)/1000;        /* 예측 상승률 0~9% */
+  set('dashPrice', Math.round(base).toLocaleString());
+  set('dashPred', Math.round(base*fc).toLocaleString());
+  set('dashPredPct', '▲ 오늘 대비 '+((fc-1)*100).toFixed(1)+'% 상승 전망');
+  const dv = ((h32(curDateKey())%90)/10 - 4).toFixed(1);
+  set('dashDiff', (dv>=0?'▲ 전일 대비 ':'▼ 전일 대비 ')+Math.abs(dv)+'%');
+  const d = document.getElementById('dashDiff'); if(d) d.className = dv>=0 ? 'up' : 'down';
+  set('dashCrop', curCrop()+' · 상품');
 }
 
 /* ── 모바일 조건설정 모달: 초안을 편집하고 '적용' 에서만 반영 ── */
@@ -1412,8 +1444,7 @@ function mktCondApply(){
   MKTSET.crop = MKTDRAFT.crop; MKTSET.market = MKTDRAFT.market; MKTSET.cq = MKTDRAFT.cq;
   MKTSET.dateFrom = MKTDRAFT.dateFrom; MKTSET.dateTo = MKTDRAFT.dateTo; MKTSET.preset = MKTDRAFT.preset;
   closeModal('mktCondModal');
-  renderMktBars();
-  if(typeof renderMapTable === 'function') renderMapTable();
+  renderMktBars(); refreshMapDeps();
   if(moved) mktZoomTo(MKTSET.market);
   toast('ok','조건을 적용했어요');
 }
@@ -1503,15 +1534,15 @@ function mktPickCrop(c){
   const f = mktFav(c);
   if(f && f.market){ MKTSET.market = f.market; MKTSET.cq = f.cq; }   /* 즐겨찾기 세팅 자동 반영 */
   if(!MKT_CROPS_CORE.includes(c)) toast('info', c+'는 AI 예측 없이 시세 조회만 제공해요');
-  renderMktBars();
+  renderMktBars(); refreshMapDeps();
 }
 function mktPickPreset(p){
   MKTSET.preset = p; MKTSET.dateFrom = MKT_PRESETS[p][0]; MKTSET.dateTo = MKT_PRESETS[p][1];
-  renderMktBars();
+  renderMktBars(); refreshMapDeps();
 }
 /* 직접 선택도 from~to — 한쪽이 다른 쪽을 넘어가면 같은 날로 맞춰 준다 */
-function mktPickDateFrom(v){ if(!v) return; MKTSET.dateFrom = v; if(v > MKTSET.dateTo) MKTSET.dateTo = v; MKTSET.preset = null; renderMktBars(); }
-function mktPickDateTo(v){ if(!v) return; MKTSET.dateTo = v; if(v < MKTSET.dateFrom) MKTSET.dateFrom = v; MKTSET.preset = null; renderMktBars(); }
+function mktPickDateFrom(v){ if(!v) return; MKTSET.dateFrom = v; if(v > MKTSET.dateTo) MKTSET.dateTo = v; MKTSET.preset = null; renderMktBars(); refreshMapDeps(); }
+function mktPickDateTo(v){ if(!v) return; MKTSET.dateTo = v; if(v < MKTSET.dateFrom) MKTSET.dateFrom = v; MKTSET.preset = null; renderMktBars(); refreshMapDeps(); }
 
 /* ── 즐겨찾기 동작 ── */
 function favApply(i){
@@ -2116,13 +2147,25 @@ let bnds = {sido:{}, sig:{}, emd:{}};
 
 /* ── 값 생성 (품목·날짜·지역 결정적 시뮬레이션) ── */
 function h32(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
-function dateF(){ return DATE_FACTOR[curDate] || 1; }
-function sidoPrice(cd){ return SIDO_DATA[cd].price * ITEM_BASE[curItem]/1240 * dateF(); }
+/* 조회 조건(MKTSET)의 날짜·작물이 지도·표·대시보드 값에 그대로 반영된다.
+   표에 없는 날짜는 해시로 0.90~1.12 사이의 결정적 계수를 만든다 (Mock) */
+/* 프리셋들이 종료일을 공유하므로(어제·7일·30일 모두 08/18) 기간 전체를 키로 쓴다 */
+function curDateKey(){
+  if(typeof MKTSET === 'undefined' || !MKTSET.dateTo) return curDate;
+  return MKTSET.dateFrom + '~' + MKTSET.dateTo;
+}
+function curCrop(){ const c = (typeof MKTSET !== 'undefined') ? MKTSET.crop : curItem; return ITEM_BASE[c] ? c : '양파'; }
+function dateF(){
+  if(typeof MKTSET !== 'undefined' && MKTSET.dateFrom === MKTSET.dateTo && DATE_FACTOR[MKTSET.dateTo])
+    return DATE_FACTOR[MKTSET.dateTo];                 /* 하루 조회는 기존 표를 그대로 */
+  return 0.90 + (h32(curDateKey())%220)/1000;
+}
+function sidoPrice(cd){ return SIDO_DATA[cd].price * ITEM_BASE[curCrop()]/1240 * dateF(); }
 function valOf(level, code){
   if(mapMetric === 'price'){
     if(level==='sido') return sidoPrice(code);
-    if(level==='sig') return sidoPrice(code.slice(0,2)) * (0.86 + (h32(code+curItem)%281)/1000);
-    return sidoPrice(code.slice(0,2)) * (0.86 + (h32(code.slice(0,5)+curItem)%281)/1000) * (0.93 + (h32(code)%141)/1000);
+    if(level==='sig') return sidoPrice(code.slice(0,2)) * (0.86 + (h32(code+curCrop())%281)/1000);
+    return sidoPrice(code.slice(0,2)) * (0.86 + (h32(code.slice(0,5)+curCrop())%281)/1000) * (0.93 + (h32(code)%141)/1000);
   }
   if(level==='sido') return SIDO_DATA[code].net;
   if(level==='sig'){ const b=SIDO_DATA[code.slice(0,2)].net; return Math.max(-2.5, b + ((h32(code+'n')%60)-30)/10); }
@@ -3150,4 +3193,30 @@ document.addEventListener('mouseover', e=>{
   const fab = document.getElementById('mapViewFab');
   if(pan && fab) pan.appendChild(fab);
   mapTab('map');                     /* 첫 진입은 지도 탭 */
+
+  /* 헤더 로고 자리에 현재 화면 이름을 보여 준다 */
+  const PAGE_NAME = {dashboard:'대시보드', chatbot:'알농이', map:'판로 지도', docs:'행정서류', mypage:'마이페이지', design:'디자인시스템'};
+  window.syncMobileHeader = function(){
+    const el = document.getElementById('gnbPage');
+    if(el) el.textContent = PAGE_NAME[currentPage] || '';
+  };
+  /* 아래로 스크롤하면 탭바를 감추고, 위로 올리면 다시 보여 준다.
+     서류·마이페이지·전체 화면에서는 상시 노출 */
+  const ALWAYS = ['docs','mypage'];
+  let lastY = 0;
+  window.bindTabbarAutoHide = function(page){
+    const vp = osScroller(page);
+    if(!vp || vp.dataset.tbbind) return;
+    vp.dataset.tbbind = '1';
+    vp.addEventListener('scroll', ()=>{
+      const tb = document.querySelector('.tabbar'); if(!tb) return;
+      const y = vp.scrollTop;
+      if(ALWAYS.indexOf(currentPage) > -1 || document.getElementById('allMenu')?.classList.contains('open')){
+        tb.classList.remove('tb-hide'); lastY = y; return;
+      }
+      if(y > lastY + 6 && y > 40) tb.classList.add('tb-hide');
+      else if(y < lastY - 6) tb.classList.remove('tb-hide');
+      lastY = y;
+    }, {passive:true});
+  };
 })();
