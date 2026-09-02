@@ -118,6 +118,8 @@ function nav(id){
   currentPage = id;
   // 챗봇 페이지에서는 플로팅 숨김
   document.getElementById('fab').style.display = (id==='chatbot') ? 'none' : '';
+  /* 알농이는 전체화면 — 하단 탭바를 감추고 헤더의 ‹ 로 돌아간다 */
+  document.body.classList.toggle('chat-full', id==='chatbot');
   if(id==='chatbot'){ closeChatPanel(); setTimeout(initChatWidget, 120); }
   if(id==='dashboard'){ setTimeout(initChart, 150); if(typeof renderDashKpis === 'function') renderDashKpis(); }
   if(id==='docs' && !document.querySelector('.doc-view.on')) goDocView('home');
