@@ -493,6 +493,7 @@ window.msubClose = function(){
   var CHEV = '<svg width="7" height="12" viewBox="0 0 8 12" fill="none"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#C2C9C4" stroke-width="1.6" stroke-linecap="round"/></svg>';
   var rows = [
     ['내 자료 가져오기', "mdwOpen()", '전송요구'],
+    ['직접 입력', "onbOpen()", '내 정보 입력'],
     ['데이터 활용 동의', "msubOpen('use')", 'AI 상담 · 서류 생성'],
     ['데이터 연동 관리', "msubOpen('conn')", '3 / 4 기관'],
     ['데이터 이용내역 · 영수증', "msubOpen('rcpt')", ''],

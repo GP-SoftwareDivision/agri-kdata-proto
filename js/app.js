@@ -1811,7 +1811,7 @@ renderMktBars();
    첫 로그인에 한 번 열리고, 건너뛰면 마이페이지 > 직접 입력으로 재진입한다. */
 const ONB_KEY  = 'agriG.profile.v1';
 const ONB_SEEN = 'agriG.onboarded';
-const ONB_CROPS = ['양파','마늘','배추','무','고추','그 외'];
+const ONB_CROPS = ['양파','마늘','배추','무','고추','직접 입력'];
 function onbLoad(){ try{ return JSON.parse(localStorage.getItem(ONB_KEY)||'null')||{}; }catch(e){ return {}; } }
 function onbSeen(){ try{ localStorage.setItem(ONB_SEEN,'1'); }catch(e){} }
 
@@ -1841,15 +1841,26 @@ function onbOpen(){
   document.getElementById('onbPhone').value  = p.phone  || '010-1234-5678';
   document.getElementById('onbArea').value   = p.area   || '1.2';
   document.getElementById('onbAreaUnit').value = p.areaUnit || 'ha';
-  const crop = p.crop || '양파';
+  /* 저장된 작물이 5대 작물이 아니면 '직접 입력' 칩 + 입력창에 채워 둔다 */
+  const saved = p.crop || '양파';
+  const isCustom = ONB_CROPS.indexOf(saved) < 0;
+  const crop = isCustom ? '직접 입력' : saved;
   document.getElementById('onbCrops').innerHTML = ONB_CROPS.map(c=>
     `<button class="onb-chip${c===crop?' on':''}" onclick="onbPickCrop(this)">${c}</button>`).join('');
+  const cc = document.getElementById('onbCropCustom');
+  cc.value = isCustom ? saved : '';
+  cc.style.display = crop === '직접 입력' ? '' : 'none';
   onbState('st-intro');
   openModal('onbModal');
 }
 function onbPickCrop(btn){
   document.querySelectorAll('#onbCrops .onb-chip').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
+  /* '직접 입력'을 고르면 작물 이름 입력창이 열린다 */
+  const cc = document.getElementById('onbCropCustom');
+  const custom = btn.textContent === '직접 입력';
+  cc.style.display = custom ? '' : 'none';
+  if(custom) setTimeout(()=>cc.focus(), 60);
 }
 function onbSkip(){
   onbSeen();
@@ -1869,6 +1880,12 @@ function onbBegin(){
     validate: function(i){
       if(i===0 && !document.getElementById('onbFarmNo').value.trim()){ toast('err','경영체 등록번호를 입력해 주세요'); return false; }
       if(i===3 && !document.getElementById('onbPhone').value.trim()){ toast('err','휴대폰 번호를 입력해 주세요'); return false; }
+      if(i===4){
+        const on = document.querySelector('#onbCrops .onb-chip.on');
+        if(on && on.textContent === '직접 입력' && !document.getElementById('onbCropCustom').value.trim()){
+          toast('err','재배하시는 작물 이름을 입력해 주세요'); return false;
+        }
+      }
       return true;
     },
     cancel: function(){ onbState('st-intro'); },   /* 1단계에서 이전 → 안내 화면으로 */
@@ -1876,7 +1893,8 @@ function onbBegin(){
   });
 }
 function onbFinish(){
-  const crop = (document.querySelector('#onbCrops .onb-chip.on')||{}).textContent || '양파';
+  let crop = (document.querySelector('#onbCrops .onb-chip.on')||{}).textContent || '양파';
+  if(crop === '직접 입력') crop = document.getElementById('onbCropCustom').value.trim() || '기타';
   const data = {
     farmNo: document.getElementById('onbFarmNo').value.trim(),
     bizNo:  document.getElementById('onbBizNo').value.trim(),

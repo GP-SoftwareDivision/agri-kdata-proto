@@ -1009,3 +1009,9 @@ html.m .map-full[data-view="table"] .rgn-bar{align-items:center}
 /* 표가 남는 높이를 채워 아래에 빈 띠가 생기지 않게 */
 html.m .map-full[data-view="table"] #mapTable{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
 html.m .map-full[data-view="table"] .mt-scroll{flex:1 1 auto;max-height:none;min-height:0}
+/* 첫 이용 안내 — 헤더·본문 숨쉴 여백 */
+html.m #onbModal .m-head{padding:18px 18px 10px 20px}
+html.m #onbModal.st-steps .m-head{padding-left:10px}   /* ← 버튼이 있는 동안은 버튼이 여백 역할 */
+html.m #onbBody{padding:24px 20px 18px}
+html.m .onb-intro{padding-left:20px;padding-right:20px}
+html.m .onb-done{padding-left:22px;padding-right:22px}

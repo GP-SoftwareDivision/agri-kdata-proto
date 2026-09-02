@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=177">
-<link rel="stylesheet" href="css/mobile.css?v=177">
+<link rel="stylesheet" href="css/style.css?v=178">
+<link rel="stylesheet" href="css/mobile.css?v=178">
 </head>
 <body>
 
@@ -1801,6 +1801,7 @@ docker run --rm -p 8080:8080 \
       <div>
         <div class="q-lbl">주로 무엇을 재배하시나요?</div>
         <div class="onb-chips" id="onbCrops"></div>
+        <input class="inp" id="onbCropCustom" autocomplete="off" placeholder="재배 작물 이름을 입력해 주세요" style="display:none;margin-top:10px">
         <div class="onb-area">
           <input class="inp" id="onbArea" inputmode="decimal" autocomplete="off" placeholder="재배 면적">
           <select class="mt-sel" id="onbAreaUnit"><option value="ha">ha</option><option value="평">평</option><option value="㎡">㎡</option></select>
@@ -1870,7 +1871,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=177"></script>
-<script src="js/mobile-flow.js?v=177"></script>
+<script src="js/app.js?v=178"></script>
+<script src="js/mobile-flow.js?v=178"></script>
 </body>
 </html>
