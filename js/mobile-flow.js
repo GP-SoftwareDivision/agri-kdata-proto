@@ -525,13 +525,14 @@ window.msubClose = function(){
   var ttl  = head && head.querySelector('.sec-t');
   if(!btn || !ttl) return;
   btn.innerHTML = '새 서류 작성';                       /* '+' 아이콘 제거 */
+  ttl.textContent = '내 서류 목록';
   var wrap = document.createElement('div');
   wrap.style.cssText = 'padding:6px 16px 18px';
   btn.style.width = '100%';
   wrap.appendChild(btn);
   card.appendChild(wrap);                               /* 목록 아래 3번째 블록으로 */
   var info = document.createElement('button');
-  info.className = 'ihelp'; info.textContent = 'i'; info.setAttribute('aria-label','내 서류함 도움말');
+  info.className = 'help-q'; info.textContent = '?'; info.setAttribute('aria-label','내 서류 목록 도움말');
   info.onclick = function(){ toast('info','완성 서류와 변환한 서식은 이 기기(브라우저)에만 저장돼요. 개인정보 원본은 서버에 보관하지 않고, 작성할 때마다 마이데이터를 실시간 조회해 최신 값으로 채워요.'); };
   ttl.after(info);
   /* '내 서류함' 헤더를 카드 밖 독립 타이틀로 분리 */

@@ -120,6 +120,7 @@ function nav(id){
   document.querySelectorAll('.gnb-item,.tb-item,.sb-item').forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
   /* 지도는 화면을 꽉 쓰므로 하단 탭바를 감춘다 (헤더 ‹ 로 빠져나간다) */
   document.documentElement.classList.toggle('map-page', id==='map');
+  document.documentElement.classList.toggle('docs-page', id==='docs');   /* 헤더를 페이지 배경에 녹인다 */
   if(currentPage && currentPage !== id) prevPage = currentPage;
   currentPage = id;
   // 챗봇 페이지에서는 플로팅 숨김

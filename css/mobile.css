@@ -404,6 +404,7 @@ html.m #dv-home>.card+.card{display:none !important}
 html.m #dv-home .badge.bg-mut{display:none}
 /* 헤더에 화면 이름이 있으므로 페이지 큰 제목은 생략, 설명만 */
 html.m #docPageTitle{display:none}
+html.m #docSubtitle{display:none}   /* 홈 상단 안내 문구도 감춘다 — 설명은 ? 도움말로 */
 /* '내 서류함' — 카드 밖 독립 섹션 타이틀 */
 html.m .mdc-sec{padding:6px 20px 10px !important}
 html.m .mdc-sec .sec-t{font-size:16px}
@@ -1037,16 +1038,8 @@ html.m .mdc-t{min-width:0}
 html.m .mdc-t b{min-width:0;flex:0 1 auto}
 html.m .mdc-bot{min-width:0}
 
-/* 목록은 스크롤, '새 서류 작성' 은 화면 최하단 고정 */
-html.m #dv-home{height:calc(100dvh - var(--hdr,54px));padding-bottom:0;overflow:hidden}
-html.m #dv-home > .card:first-of-type{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
-html.m #dv-home #docList{flex:1 1 auto;min-height:0;overflow-y:auto;
-  padding-bottom:calc(96px + env(safe-area-inset-bottom))}
-/* 헤더 줄의 '새 서류 작성' 버튼을 하단 고정 바로 뺀다 */
-html.m #dv-home .btn.btn-pri{position:fixed;left:16px;right:16px;
-  bottom:calc(70px + env(safe-area-inset-bottom));width:auto;z-index:80;
-  box-shadow:0 6px 20px rgba(10,92,54,.24)}
-html.m #dv-home .mdc-sec{padding-right:20px !important}
+/* '새 서류 작성' 은 목록 아래(페이지 하단) 흐름에 둔다 — 플로팅 금지 */
+html.m #dv-home .btn.btn-pri{width:100%;justify-content:center}
 
 /* ══════════ 조정 (2026-09-02 저녁) ══════════ */
 
@@ -1074,3 +1067,19 @@ html.m .mkt-dashbar .mkt-preset-sel .select-opt > span{width:100%;text-align:cen
 /* ── 알농이: 좌측 상단 목록 버튼 그림자 제거 ── */
 html.m #page-chatbot .chat-bar .ct-tgl{box-shadow:none}
 html.m #page-chatbot .mb-ico{box-shadow:none}
+
+/* ══════════ 행정서류 홈 — 레퍼런스형 목록 ══════════ */
+/* 헤더는 페이지 배경에 녹여 단순하게 (배경·그림자 제거) */
+html.m.docs-page .gnb{background:var(--bg);box-shadow:none;border-bottom:none}
+/* 좌우를 넓게: 페이지 패딩 축소 */
+html.m #page-docs .wrap{padding-left:10px;padding-right:10px}
+html.m .mdc-sec{padding:12px 12px 8px !important}
+html.m .mdc-sec .sec-t{font-size:20px;font-weight:800;letter-spacing:-.4px}
+/* 목록: 개별 박스 대신 흰 카드 하나 + 헤어라인 행 */
+html.m #dv-home > .card:first-of-type{border:none;border-radius:18px}
+html.m #dv-home #docList{display:flex;flex-direction:column;gap:0;padding:4px 20px 0}
+html.m .mdc{border:none;border-radius:0;padding:16px 2px 14px;border-bottom:1px solid #F1F3F2}
+html.m #dv-home #docList .mdc:last-child{border-bottom:none}
+html.m .mdc:active{box-shadow:none;background:var(--g50)}
+html.m .mdc-badge{top:17px;right:0}
+html.m .mdc-del{right:-8px;bottom:6px}
