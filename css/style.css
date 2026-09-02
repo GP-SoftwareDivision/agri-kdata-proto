@@ -126,7 +126,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .phone-frame-label a{font-weight:700}
 
 /* ── GNB ─────────────────────── */
-.gnb{flex-shrink:0;height:60px;background:#fff;border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 32px;gap:36px;z-index:50}
+.gnb{flex-shrink:0;height:60px;background:#fff;border-bottom:none;box-shadow:0 1px 3px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.05);display:flex;align-items:center;padding:0 32px;gap:36px;z-index:50}
 .gnb-logo{display:flex;align-items:center;gap:9px;cursor:pointer}
 .gnb-menu{display:flex;gap:6px;flex:1}
 .gnb-item{font-size:15px;font-weight:500;color:#4B5563;padding:6px 12px;border-radius:8px;position:relative;transition:color .2s,background .2s}
@@ -1063,3 +1063,13 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 .onb-done p{font-size:13.5px;color:var(--sub);line-height:1.7;margin:6px 0 16px;word-break:keep-all}
 /* 지도 아이콘 레일은 모바일 지도뷰 전용 (PC 는 우측 패널을 상시 노출한다) */
 .map-icons{display:none}
+
+/* 셀렉트 화살표가 글자보다 살짝 아래로 보이던 문제 — SVG 를 블록으로 만들어 중앙선을 맞춘다 */
+.select-btn > svg{display:block;flex-shrink:0;align-self:center}
+.select-btn{line-height:1}
+/* 표·시도/시군구 select 드롭다운이 이웃 카드에 가리지 않게 (문제: 시군구 목록이 표 뒤로 들어감) */
+.rgn-bar,.rgn-sel,.mt-fld{position:relative}
+/* 표(.mf-table)가 .mf 층(z:800)이라 그보다 위여야 드롭다운이 안 가린다 */
+.rgn-bar{z-index:900}
+.rgn-sel .select-list,.mt-fld .select-list{z-index:920}
+.rgn-sel.open,.mt-fld .select.open{z-index:921}

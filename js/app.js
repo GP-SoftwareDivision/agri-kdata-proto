@@ -133,6 +133,7 @@ function nav(id){
     if(typeof initPanMap === 'function') initPanMap();
     if(panMap && panMap.invalidateSize) panMap.invalidateSize();
     if(typeof lockNationZoom === 'function') lockNationZoom();
+    if(typeof syncHdrVar === 'function') syncHdrVar();
     if(typeof syncTableTop === 'function') syncTableTop();
     if(typeof initMapChart === 'function') initMapChart();   /* 모바일은 차트 탭에서 다시 시도 */
   }, 180);
@@ -1297,7 +1298,6 @@ function mktDashBarHtml(){
       ${mktFavIcHtml()}
       ${mktCropSelHtml(MKTSET,'mkt')}
       ${M_UI ? mktPresetSelHtml(MKTSET,'mkt') : mktRangeHtml(MKTSET,'mkt')+mktPresetSegHtml(MKTSET,'mkt')}
-      ${M_UI ? mktRangeHtml(MKTSET,'mkt') : ''}
     </div>`;
 }
 /* 즐겨찾기 ★ + 호버 팝오버 (설정 필요 항목이 있으면 아이콘에 느낌표) */
@@ -1916,7 +1916,7 @@ function onbFinish(){
 })();
 
 /* ══════════ 행정서류 — 내 서류함 + 4단계 위저드 ══════════ */
-const DOCS_KEY = 'agri_docs_v1';
+const DOCS_KEY = 'agri_docs_v2';   /* 샘플 확장 — v1 저장분과 섞이지 않게 키를 올림 */
 const TPLS_KEY = 'agri_tpls_v1';
 const CHECK_W = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.8 9L10 3.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CHECK_G = '<svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="flex-shrink:0"><circle cx="6" cy="6" r="5.2" stroke="#0E7A46" stroke-width="1.2"/><path d="M3.5 6.2L5.3 8L8.5 4.5" stroke="#0E7A46" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -1933,8 +1933,13 @@ function loadStore(key, seed){
 function loadDocs(){
   if(!docs) docs = loadStore(DOCS_KEY, [
     {name:'농업경영회생자금(정책자금) 신청서', org:'농림축산식품부', date:'2026-08-17', status:'draft', prog:60},
+    {name:'농업직불금 등록 신청서', org:'국립농산물품질관리원', date:'2026-08-05', status:'draft', prog:35},
     {name:'면세유 배정 신청서', org:'지역 농협', date:'2026-07-02', status:'done'},
-    {name:'농업경영체 변경 신고서', org:'국립농산물품질관리원', date:'2026-05-28', status:'done'}
+    {name:'농작물재해보험 가입 신청서', org:'NH농협손해보험', date:'2026-06-19', status:'done'},
+    {name:'농업경영체 변경 신고서', org:'국립농산물품질관리원', date:'2026-05-28', status:'done'},
+    {name:'친환경농산물 인증 신청서', org:'국립농산물품질관리원', date:'2026-04-30', status:'done'},
+    {name:'농지원부 등본 발급 신청서', org:'청송군청', date:'2026-03-14', status:'done'},
+    {name:'스마트팜 보급사업 신청서', org:'농림축산식품부', date:'2026-02-08', status:'done'}
   ]);
   return docs;
 }
@@ -2882,11 +2887,15 @@ function tfApplyToMap(){
 /* 지역 bounds 로 비행 — minZ 는 최소 줌 보장, maxZ 는 그 이상 확대 금지(레벨 자동 전환 방지) */
 function flyRegion(b, minZ, maxZ){
   if(!b || !panMap || panMap === 'loading') return;
+  /* 표 보기에서는 지도가 숨겨져 크기가 0 이라 getBoundsZoom 이 NaN 을 낸다 (flyTo 가 터진다) */
+  const sz = panMap.getSize();
+  if(!sz || sz.x < 40 || sz.y < 40) return;
   const o = fitPad();
   const pad = L.point(o.paddingTopLeft[0]+o.paddingBottomRight[0], o.paddingTopLeft[1]+o.paddingBottomRight[1]);
   let z = panMap.getBoundsZoom(b, false, pad);
   if(minZ != null) z = Math.max(z, minZ);
   if(maxZ != null) z = Math.min(z, maxZ);
+  if(!isFinite(z)) return;
   /* 줌은 패딩(플로팅 패널)을 고려해 정하되, 중심은 지역의 실제 중심으로 잡는다.
      조준점이 곧 선택이라, 패딩된 중심으로 가면 조준점이 옆 지역에 떨어진다 */
   const c = b.getCenter();
@@ -2931,14 +2940,18 @@ function renderMapTable(){
 /* 지도와 같은 규칙: 올리면 정보만 바뀌고, 클릭하면 그 하위 레벨로 들어간다 */
 function tableRowHover(lv, c){
   if(PANEL.level===lv && PANEL.code===c) return;
+  tableRowSelect(lv, c);
+}
+/* depth 이동은 시도·시군구 select 로 옮겼으므로, 행을 누르면 '선택'만 한다.
+   선택하면 정보·차트·순위 패널이 그 지역 기준으로 바뀐다. */
+function tableRowDrill(lv, c){
+  tableRowSelect(lv, c);
+}
+function tableRowSelect(lv, c){
   PANEL = {level:lv, code:c};
   renderSel(); markRank();
   document.querySelectorAll('#mapTableBody tr').forEach(tr=>tr.classList.toggle('sel', tr.dataset.code===c));
-}
-function tableRowDrill(lv, c){
-  if(lv==='sido'){ tfChange('sido', c); return; }        /* 시도 → 그 시도의 시군구 목록 */
-  if(lv==='sig'){ tfChange('sig', c); return; }          /* 시군구 → 그 시군구의 읍면동 목록 */
-  tableRowHover(lv, c);                                   /* 읍면동은 더 내려갈 곳이 없다 */
+  if(typeof syncMapChart === 'function') syncMapChart();
 }
 
 /* ══════════ 모바일 탭 (지도 · 순위 · 정보 · 차트) ══════════ */
@@ -3494,9 +3507,18 @@ document.addEventListener('mouseover', e=>{
   const pan = document.getElementById('panMap');
   const ch = document.getElementById('crosshair');
   if(pan && ch) pan.appendChild(ch);   /* 조준점을 지도 안으로 (모바일은 hover 가 없어 조준점으로 고른다) */
-  /* 보기 전환 아이콘은 지도 우측 하단에 얹는다 */
+  /* 보기 전환 아이콘도 우측 하단 아이콘 레일에 함께 쌓는다 (4개 한 줄) */
   const fab = document.getElementById('mapViewFab');
-  if(pan && fab) pan.appendChild(fab);
+  const rail = document.getElementById('mapIcons');
+  if(rail && fab) rail.insertBefore(fab, rail.firstChild);
+  /* 헤더 높이를 변수로 — 지도를 헤더 위까지 끌어올릴 때 쓴다 (값을 박아 두면 헤더가 바뀔 때 깨진다) */
+  const syncHdrVar = ()=>{
+    const g = document.querySelector('.gnb');
+    if(g) document.documentElement.style.setProperty('--hdr', Math.round(g.getBoundingClientRect().height)+'px');
+  };
+  syncHdrVar();
+  window.addEventListener('resize', syncHdrVar);
+  window.syncHdrVar = syncHdrVar;
   mapTab('map');                     /* 첫 진입은 지도 탭 */
 
   /* 헤더 로고 자리에 현재 화면 이름을 보여 준다 */

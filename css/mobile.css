@@ -816,9 +816,8 @@ html.m .mkt-dashbar .mkt-preset-sel .select-list{width:100%;min-width:0;left:aut
 /* ══════════ 벤치마킹 정리 (2026-09-02) ══════════ */
 
 /* ── 상단·하단을 반투명으로 띄워 답답함을 줄인다 ── */
-html.m .gnb{background:rgba(255,255,255,.72);
-  -webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%);
-  border-bottom:1px solid rgba(228,232,230,.6)}
+html.m .gnb{background:#fff;box-shadow:0 1px 3px rgba(16,24,40,.07),0 6px 18px rgba(16,24,40,.05);
+  -webkit-backdrop-filter:none;backdrop-filter:none;border-bottom:none}
 html.m #page-dashboard #mktBarDash{background:rgba(255,255,255,.72);
   -webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%)}
 html.m #page-dashboard #mktBarDash::after{background:rgba(228,232,230,.7)}
@@ -925,8 +924,6 @@ html.m .mf-stats .stat-merge{box-shadow:0 6px 22px rgba(16,24,40,.16)}
 
 /* ── 지도 좌측 상단: 표 ↔ 지도 전환 (고정) ── */
 /* 앞선 정리 블록의 display:none !important 를 되돌린다 (전환 버튼을 좌측 상단으로 되살림) */
-html.m #panMap .mf-viewfab{display:block !important;position:absolute;left:12px;top:12px;
-  right:auto;bottom:auto;z-index:820}
 html.m .map-full[data-view="table"] .mf-viewfab2{display:inline-flex !important}
 
 /* ── 표 보기: 필터(뷰전환 + 시도·시군구) + 하단 고정바를 침범하지 않는 높이 ── */
@@ -952,8 +949,8 @@ html.m .onb-chip{padding:11px 18px;font-size:14.5px}
 /* ── 지도뷰: 지도가 헤더 아래까지 화면 전체를 쓴다 ──
    .map-full 을 헤더 높이만큼 끌어올려 뷰포트 전체로 만들고, 그 안에서 절대배치한다.
    (position:fixed 는 .page 의 pageIn transform 에 갇히므로 쓰지 않는다) */
-html.m .map-full[data-view="map"]{position:relative;margin-top:-70px;
-  height:calc(100dvh + 70px);min-height:calc(100dvh + 70px);padding:0;overflow:hidden}
+html.m .map-full[data-view="map"]{position:relative;margin-top:calc(-1 * var(--hdr,54px));
+  height:100dvh;min-height:0;padding:0;overflow:hidden}
 html.m .map-full[data-view="map"] #panMap{position:absolute;inset:0;width:auto;height:auto;
   flex:none;min-height:0;order:0}
 /* 지도뷰에서는 상단 탭 메뉴 대신 아이콘을 쓴다 */
@@ -971,10 +968,17 @@ html.m .mf-stats .stat-merge,html.m .map-full[data-view="map"] .mf-panel{
 html.m .map-full[data-view="map"] .mf-tlwrap{position:absolute;bottom:12px}
 html.m .map-full[data-view="map"] .mf-stats{position:absolute;bottom:74px}
 /* 보기 전환 버튼은 헤더 아래로 내린다 */
-html.m .map-full[data-view="map"] #panMap .mf-viewfab{top:152px}   /* 헤더(70) + 12 */
 
 /* ── 순위·정보·차트 아이콘 레일 (지도 우측) ── */
-html.m .map-full[data-view="map"] .map-icons{display:flex;flex-direction:column;gap:8px;position:absolute;right:12px;top:152px;z-index:830}
+html.m .map-full[data-view="map"] .map-icons{display:flex;flex-direction:column;gap:8px;
+  position:absolute;right:12px;top:auto;bottom:76px;z-index:830}
+/* 레일 안으로 옮긴 전환 버튼은 레일 흐름을 따른다 (절대배치 해제) */
+/* 레일로 옮겼으므로 #panMap 기준 예외가 아니라 레일 기준으로 다시 살린다 */
+html.m .map-icons .mf-viewfab{display:block !important;position:static !important;
+  top:auto;left:auto;right:auto;bottom:auto}
+html.m .map-icons .mf-viewfab .mb-ico{width:42px;height:42px;border-radius:12px;
+  background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:0 4px 14px rgba(16,24,40,.16)}
 html.m .mi-btn{width:42px;height:42px;border-radius:12px;color:var(--sub);
   background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   box-shadow:0 4px 14px rgba(16,24,40,.16);display:flex;align-items:center;justify-content:center;
@@ -983,7 +987,7 @@ html.m .mi-btn.on{background:var(--g600);color:#fff}
 
 /* ── 아이콘 패널: 조건바 위로 슬라이드 (한 번에 하나) ── */
 /* style.css 의 .mf-right{top:16px} 을 풀지 않으면 top+bottom 으로 화면 전체가 늘어난다 */
-html.m .map-full[data-view="map"] .mf-right{position:absolute;top:auto;left:12px;right:12px;bottom:74px;
+html.m .map-full[data-view="map"] .mf-right{position:absolute;top:auto;left:12px;right:66px;bottom:76px;
   width:auto;height:auto;margin:0;z-index:870;pointer-events:none}
 /* #mfRank{max-height:none} 같은 ID 규칙이 있어 !important 로 눌러야 한다 */
 html.m .map-full[data-view="map"] .mf-right .mf-panel{display:none !important;
@@ -1000,7 +1004,7 @@ html.m .map-full[data-view="map"]:not([data-mpanel=""]) .mf-stats{display:none}
 
 /* ── 표 보기: 하단 여백 제거 · 필터는 시도/시군구 행으로 통합 ── */
 /* flex:1 이 높이를 나눠 가지려면 컨테이너 높이가 '확정' 이어야 한다 (min-height 로는 안 된다) */
-html.m .map-full[data-view="table"]{height:calc(100dvh - 70px);min-height:0;overflow:hidden;
+html.m .map-full[data-view="table"]{height:calc(100dvh - var(--hdr,54px));min-height:0;overflow:hidden;
   padding-bottom:78px}
 html.m .map-full[data-view="table"] .mt-filters{display:none}   /* 전환 아이콘은 시도/시군구 행으로 옮겼다 */
 html.m .rgn-view{flex:0 0 auto;display:inline-flex;align-self:center}
@@ -1024,3 +1028,49 @@ html.m #amSvc{grid-template-columns:repeat(3,1fr);background:#fff;border-radius:
 /* 흰 박스들은 대시보드처럼 테두리 없이 */
 html.m .am-user{border:none}
 html.m .am-rows{border:none}
+/* ══════════ 행정서류 홈 정리 (2026-09-02) ══════════ */
+/* 카드가 컨테이너보다 넓어져 우측으로 넘치고 가로 스크롤이 생겼다.
+   flex 아이템의 기본 min-width:auto 가 '최소 콘텐츠 너비' 아래로 못 줄이게 막은 탓 */
+html.m #dv-home #docList{align-items:stretch}
+html.m .mdc{min-width:0;width:100%}
+html.m .mdc-t{min-width:0}
+html.m .mdc-t b{min-width:0;flex:0 1 auto}
+html.m .mdc-bot{min-width:0}
+
+/* 목록은 스크롤, '새 서류 작성' 은 화면 최하단 고정 */
+html.m #dv-home{height:calc(100dvh - var(--hdr,54px));padding-bottom:0;overflow:hidden}
+html.m #dv-home > .card:first-of-type{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+html.m #dv-home #docList{flex:1 1 auto;min-height:0;overflow-y:auto;
+  padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+/* 헤더 줄의 '새 서류 작성' 버튼을 하단 고정 바로 뺀다 */
+html.m #dv-home .btn.btn-pri{position:fixed;left:16px;right:16px;
+  bottom:calc(70px + env(safe-area-inset-bottom));width:auto;z-index:80;
+  box-shadow:0 6px 20px rgba(10,92,54,.24)}
+html.m #dv-home .mdc-sec{padding-right:20px !important}
+
+/* ══════════ 조정 (2026-09-02 저녁) ══════════ */
+
+/* 헤더는 어느 화면에서도 흰색 고정 (지도에서 반투명하게 두던 규칙 해제) */
+html.m.map-page .gnb{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* ── 대시보드 조건바: 보더 대신 그림자 + 아래로 갈수록 옅어지는 글래스 ──
+   바로 아래에 마스크를 씌운 blur 층을 깔아, 바에 가까울수록 흐려지고
+   완전히 가려지는 지점에서는 blur 로만 보이게 한다. */
+html.m #page-dashboard #mktBarDash{background:rgba(255,255,255,.86);
+  box-shadow:0 2px 10px rgba(16,24,40,.06);overflow:visible}
+html.m #page-dashboard #mktBarDash::after{content:'';position:absolute;left:0;right:0;top:100%;
+  height:26px;pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,.85),rgba(255,255,255,0));
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.55) 45%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.55) 45%,transparent 100%)}
+
+/* ── 모바일 대시보드 select: 값은 가운데 정렬 ── */
+html.m .mkt-dashbar .mkt-crop-sel .select-btn,
+html.m .mkt-dashbar .mkt-preset-sel .select-btn{justify-content:center;gap:6px;padding:0 8px}
+/* 작물은 목록을 왼쪽 정렬로 두고, 기간은 목록까지 가운데 정렬 */
+html.m .mkt-dashbar .mkt-preset-sel .select-opt{justify-content:center;text-align:center}
+html.m .mkt-dashbar .mkt-preset-sel .select-opt > span{width:100%;text-align:center}
+
+/* ── 알농이: 좌측 상단 목록 버튼 그림자 제거 ── */
+html.m #page-chatbot .chat-bar .ct-tgl{box-shadow:none}
+html.m #page-chatbot .mb-ico{box-shadow:none}
