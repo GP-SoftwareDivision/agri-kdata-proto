@@ -830,3 +830,19 @@ html.m #page-dashboard .sec-t .sec-sub{display:block;margin-top:3px}
   padding:0 0 10px;margin-right:28px}
 .chart-legend span{display:flex;align-items:center;gap:5px}
 .chart-b.legend-on .chart-legend{display:flex}
+
+/* ── 알농이(챗봇) 화면 ── */
+/* 상단 바: 아이콘·타이틀 없이 목록 버튼만, 테두리 없이 */
+html.m .chat-bar .mascot-sm,html.m .chat-bar .chat-title{display:none !important}
+html.m .chat-bar{padding:8px 12px}
+html.m .chat-bar .ct-tgl{border:none;background:transparent;box-shadow:none;color:var(--sub)}
+html.m .chat-bar .ct-tgl:active{background:var(--bg)}
+/* 하단 안내 문구(위젯 disclaimer) 제거 */
+html.m .agri-chat .disclaimer{display:none !important}
+/* 헤더: ‹ 뒤로가기 + 화면 이름 옆 작은 부제 */
+html.m .gnb-back{display:none;align-items:center;justify-content:center;width:34px;height:34px;
+  margin-left:-4px;border-radius:10px;background:transparent;color:var(--txt);flex-shrink:0}
+html.m .gnb-back.on{display:flex}
+html.m .gnb-back:active{background:var(--bg)}
+html.m .gnb-page{display:flex;align-items:baseline;gap:7px;min-width:0}
+html.m .gnb-sub{font-size:12px;font-weight:500;color:var(--sub);white-space:nowrap}

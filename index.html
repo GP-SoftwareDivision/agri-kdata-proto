@@ -122,6 +122,9 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
       </div>
       <div style="font-size:17px;font-weight:900;color:var(--g700)">agriG</div>
     </div>
+    <button class="gnb-back" id="gnbBack" onclick="navBack()" aria-label="뒤로">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
     <div class="gnb-page" id="gnbPage"></div>
     <nav class="gnb-menu">
       <button class="gnb-item" data-nav="dashboard" onclick="nav('dashboard')">대시보드</button>
@@ -390,7 +393,7 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3.5H12M2 7H12M2 10.5H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           <span class="ct-tgl-t">대화 목록</span></button>
         <img class="mascot-sm" src="assets/alnongi.png" alt="">
-        <div style="display:flex;align-items:baseline;gap:7px;min-width:0"><b style="font-size:16px;white-space:nowrap">알농이</b><span style="font-size:12px;color:var(--sub);white-space:nowrap">AI 영농 상담</span></div>
+        <div class="chat-title" style="display:flex;align-items:baseline;gap:7px;min-width:0"><b style="font-size:16px;white-space:nowrap">알농이</b><span style="font-size:12px;color:var(--sub);white-space:nowrap">AI 영농 상담</span></div>
         <span class="badge bg-ok">RAG 연동</span>
         <span class="conn" id="connChip"><i></i><span id="connText">연결 확인 중…</span></span>
         <div style="flex:1"></div>

@@ -1,5 +1,5 @@
 /* ══════════ 상태 & 네비게이션 ══════════ */
-let currentPage = null;
+let currentPage = null, prevPage = 'dashboard';
 let chartInited = false;
 
 /* ── PC/모바일 미리보기 전환 ── */
@@ -89,6 +89,9 @@ function enterApp(){
   }, 330);
 }
 
+/* 모바일 헤더의 ‹ — 직전 화면으로 (없으면 대시보드) */
+function navBack(){ nav(prevPage && prevPage !== currentPage ? prevPage : 'dashboard'); }
+
 function logoutApp(){
   closeSidebar();
   if(typeof segSyncSoon === 'function') segSyncSoon();
@@ -111,6 +114,7 @@ function nav(id){
   void pg.offsetWidth;
   pg.classList.add('active');
   document.querySelectorAll('.gnb-item,.tb-item,.sb-item').forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
+  if(currentPage && currentPage !== id) prevPage = currentPage;
   currentPage = id;
   // 챗봇 페이지에서는 플로팅 숨김
   document.getElementById('fab').style.display = (id==='chatbot') ? 'none' : '';
@@ -3359,9 +3363,14 @@ document.addEventListener('mouseover', e=>{
 
   /* 헤더 로고 자리에 현재 화면 이름을 보여 준다 */
   const PAGE_NAME = {dashboard:'대시보드', chatbot:'알농이', map:'판로 지도', docs:'행정서류', mypage:'마이페이지', design:'디자인시스템'};
+  const PAGE_SUB  = {chatbot:'AI 영농 상담'};
+  const BACK_ON   = ['chatbot'];          /* ‹ 를 보여 줄 화면 */
   window.syncMobileHeader = function(){
     const el = document.getElementById('gnbPage');
-    if(el) el.textContent = PAGE_NAME[currentPage] || '';
+    if(el) el.innerHTML = (PAGE_NAME[currentPage] || '')
+      + (PAGE_SUB[currentPage] ? ' <span class="gnb-sub">'+PAGE_SUB[currentPage]+'</span>' : '');
+    const bk = document.getElementById('gnbBack');
+    if(bk) bk.classList.toggle('on', BACK_ON.indexOf(currentPage) > -1);
   };
   /* 아래로 스크롤하면 탭바를 감추고, 위로 올리면 다시 보여 준다.
      서류·마이페이지·전체 화면에서는 상시 노출 */
