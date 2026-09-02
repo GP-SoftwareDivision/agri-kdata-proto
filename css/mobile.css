@@ -699,7 +699,7 @@ html.m .mkt-d{word-break:keep-all;line-height:1.55}
    셀렉트가 좁아진 만큼 날짜 탭이 넓어져 가시성이 올라간다. */
 html.m .mkt-dashbar .fld::before{display:none}
 html.m .mkt-dashbar{padding-top:0;row-gap:10px}
-html.m .mkt-dashbar .mkt-crop-sel{flex:0 1 132px;min-width:0}
+html.m .mkt-dashbar .mkt-crop-sel{flex:0 1 126px;width:126px;min-width:0}
 html.m .mkt-dashbar .mkt-crop-sel .select-btn{height:38px;padding:0 10px;font-size:13px}
 /* 옵션 목록 폭을 셀렉트 박스와 똑같이 맞춘다 (기본값 230px 해제) */
 html.m .mkt-dashbar .mkt-crop-sel .select-list{width:100%;min-width:0;left:0;right:auto}
@@ -789,6 +789,44 @@ html.m #page-dashboard .sec-b{background:#fff;border-radius:16px;padding:16px 18
 html.m #page-dashboard .card.sec .sec-b>[style*="border-left"]{border-radius:0 8px 8px 0}
 
 /* ══════════ 조건바: 기간을 탭 대신 select 로 우측 상단에 ══════════ */
-html.m .mkt-dashbar .mkt-preset-sel{order:3;margin-left:auto;flex:0 0 auto;width:98px}
+/* 1행([★][작물][기간])이 320px 폭에서도 절대 줄바꿈되지 않게 기준 폭을 잡는다.
+   flex-wrap 컨테이너는 '줄어들기'보다 '줄바꿈'을 먼저 하므로, 합이 들어가야 한다.
+   40 + 8 + 126 + 8 + 94 = 276 < 288(320px - 좌우 패딩 32)
+   공용 .select{min-width:130px} 이 지정 폭을 이기므로 min-width:0 이 필수. */
+html.m .mkt-dashbar .mkt-preset-sel{order:3;margin-left:auto;flex:0 1 94px;width:94px;min-width:0}
 html.m .mkt-dashbar .mkt-preset-sel .select-btn{height:38px;padding:0 10px;font-size:13px;font-weight:700}
 html.m .mkt-dashbar .mkt-preset-sel .select-list{width:100%;min-width:0;left:auto;right:0}
+
+/* ══════════ 벤치마킹 정리 (2026-09-02) ══════════ */
+
+/* ── 상단·하단을 반투명으로 띄워 답답함을 줄인다 ── */
+html.m .gnb{background:rgba(255,255,255,.72);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%);
+  border-bottom:1px solid rgba(228,232,230,.6)}
+html.m #page-dashboard #mktBarDash{background:rgba(255,255,255,.72);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%)}
+html.m #page-dashboard #mktBarDash::after{background:rgba(228,232,230,.7)}
+/* 하단 탭바: 경계선 대신 옅은 그림자로 떠 있게 */
+html.m .tabbar{background:rgba(255,255,255,.82);border-top:none;
+  -webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
+  box-shadow:0 -6px 20px rgba(16,24,40,.07)}
+
+/* ── 섹션: 제목 + 내용만, 사이 여백을 넉넉히 ── */
+html.m #page-dashboard .wrap>*+*{margin-top:26px}
+html.m #page-dashboard #mktBarDash+*{margin-top:16px}
+html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:26px}
+html.m #page-dashboard .sec-h{padding:0 2px;margin-bottom:2px}
+/* 제목 옆 보조 텍스트(청과·기간)는 줄바꿈해서 작게 */
+html.m #page-dashboard .sec-t .sec-sub{display:block;margin-top:3px}
+
+/* ── 차트: 범례는 ? 를 눌렀을 때만 ── */
+.chart-b{position:relative}
+.chart-q{position:absolute;top:10px;right:10px;z-index:2;width:22px;height:22px;border-radius:50%;
+  background:var(--bg);color:var(--mut);font-size:12px;font-weight:900;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:all .15s var(--ease)}
+.chart-q:hover{background:var(--g100);color:var(--g700)}
+.chart-b.legend-on .chart-q{background:var(--g600);color:#fff}
+.chart-legend{display:none;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--sub);
+  padding:0 0 10px;margin-right:28px}
+.chart-legend span{display:flex;align-items:center;gap:5px}
+.chart-b.legend-on .chart-legend{display:flex}

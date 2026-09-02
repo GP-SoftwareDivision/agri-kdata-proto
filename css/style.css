@@ -1028,3 +1028,4 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 .trust-b.force .tip{opacity:1;visibility:visible;transition:opacity .18s var(--ease)}
 /* SNS 로그인 CI 안내는 모바일에서만 (PC 는 하단 안내 박스를 그대로 쓴다) */
 .sns-hint{display:none}
+.sec-sub{font-size:12px;color:var(--mut);font-weight:400}

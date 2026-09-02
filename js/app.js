@@ -1145,6 +1145,18 @@ function mktDateLabel(){
   if(MKTSET.preset==='30일') return '최근 30일 (07/20~08/18)';
   return mdShort(MKTSET.dateFrom)+'~'+mdShort(MKTSET.dateTo);
 }
+/* 제목 옆에 쓰는 짧은 기간 표기 — 날짜 괄호는 빼고 '어제 / 최근 7일 / 최근 30일' 만 */
+function mktDateShort(){
+  if(MKTSET.preset==='어제') return '어제';
+  if(MKTSET.preset==='7일') return '최근 7일';
+  if(MKTSET.preset==='30일') return '최근 30일';
+  return mdShort(MKTSET.dateFrom)+'~'+mdShort(MKTSET.dateTo);
+}
+/* 범례는 기본으로 감추고 차트 안 ? 를 눌렀을 때만 (차트가 좁아 늘 띄우면 답답하다) */
+function tglLegend(btn){
+  const box = btn.closest('.chart-b');
+  if(box) box.classList.toggle('legend-on');
+}
 const TRUST_TIP = '청과(도매법인)의 실측 경락가를 그대로 쓰기 때문에, 시장 평균으로 추정한 값보다 데이터 신뢰도가 높아요.';
 const TRUST_B = '<span class="trust-b">신뢰<span class="tip">'+TRUST_TIP+'</span></span>';
 
@@ -1365,8 +1377,9 @@ function renderMktBars(){
   /* 차트 제목에 반영 */
   document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
     if(el.textContent.indexOf('가격 추이')>-1){
-      el.innerHTML = MKTSET.crop+' 가격 추이 <span style="font-size:12px;color:var(--mut);font-weight:400">'
-        + (curMk ? curMk.n+(MKTSET.cq?' · '+MKTSET.cq:'') : '전국 평균') + ' · ' + mktDateLabel() + ' · 원/kg</span>';
+      /* 제목 옆은 최소 정보만 — 청과명(없으면 시장명) · 기간. 단위는 차트를 누르면 나온다 */
+      const who = MKTSET.cq || (curMk ? curMk.s : '전국 평균');
+      el.innerHTML = MKTSET.crop+' 가격 추이 <span class="sec-sub">'+ who +' · '+ mktDateShort() +'</span>';
     }
   });
 }

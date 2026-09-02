@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=161">
-<link rel="stylesheet" href="css/mobile.css?v=161">
+<link rel="stylesheet" href="css/style.css?v=163">
+<link rel="stylesheet" href="css/mobile.css?v=163">
 </head>
 <body>
 
@@ -287,14 +287,17 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
       <div class="grid-2">
         <div class="card sec" style="padding:20px 24px;display:flex;flex-direction:column;gap:10px">
           <div class="sec-h" style="display:flex;align-items:center;justify-content:space-between">
-            <div class="sec-hl"><span class="sec-ic sec-ic-g"><svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M2.5 12.5L6.5 7.5L9.5 10.5L15.5 4" stroke="#0E7A46" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 4H15.5V7" stroke="#0E7A46" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sec-t">양파 가격 추이 <span style="font-size:12px;color:var(--mut);font-weight:400">단위: 원/kg</span></div></div>
-            <div style="display:flex;gap:14px;font-size:12px;color:var(--sub)">
-              <span style="display:flex;align-items:center;gap:5px"><i style="width:14px;height:3px;background:var(--g600);border-radius:2px"></i>실측</span>
-              <span style="display:flex;align-items:center;gap:5px"><i style="width:14px;border-top:3px dashed var(--orange)"></i>예측 (7일)</span>
-              <span style="display:flex;align-items:center;gap:5px"><i style="width:14px;height:10px;background:var(--orange-bg);border:1px solid #F3DFC2"></i>예측 범위</span>
-            </div>
+            <div class="sec-hl"><span class="sec-ic sec-ic-g"><svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M2.5 12.5L6.5 7.5L9.5 10.5L15.5 4" stroke="#0E7A46" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.5 4H15.5V7" stroke="#0E7A46" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div class="sec-t">양파 가격 추이</div></div>
           </div>
-          <div class="sec-b"><div id="priceChart" style="width:100%;height:300px"></div></div>
+          <div class="sec-b chart-b">
+            <button class="chart-q" onclick="tglLegend(this)" aria-label="범례 보기">?</button>
+            <div class="chart-legend" id="chartLegend">
+              <span><i style="width:14px;height:3px;background:var(--g600);border-radius:2px"></i>실측</span>
+              <span><i style="width:14px;border-top:3px dashed var(--orange)"></i>예측 (7일)</span>
+              <span><i style="width:14px;height:10px;background:var(--orange-bg);border:1px solid #F3DFC2"></i>예측 범위</span>
+            </div>
+            <div id="priceChart" style="width:100%;height:300px"></div>
+          </div>
         </div>
         <div class="card sec" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">
           <div class="sec-h" style="display:flex;align-items:center;justify-content:space-between">
@@ -1768,7 +1771,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=161"></script>
-<script src="js/mobile-flow.js?v=161"></script>
+<script src="js/app.js?v=163"></script>
+<script src="js/mobile-flow.js?v=163"></script>
 </body>
 </html>
