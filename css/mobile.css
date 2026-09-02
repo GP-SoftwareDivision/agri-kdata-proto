@@ -719,21 +719,41 @@ html.m #page-dashboard #mktBarDash{position:sticky;top:0;z-index:40;background:#
 html.m #page-dashboard #mktBarDash::after{content:'';position:absolute;left:18px;right:18px;bottom:0;
   height:1px;background:var(--bd)}
 
-/* ── 섹션 구분: 회색 디바이더 대신 여백 + 큰 제목 + 내어쓰기 ──
-   구분선을 걷어내고, 제목을 키워 콘텐츠보다 살짝 왼쪽으로 내어써서
-   눈이 '여기서 새 섹션이 시작된다'를 읽게 한다. */
-html.m #page-dashboard .wrap{background:#fff}
-html.m #page-dashboard .wrap>*{border-bottom:none}
-html.m #page-dashboard .wrap>*+*{margin-top:28px}
-html.m #page-dashboard #mktBarDash+*{margin-top:18px}   /* 조건바 바로 아래는 조금 좁게 */
-/* 섹션 좌우 기준선을 20px 로 통일 — 들여쓰기 대비가 성립하려면 기준이 같아야 한다 */
-html.m #page-dashboard .wrap>.kpis{padding:0 20px}
-html.m #page-dashboard .wrap>.grid-2>.card,
-html.m #page-dashboard .wrap>.grid-3>.card{padding-left:20px !important;padding-right:20px !important}
-html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:28px}
+/* ── 섹션 구분: 회색 배경 위에 테두리 없는 흰 박스 ──
+   흰 배경 + 흰 박스 + 테두리라 화면이 복잡해 보였다. 배경을 회색으로 낮추고
+   박스는 테두리 없이 흰색으로 띄워, 명도 대비만으로 경계를 만든다. */
+html.m #page-dashboard .wrap{background:var(--bg);padding:0 0 104px}
+html.m #page-dashboard .wrap>*{background:transparent;border-bottom:none}
+html.m #page-dashboard .wrap>*:not(#mktBarDash){padding-left:14px;padding-right:14px}
+html.m #page-dashboard .wrap>*+*{margin-top:14px}
+/* 고정 조건바는 박스가 아니라 바 — 풀폭 흰색 유지 */
+html.m #page-dashboard #mktBarDash{background:#fff;border-radius:0;box-shadow:none;
+  padding:12px 16px !important}
+/* 박스: 테두리 없이 흰색 + 아주 옅은 그림자로만 띄운다 */
+html.m #page-dashboard .card:not(.filterbar){background:#fff;border:none !important;border-radius:16px;
+  box-shadow:0 1px 3px rgba(16,24,40,.05);padding:18px !important}
+html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:14px}
 html.m #page-dashboard .wrap>.grid-2>.card+.card,
 html.m #page-dashboard .wrap>.grid-3>.card+.card{border-top:none}
-/* 제목: 크게 + 4px 내어쓰기(hanging) */
-html.m #page-dashboard .card .sec-t{font-size:18px;font-weight:900;letter-spacing:-.45px;
-  line-height:1.35;margin-left:-4px}
+html.m #page-dashboard .kpis{gap:10px !important}
+html.m #page-dashboard .kpis .kpi{border:none;border-radius:16px}
+/* 카드 안 중첩 박스(판로 추천 행)도 테두리 대신 옅은 면으로 */
+html.m #page-dashboard .mkt{border:none;background:#F7F8F8;border-radius:12px}
+html.m #page-dashboard .mkt.top{background:var(--g50)}
+/* 제목은 키우되, 박스 자체가 경계를 만드므로 내어쓰기는 쓰지 않는다 */
+html.m #page-dashboard .card .sec-t{font-size:17px;font-weight:900;letter-spacing:-.4px;line-height:1.35}
 html.m #page-dashboard .card .sec-t span{font-size:12.5px;margin-top:4px}
+
+/* ── 강조 박스만 글래스모피즘 (7일 후 예측가) ──
+   backdrop-filter 가 스택 컨텍스트를 만들므로, 광원(::before)은 z-index:-1 로
+   카드 배경 위·본문 아래에 깔린다. 테두리 없이 안쪽 하이라이트로 유리 윗면을 낸다. */
+html.m #page-dashboard .kpi.hl{position:relative;overflow:hidden;border:none !important;
+  background:linear-gradient(135deg,rgba(255,255,255,.80),rgba(231,243,236,.60));
+  -webkit-backdrop-filter:blur(14px) saturate(150%);backdrop-filter:blur(14px) saturate(150%);
+  box-shadow:0 10px 26px rgba(10,92,54,.14),inset 0 1px 0 rgba(255,255,255,.92)}
+html.m #page-dashboard .kpi.hl::before{content:'';position:absolute;z-index:-1;top:-52px;right:-34px;
+  width:176px;height:176px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(53,164,108,.30),rgba(53,164,108,0) 70%)}
+/* 제목+범례를 세로로 쌓는 규칙이 '판로 추천' 목록 컨테이너까지 잡아
+   행들이 내용 폭으로 줄어들어 있었다 — 목록은 폭을 채운다 */
+html.m .card > div[style*="justify-content:space-between"]:has(.mkt){align-items:stretch !important}
