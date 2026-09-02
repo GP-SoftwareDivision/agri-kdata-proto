@@ -1172,7 +1172,7 @@ function mktSearchInputHtml(st, F){
   const curMk = mktMarket(st.market);
   const searchVal = curMk ? curMk.s + (st.cq?' · '+st.cq:'') : '';
   return `
-    <div class="select mkt-search fld" data-select data-label="시장·청과 검색">
+    <div class="select mkt-search fld" data-select data-label="판로 검색">
       <input class="inp ms-inp" placeholder="비워두면 전체" value="${searchVal}"
         onfocus="this.select();${F}SearchOpen(this,true)" oninput="${F}SearchOpen(this)" onclick="event.stopPropagation()">
       ${curMk?`<button class="ms-x" onclick="${F}SearchClear(event)" aria-label="조건 지우기">✕</button>`:''}
@@ -1182,7 +1182,7 @@ function mktSearchInputHtml(st, F){
 function mktSearchIcoHtml(st){
   const curMk = mktMarket(st.market);
   const cond = curMk ? curMk.n + (st.cq ? ' · ' + st.cq : '') : '전국 평균';
-  return `<button class="mb-ico" onclick="openMktSearch()" title="시장·청과 검색 — 지금 ${cond}" aria-label="시장·청과 검색">${SEARCH_SVG}</button>`;
+  return `<button class="mb-ico" onclick="openMktSearch()" title="판로 검색 — 지금 ${cond}" aria-label="판로 검색">${SEARCH_SVG}</button>`;
 }
 function mktRangeHtml(st, F){
   return `
@@ -1401,23 +1401,26 @@ function openMktSearch(){
 function mktSearchModalFill(){
   const inp = document.getElementById('mktSearchInput');
   const q = inp ? inp.value.trim() : '';
-  const rows = [];
-  MKT_MARKETS.forEach(m=>{
-    const mHit = !q || m.n.includes(q) || m.s.includes(q);
-    const cqHits = (m.cq||[]).filter(c=>!q || c.includes(q) || mHit);
-    if(!mHit && !cqHits.length) return;
-    rows.push(`<div class="select-opt" onclick="mktSearchModalPick('${m.n}',null)"><span><b>${m.n}</b></span><span class="dup">${m.d||'시장 평균'}</span></div>`);
-    cqHits.forEach(c=>rows.push(`<div class="select-opt ms-cq" onclick="mktSearchModalPick('${m.n}','${c}')"><span>${c}</span><span class="dup">청과 실측</span></div>`));
-  });
-  const head = `<div class="select-opt" onclick="mktSearchModalPick(null,null)"><span><b>전국 평균으로 보기</b></span><span class="dup">조건 비우기</span></div>`;
+  const tf = document.getElementById('mktSearchType');
+  const ty = tf ? tf.value : '';
+  const rows = MARKETS
+    .filter(m=>(!ty || m.t===ty) && (!q || m.n.includes(q) || MK_TYPE[m.t].label.includes(q)))
+    .map(m=>`<div class="select-opt" onclick="mktSearchModalPick('${m.id}')">
+        <span><span class="mk-dot" style="background:${MK_TYPE[m.t].color}"></span><b>${m.n}</b></span>
+        <span class="dup">${MK_TYPE[m.t].label}</span></div>`);
+  const head = `<div class="select-opt" onclick="mktSearchModalPick('')"><span><b>전국 평균으로 보기</b></span><span class="dup">조건 비우기</span></div>`;
   document.getElementById('mktSearchList').innerHTML = rows.length ? head + rows.join('')
     : head + '<div class="select-empty">검색 결과가 없어요</div>';
 }
-function mktSearchModalPick(market, cq){
+function mktSearchModalPick(id){
   closeModal('mktSearchModal');
-  if(!market){ MKTSET.market = null; MKTSET.cq = null; renderMktBars(); refreshMapDeps();
+  if(!id){ MKTSET.market = null; MKTSET.cq = null; renderMktBars(); refreshMapDeps();
     toast('info','조건을 비워 전국 평균 기준으로 보여드려요'); return; }
-  mktSearchPick(market, cq);
+  const m = MARKETS.find(x=>x.id===id); if(!m) return;
+  MKTSET.market = m.n; MKTSET.cq = null;
+  renderMktBars(); refreshMapDeps();
+  if(currentPage === 'map'){ mkFocus(id); }
+  toast('ok', m.n+' 기준으로 보여드릴게요');
 }
 /* 조건이 바뀌면 표·차트 제목도 같이 따라간다 */
 function refreshMapDeps(){
@@ -2161,6 +2164,40 @@ let lyrs = {sido:{}, sig:{}, emd:{}};               // code → polygon layer
 let lbls = {sido:{}, sig:{}, emd:{}};               // code → label marker
 let bnds = {sido:{}, sig:{}, emd:{}};
 
+/* ── 지역별 판로(시장) 조회 ──
+   시장은 sido 코드를 데이터로 갖고, 시군구는 폴리곤 판정으로 그때그때 계산한다 */
+var MK_TYPE_FILTER = '';                 /* '' = 전체 */
+const mkSigCache = {};
+function mkSigOf(m){
+  if(mkSigCache[m.id] !== undefined) return mkSigCache[m.id];
+  const feats = sigBySido[m.sido] || [];
+  let hit = null;
+  for(const f of feats){
+    const b = bnds.sig[f.properties.SIG_CD];
+    if(b && !b.contains(L.latLng(m.lat, m.lng))) continue;
+    if(ptInFeature(m.lat, m.lng, f)){ hit = f.properties.SIG_CD; break; }
+  }
+  if(feats.length) mkSigCache[m.id] = hit;   /* 시군구 데이터가 로드된 뒤에만 캐시 */
+  return hit;
+}
+/* level/code 에 속한 시장 목록 (판로유형 필터 반영) */
+function marketsIn(level, code, ignoreType){
+  return MARKETS.filter(m=>{
+    if(!ignoreType && MK_TYPE_FILTER && m.t !== MK_TYPE_FILTER) return false;
+    if(!level || !code) return true;
+    if(level === 'sido') return m.sido === code;
+    if(level === 'sig') return m.sido === code.slice(0,2) && mkSigOf(m) === code;
+    return false;
+  });
+}
+/* 지역 대표가 = 그 지역 판로들의 평균 단가. 판로가 없으면 null */
+function regionPrice(level, code){
+  const ms = marketsIn(level, code);
+  if(!ms.length) return null;
+  const avg = ms.reduce((a,m)=>a+m.price,0)/ms.length;
+  return avg * ITEM_BASE[curCrop()]/1240 * dateF();
+}
+
 /* ── 값 생성 (품목·날짜·지역 결정적 시뮬레이션) ── */
 function h32(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
 /* 조회 조건(MKTSET)의 날짜·작물이 지도·표·대시보드 값에 그대로 반영된다.
@@ -2179,6 +2216,8 @@ function dateF(){
 function sidoPrice(cd){ return SIDO_DATA[cd].price * ITEM_BASE[curCrop()]/1240 * dateF(); }
 function valOf(level, code){
   if(mapMetric === 'price'){
+    const rp = regionPrice(level, code);
+    if(rp !== null) return rp;                 /* 그 지역 판로들의 평균 단가 */
     if(level==='sido') return sidoPrice(code);
     if(level==='sig') return sidoPrice(code.slice(0,2)) * (0.86 + (h32(code+curCrop())%281)/1000);
     return sidoPrice(code.slice(0,2)) * (0.86 + (h32(code.slice(0,5)+curCrop())%281)/1000) * (0.93 + (h32(code)%141)/1000);
@@ -2200,8 +2239,11 @@ function visibleCodes(){
   return (emdBySig[VIEW.sig]||[]).map(f=>['emd',f.properties.EMD_CD]);
 }
 function levelRange(){
-  const vs = visibleCodes().map(([lv,c])=>valOf(lv,c));
-  return [Math.min.apply(null,vs), Math.max.apply(null,vs)];
+  let vs = visibleCodes();
+  if(mapMetric === 'price') vs = vs.filter(([lv,c])=>hasMarkets(lv,c));
+  const arr = vs.map(([lv,c])=>valOf(lv,c));
+  if(!arr.length) return [0,1];
+  return [Math.min.apply(null,arr), Math.max.apply(null,arr)];
 }
 function heatColor(v, mn, mx){ const t=(v-mn)/((mx-mn)||1); return HEAT[Math.max(0,Math.min(4,Math.floor(t*5)))]; }
 
@@ -2213,8 +2255,12 @@ function ensureTip(){
 }
 function tipHtml(level, code){
   const m = METRIC_META[mapMetric];
-  return '<div class="tip-name">'+ (level==='sido' ? SIDO_DATA[code].full : nameOf(level, code)) +
-         '</div><div class="tip-val">'+m.title+' <b>'+m.fmt(valOf(level,code))+m.unit+'</b></div>';
+  const nm = level==='sido' ? SIDO_DATA[code].full : nameOf(level, code);
+  const n = marketsIn(level, code).length;
+  if(mapMetric === 'price' && !n)
+    return '<div class="tip-name">'+nm+'</div><div class="tip-val tip-none">판로 정보가 없습니다</div>';
+  return '<div class="tip-name">'+nm+'</div><div class="tip-val">'+m.title+' <b>'+m.fmt(valOf(level,code))+m.unit+'</b>'
+       + '<span class="tip-sub"> · 판로 '+n+'곳</span></div>';
 }
 /* 지도 툴팁(z 900)은 모달(.overlay z 110)보다 위층이라, 모달이 열려 있으면 아예 띄우지 않는다 */
 function modalOpen(){ return !!document.querySelector('.overlay.open'); }
@@ -2234,6 +2280,7 @@ function hideMapTip(){
 /* 조준점이 가리키는 타일에 hover 와 동일한 툴팁 표시 */
 function updateCrosshairTip(){
   const t = ensureTip();
+  if(chBusy || chLocked){ tipHover = false; t.classList.remove('show'); return; }
   if(modalOpen()){ tipHover = false; t.classList.remove('show'); return; }
   const ch = document.getElementById('crosshair');
   /* 지도가 안 보이는 상태(목록 보기·모바일 다른 탭)면 조준점 툴팁도 띄우지 않는다 */
@@ -2276,7 +2323,7 @@ function buildGroup(features, level){
         if(lyr.options.ghost) return;
         hideMapTip();
         if(level==='sido') focusSidoView(code);
-        else if(level==='sig') enterEmdView(code);
+        else if(level==='sig'){ PANEL={level:'sig', code}; renderSel(); markRank(); }
         /* emd 클릭: 지도 전환 없음(참조 규칙) — 패널만 갱신 */
         else { PANEL={level:'emd', code}; renderSel(); markRank(); }
       });
@@ -2285,6 +2332,7 @@ function buildGroup(features, level){
   group.addLayer(geoLayer);
   return group;
 }
+function hasMarkets(level, code){ return marketsIn(level, code).length > 0; }
 function restyle(level, code){
   const lyr = lyrs[level][code]; if(!lyr) return;
   const lm = lbls[level][code];
@@ -2298,7 +2346,10 @@ function restyle(level, code){
   if(lm&&lm._icon) lm._icon.classList.remove('label-dim');
   const [mn,mx] = levelRange();
   const selected = (PANEL.level===level && PANEL.code===code);
-  lyr.setStyle({fillColor:heatColor(valOf(level,code),mn,mx), fillOpacity:.92, weight:selected?2.4:1.1, color:selected?'#1A1E24':'#fff', opacity:selected?.55:.85});
+  /* 판로가 없는 지역은 값이 없으니 회색으로 (지도는 판로 기준이다) */
+  const none = (mapMetric === 'price' && !hasMarkets(level, code));
+  lyr.setStyle({fillColor: none ? '#E9ECEA' : heatColor(valOf(level,code),mn,mx),
+    fillOpacity: none ? .75 : .92, weight:selected?2.4:1.1, color:selected?'#1A1E24':'#fff', opacity:selected?.55:.85});
   if(selected) lyr.bringToFront();
 }
 
@@ -2463,9 +2514,12 @@ function ptInFeature(lat, lng, feature){
   return false;
 }
 let chRaf = 0, chSwitching = false;
+var chBusy = false;        /* 지도를 움직이는 중 */
+var chLocked = false;      /* 마커 팝업이 열려 있는 동안 조준점 정지 */
 function updateCrosshair(){
   const el = document.getElementById('crosshair');
   if(!el || !panMap || panMap === 'loading') return;
+  if(chLocked){ el.classList.remove('on'); return; }   /* 팝업이 열려 있으면 숨기고 멈춘다 */
   el.classList.add('on');                      /* 모든 레벨에서 상시 표시 */
   const c = panMap.getCenter();
 
@@ -2526,6 +2580,7 @@ function updateCrosshair(){
   updateCrosshairTip();
 }
 function queueCrosshair(){
+  if(chBusy || chLocked) return;
   if(chRaf) return;
   chRaf = setTimeout(function(){ chRaf = 0; updateCrosshair(); }, 40);
 }
@@ -2548,7 +2603,10 @@ function initPanMap(){
     panMap.getPane('drillLabels').style.zIndex = 460;
     panMap.getPane('drillLabels').style.pointerEvents = 'none';
     panMap.on('zoomend', onZoomEnd);
-    panMap.on('move zoom', queueCrosshair);
+    /* 드래그 중에는 갱신하지 않는다 — 손을 뗀 뒤(moveend/zoomend)에만 지역·툴팁을 바꾼다.
+       실시간으로 따라가면 값이 계속 깜빡여 읽기 어렵다 */
+    panMap.on('movestart zoomstart', function(){ chBusy = true; if($mapTip) $mapTip.classList.remove('show'); });
+    panMap.on('moveend zoomend', function(){ chBusy = false; queueCrosshair(); });
     panMap.on('movestart', function(){ if(Date.now() >= suppressUntil) userMoved = true; });
     groups.sido = buildGroup(GEO.sido.features, 'sido');
     panMap.addLayer(groups.sido);
@@ -2592,7 +2650,7 @@ function volOf(lv, code){ const sd = SIDO_DATA[code.slice(0,2)]; return lv==='si
 function feeOf(lv, code){ const sd = SIDO_DATA[code.slice(0,2)]; return lv==='sido' ? sd.fee : Math.max(8, sd.fee + (h32(code+'f')%30)-15); }
 
 /* ══════════ 지도 ↔ 목록(표) 전환 · 시도/시군구/읍면동 필터 ══════════ */
-let TF = {sido:'', sig:'', emd:''};          /* 표 필터 — 비우면 상위 전체 */
+let TF = {sido:'', sig:''};          /* 지역 필터 — 비우면 상위 전체 (읍면동은 쓰지 않는다) */
 function setMapView(v){
   mapView = v;
   const mf = document.querySelector('.map-full'); if(!mf) return;
@@ -2626,14 +2684,11 @@ function renderTableFilters(){
   host.innerHTML =
       rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '전체', false)
     + rgnSelHtml('sig','시군구', TF.sig, TF.sido ? tfSigList(TF.sido) : [], '전체', !TF.sido)
-    + rgnSelHtml('emd','읍면동', TF.emd, TF.sig ? tfEmdList(TF.sig) : [], '전체', !TF.sig);
+    ;
 }
 function tfChange(k, v){
-  if(k==='sido'){ TF.sido = v; TF.sig = ''; TF.emd = ''; }
-  else if(k==='sig'){ TF.sig = v; TF.emd = ''; }
-  else { TF.emd = v; }
-  /* 읍면동 목록은 7MB 라 시군구를 고른 시점에 지연 로드한다 */
-  if(k==='sig' && v && !GEO.emd){ ensureEmdIndex(()=>{ renderTableFilters(); renderMapTable(); tfApplyToMap(); }); }
+  if(k==='sido'){ TF.sido = v; TF.sig = ''; }
+  else if(k==='sig'){ TF.sig = v; }
   renderTableFilters(); renderMapTable(); tfApplyToMap();
 }
 /* select 를 바꾸면 지도·패널도 그 지역으로 따라간다 */
@@ -2642,11 +2697,7 @@ function tfApplyToMap(){
   if(tfSyncing || !panMap || panMap === 'loading') return;
   tfSyncing = true;
   try{
-    if(TF.emd && emdBySig[TF.sig]){
-      /* 읍면동 → 읍면동 레벨 */
-      PANEL = {level:'emd', code:TF.emd};
-      if(VIEW.level !== 'emd' || VIEW.sig !== TF.sig) enterEmdView(TF.sig); else { renderSel(); markRank(); }
-    } else if(TF.sig){
+    if(TF.sig){
       /* 시군구 → 시군구 레벨(시도 포커스) + 그 시군구로 이동 */
       PANEL = {level:'sig', code:TF.sig};
       if(VIEW.level !== 'sido' || VIEW.sido !== TF.sido) focusSidoView(TF.sido, true);
@@ -2684,16 +2735,13 @@ function flyRegion(b, minZ, maxZ){
 function syncTFfromPanel(){
   if(tfSyncing || !PANEL.code) return;
   const c = PANEL.code, lv = PANEL.level;
-  const next = lv==='sido' ? {sido:c, sig:'', emd:''}
-             : lv==='sig'  ? {sido:c.slice(0,2), sig:c, emd:''}
-             :               {sido:c.slice(0,2), sig:c.slice(0,5), emd:c};
-  if(next.sido===TF.sido && next.sig===TF.sig && next.emd===TF.emd) return;
+  const next = lv==='sido' ? {sido:c, sig:''} : {sido:c.slice(0,2), sig:c.slice(0,5)===c?c:c.slice(0,5)};
+  if(next.sido===TF.sido && next.sig===TF.sig) return;
   TF = next;
   renderTableFilters();
 }
 function tableRows(){
-  if(TF.emd) return [['emd', TF.emd]];
-  if(TF.sig) return (emdBySig[TF.sig]||[]).map(f=>['emd', f.properties.EMD_CD]);
+  if(TF.sig) return [['sig', TF.sig]];
   if(TF.sido) return (sigBySido[TF.sido]||[]).map(f=>['sig', f.properties.SIG_CD]);
   return Object.keys(SIDO_DATA).map(cd=>['sido', cd]);
 }
@@ -2770,24 +2818,34 @@ function renderSel(){
 }
 function mapMetricSafe(metric){ return mapValue(metric, PANEL.level, PANEL.code); }
 function renderRank(){
-  const m = METRIC_META[mapMetric];
-  const lvName = VIEW.level==='nation' ? '시도별' : VIEW.level==='sido' ? SIDO_DATA[VIEW.sido].n+' 시군구' : nameOf('sig',VIEW.sig)+' 읍면동';
-  document.getElementById('rankTitle').textContent = lvName+' 순위 · '+m.title;
-  const rows = visibleCodes().map(([lv,c])=>({lv, c, v:valOf(lv,c), n: lv==='sido'?SIDO_DATA[c].n:nameOf(lv,c)})).sort((a,b)=>b.v-a.v);
-  const max = rows.length ? rows[0].v : 1;
-  document.getElementById('rankList').innerHTML = rows.map((r,i)=>`
-    <div class="rank-row${(PANEL.level===r.lv&&PANEL.code===r.c)?' sel':''}" data-code="${r.c}" onclick="rankClick('${r.lv}','${r.c}')">
-      <span class="rk">${i+1}</span>
-      <span style="width:64px;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.n}</span>
-      <div class="rank-bar"><i style="width:${Math.max(4,Math.round(r.v/max*100))}%"></i></div>
-      <span style="width:70px;text-align:right;font-size:12px;font-weight:700">${m.fmt(r.v)}<span style="font-weight:400;color:var(--mut);font-size:10.5px">${m.unit}</span></span>
-    </div>`).join('');
+  const lvName = PANEL.level==='sido' ? (SIDO_DATA[PANEL.code]||{}).full : nameOf('sig', PANEL.code);
+  const list = marketsIn(PANEL.level, PANEL.code);
+  const t = document.getElementById('rankTitle');
+  if(t) t.textContent = (lvName || '전국') + ' 판로' + (MK_TYPE_FILTER ? ' · '+MK_TYPE[MK_TYPE_FILTER].label : '');
+  const box = document.getElementById('rankList');
+  if(!box) return;
+  if(!list.length){
+    box.innerHTML = '<div class="rank-empty">판로 정보가 없습니다.</div>';
+  } else {
+    const max = Math.max.apply(null, list.map(m=>m.price));
+    box.innerHTML = list.slice().sort((a,b)=>b.price-a.price).map(m=>`
+      <div class="rank-row mk-row" onclick="mkFocus('${m.id}')">
+        <span class="mk-dot" style="background:${MK_TYPE[m.t].color}"></span>
+        <span class="mk-nm">${m.n}</span>
+        <div class="rank-bar"><i style="width:${Math.max(6,Math.round(m.price/max*100))}%"></i></div>
+        <span class="mk-pv">${Math.round(m.price*ITEM_BASE[curCrop()]/1240*dateF()).toLocaleString()}<span class="u">원/kg</span></span>
+      </div>`).join('');
+  }
   if(typeof osUpdateFades === 'function') osUpdateFades();
 }
-function markRank(){
-  document.querySelectorAll('#rankList .rank-row').forEach(el=>el.classList.toggle('sel', el.dataset.code===PANEL.code));
-  paintVisible();
+/* 목록에서 고르면 그 판로로 지도를 옮기고 팝업을 연다 */
+function mkFocus(id){
+  const m = MARKETS.find(x=>x.id===id); if(!m || !panMap || panMap==='loading') return;
+  suppressUntil = Date.now() + 900;
+  panMap.flyTo([m.lat, m.lng], Math.max(panMap.getZoom(), 10), {duration:.6});
+  setTimeout(()=>{ try{ mkRef[id] && mkRef[id].openPopup(); }catch(e){} }, 700);
 }
+function markRank(){ renderRank(); paintVisible(); }
 function rankClick(lv, c){
   if(lv==='sido' && VIEW.level==='nation'){ focusSidoView(c); return; }
   if(lv==='sig' && VIEW.level==='sido'){ enterEmdView(c); return; }
@@ -2801,11 +2859,19 @@ function renderLegend(){
     const a = mn + (mx-mn)*i/5, b = mn + (mx-mn)*(i+1)/5;
     rows += '<div class="lg-row"><span class="lg-sw" style="background:'+HEAT[i]+'"></span>'+m.fmt(a)+' ~ '+m.fmt(b)+'</div>';
   }
-  let mkRows = '<div style="font-size:11px;font-weight:700;color:#4B5563;margin:8px 0 2px;padding-top:8px;border-top:1px solid #EEF1EF">판로 유형</div>';
+  let mkRows = '<div class="lg-t" style="margin-top:8px;padding-top:8px;border-top:1px solid #EEF1EF">판로 유형 <span class="lg-hint">클릭해서 걸러 보세요</span></div>';
+  mkRows += '<div class="lg-row lg-pick'+(MK_TYPE_FILTER?'':' on')+'" onclick="setMkType(\'\')"><span class="lg-sw lg-all"></span>전체</div>';
   Object.keys(MK_TYPE).forEach(function(k){
-    mkRows += '<div class="lg-row"><span class="lg-sw" style="background:'+MK_TYPE[k].color+';border-radius:50%;width:11px;height:11px"></span>'+MK_TYPE[k].label+'</div>';
+    mkRows += '<div class="lg-row lg-pick'+(MK_TYPE_FILTER===k?' on':'')+'" onclick="setMkType(\''+k+'\')">'
+      + '<span class="lg-sw" style="background:'+MK_TYPE[k].color+';border-radius:50%;width:11px;height:11px"></span>'+MK_TYPE[k].label+'</div>';
   });
-  document.getElementById('mapLegend').innerHTML = '<div style="font-size:11px;font-weight:700;color:#4B5563;margin-bottom:2px">'+m.title+' ('+m.unit+')</div>'+rows+mkRows;
+  document.getElementById('mapLegend').innerHTML = '<div class="lg-t">'+m.title+' ('+m.unit+')</div>'+rows+mkRows;
+}
+/* 판로 유형 필터 — 지도 마커·목록·타일 값이 함께 걸린다 */
+function setMkType(k){
+  MK_TYPE_FILTER = (MK_TYPE_FILTER === k) ? '' : k;
+  if(typeof applyMkFilter === 'function') applyMkFilter();
+  refreshAll();
 }
 function renderStats(){
   const prices = Object.keys(SIDO_DATA).map(cd=>sidoPrice(cd));
@@ -2861,21 +2927,51 @@ const MK_TYPE = {
 };
 /* 샘플 데이터 — 실서비스에서는 도매시장 반입/경락 API + 자사 유통 DB로 대체 */
 const MARKETS = [
-  {id:'m01', t:'auction', n:'서울 가락동 농수산물도매시장', lat:37.4970, lng:127.1190, price:1290, vol:412, fee:7.0, dist:298, settle:'D+3', hours:'경매 20:00~04:00', best:true, tags:['최고 단가','대량 출하'], note:'전국 최대 규모. 상품 등급이 좋을수록 낙찰가 편차가 커요.'},
-  {id:'m02', t:'auction', n:'서울 강서 농수산물도매시장', lat:37.5510, lng:126.8490, price:1268, vol:186, fee:7.0, dist:312, settle:'D+3', hours:'경매 21:00~03:00', tags:['수도권 서부'], note:'가락시장 대비 반입량이 적어 물량 소진이 빠른 편.'},
-  {id:'m03', t:'auction', n:'구리 농수산물도매시장', lat:37.5940, lng:127.1420, price:1258, vol:143, fee:6.5, dist:305, settle:'D+3', hours:'경매 20:30~03:30', tags:['수수료 낮음'], note:'수도권 동북부 소비지 접근성이 좋아요.'},
-  {id:'m04', t:'auction', n:'부산 엄궁동 농산물도매시장', lat:35.1420, lng:128.9760, price:1245, vol:128, fee:7.0, dist:186, settle:'D+3', hours:'경매 20:00~02:00', tags:['영남권'], note:'영남권 소비지 물량 집중.'},
-  {id:'m05', t:'auction', n:'대구 북부 농수산물도매시장', lat:35.8950, lng:128.5570, price:1238, vol:145, fee:6.5, dist:98, settle:'D+3', hours:'경매 20:00~02:30', tags:['근거리','운송비 절감'], note:'청송에서 가까워 운송비 부담이 가장 적은 도매시장.'},
-  {id:'m06', t:'auction', n:'대전 오정 농수산물도매시장', lat:36.3620, lng:127.4090, price:1230, vol:76, fee:6.5, dist:214, settle:'D+3', hours:'경매 20:00~02:00', tags:['중부권'], note:'중부권 분산 출하 시 활용.'},
-  {id:'m07', t:'auction', n:'광주 각화동 농산물도매시장', lat:35.1720, lng:126.9330, price:1215, vol:87, fee:7.0, dist:306, settle:'D+3', hours:'경매 20:00~02:00', tags:['호남권'], note:'호남권 물량이 많아 단가 경쟁이 있는 편.'},
-  {id:'m08', t:'apc', n:'청송 농협 산지유통센터(APC)', lat:36.4360, lng:129.0570, price:1180, vol:42, fee:3.0, dist:12, settle:'D+7', hours:'접수 08:00~17:00', best:true, tags:['계약 출하','물류 부담 없음'], note:'계약 물량은 고정가 정산. 시세 변동 위험을 줄이고 싶을 때 유리.'},
-  {id:'m09', t:'apc', n:'안동 농협 통합 APC', lat:36.5680, lng:128.7290, price:1195, vol:58, fee:3.5, dist:48, settle:'D+7', hours:'접수 08:00~17:00', tags:['선별·저장 지원'], note:'저온저장 연계로 출하 시점 조절 가능.'},
-  {id:'m10', t:'apc', n:'무안 양파 전문 APC', lat:34.9900, lng:126.4820, price:1210, vol:96, fee:3.0, dist:392, settle:'D+7', hours:'접수 08:00~18:00', tags:['양파 특화'], note:'양파 주산지 전문 선별 라인 보유.'},
-  {id:'m11', t:'retail', n:'롯데마트 중부 물류센터', lat:36.8060, lng:127.1140, price:1340, vol:64, fee:9.0, dist:246, settle:'D+30', hours:'입고 06:00~15:00', tags:['고단가','정산 김'], note:'규격·선별 기준이 엄격하지만 단가가 높아요. 정산 주기 확인 필요.'},
-  {id:'m12', t:'retail', n:'이마트 후레쉬센터', lat:37.2410, lng:127.1780, price:1352, vol:78, fee:9.5, dist:288, settle:'D+30', hours:'입고 05:00~14:00', tags:['고단가','대량 계약'], note:'연간 계약 물량 위주. 소량 출하는 어려울 수 있어요.'},
-  {id:'m13', t:'retail', n:'하나로마트 대구 유통센터', lat:35.8420, lng:128.6320, price:1285, vol:52, fee:7.5, dist:104, settle:'D+15', hours:'입고 06:00~16:00', tags:['근거리','농협 계열'], note:'농협 계열로 경영체 실적 연계가 수월해요.'},
-  {id:'m14', t:'online', n:'온라인 B2B 직거래 (식자재 유통)', lat:37.3980, lng:127.1080, price:1350, vol:36, fee:5.0, dist:290, settle:'D+7', hours:'상시 접수', best:true, tags:['최소 5톤','순수익 우수'], note:'중간 유통 단계가 짧아 순수익이 높지만 최소 물량 조건이 있어요.'},
-  {id:'m15', t:'online', n:'로컬푸드 직매장 (경북권)', lat:36.0190, lng:129.3430, price:1420, vol:8, fee:12.0, dist:86, settle:'D+1', hours:'상시 접수', tags:['소량 가능','즉시 정산'], note:'단가는 높으나 물량이 적어 보조 판로로 적합.'}
+  /* 공영도매시장 */
+  {id:'m01', sido:'11', t:'auction', n:'서울 가락동 농수산물도매시장', lat:37.4970, lng:127.1190, price:1290, vol:412, fee:7.0, dist:298, settle:'D+3', hours:'경매 20:00~04:00', best:true, tags:['최고 단가','대량 출하'], note:'전국 최대 규모. 상품 등급이 좋을수록 낙찰가 편차가 커요.'},
+  {id:'m02', sido:'11', t:'auction', n:'서울 강서 농수산물도매시장', lat:37.5510, lng:126.8490, price:1268, vol:186, fee:7.0, dist:312, settle:'D+3', hours:'경매 21:00~03:00', tags:['수도권 서부'], note:'가락시장 대비 반입량이 적어 물량 소진이 빠른 편.'},
+  {id:'m03', sido:'41', t:'auction', n:'구리 농수산물도매시장', lat:37.5940, lng:127.1420, price:1258, vol:143, fee:6.5, dist:305, settle:'D+3', hours:'경매 20:30~03:30', tags:['수수료 낮음'], note:'수도권 동북부 소비지 접근성이 좋아요.'},
+  {id:'m04', sido:'26', t:'auction', n:'부산 엄궁동 농산물도매시장', lat:35.1420, lng:128.9760, price:1245, vol:128, fee:7.0, dist:186, settle:'D+3', hours:'경매 20:00~02:00', tags:['영남권'], note:'영남권 소비지 물량 집중.'},
+  {id:'m05', sido:'27', t:'auction', n:'대구 북부 농수산물도매시장', lat:35.8950, lng:128.5570, price:1238, vol:145, fee:6.5, dist:98, settle:'D+3', hours:'경매 20:00~02:30', tags:['근거리','운송비 절감'], note:'청송에서 가까워 운송비 부담이 가장 적은 도매시장.'},
+  {id:'m06', sido:'30', t:'auction', n:'대전 오정 농수산물도매시장', lat:36.3620, lng:127.4090, price:1230, vol:76, fee:6.5, dist:214, settle:'D+3', hours:'경매 20:00~02:00', tags:['중부권'], note:'중부권 분산 출하 시 활용.'},
+  {id:'m07', sido:'29', t:'auction', n:'광주 각화동 농산물도매시장', lat:35.1720, lng:126.9330, price:1215, vol:87, fee:7.0, dist:306, settle:'D+3', hours:'경매 20:00~02:00', tags:['호남권'], note:'호남권 물량이 많아 단가 경쟁이 있는 편.'},
+  {id:'m16', sido:'28', t:'auction', n:'인천 삼산 농산물도매시장', lat:37.5250, lng:126.7460, price:1252, vol:98, fee:7.0, dist:320, settle:'D+3', hours:'경매 20:00~03:00', tags:['수도권 서부'], note:'인천·부천 소비지 물량이 많아요.'},
+  {id:'m17', sido:'31', t:'auction', n:'울산 농수산물도매시장', lat:35.5540, lng:129.2620, price:1228, vol:54, fee:6.5, dist:142, settle:'D+3', hours:'경매 20:00~02:00', tags:['공업지 소비'], note:'소비지 규모 대비 반입량이 안정적입니다.'},
+  {id:'m18', sido:'41', t:'auction', n:'수원 농수산물도매시장', lat:37.2760, lng:127.0140, price:1262, vol:121, fee:6.8, dist:284, settle:'D+3', hours:'경매 20:00~03:00', tags:['수도권 남부'], note:'경기 남부 소비지 접근성이 좋아요.'},
+  {id:'m19', sido:'43', t:'auction', n:'청주 농수산물도매시장', lat:36.6390, lng:127.4210, price:1222, vol:63, fee:6.5, dist:198, settle:'D+3', hours:'경매 20:00~02:00', tags:['충북권'], note:'중부내륙 분산 출하처.'},
+  {id:'m20', sido:'44', t:'auction', n:'천안 농산물도매시장', lat:36.8150, lng:127.1470, price:1234, vol:92, fee:6.8, dist:238, settle:'D+3', hours:'경매 20:00~02:30', tags:['충남권'], note:'수도권 인접으로 단가가 비교적 안정적.'},
+  {id:'m21', sido:'52', t:'auction', n:'전주 농수산물도매시장', lat:35.8360, lng:127.1180, price:1205, vol:71, fee:7.0, dist:268, settle:'D+3', hours:'경매 20:00~02:00', tags:['전북권'], note:'전북 소비지 중심.'},
+  {id:'m22', sido:'48', t:'auction', n:'창원 팔용 농산물도매시장', lat:35.2340, lng:128.6200, price:1240, vol:104, fee:6.8, dist:158, settle:'D+3', hours:'경매 20:00~02:30', tags:['경남권'], note:'경남 소비지 물량 집중.'},
+  {id:'m23', sido:'51', t:'auction', n:'춘천 농산물도매시장', lat:37.8760, lng:127.7300, price:1195, vol:41, fee:6.5, dist:326, settle:'D+3', hours:'경매 20:00~01:30', tags:['강원권'], note:'반입량이 적어 소량 출하도 소화됩니다.'},
+  {id:'m24', sido:'50', t:'auction', n:'제주 농수산물도매시장', lat:33.4900, lng:126.4980, price:1180, vol:36, fee:7.0, dist:520, settle:'D+3', hours:'경매 20:00~01:00', tags:['해상 운송'], note:'해상 운송비가 커서 순수익이 낮아질 수 있어요.'},
+
+  /* 산지유통센터(APC) */
+  {id:'m08', sido:'47', t:'apc', n:'청송 농협 산지유통센터(APC)', lat:36.4360, lng:129.0570, price:1180, vol:42, fee:3.0, dist:12, settle:'D+7', hours:'접수 08:00~17:00', best:true, tags:['계약 출하','물류 부담 없음'], note:'계약 물량은 고정가 정산. 시세 변동 위험을 줄이고 싶을 때 유리.'},
+  {id:'m09', sido:'47', t:'apc', n:'안동 농협 통합 APC', lat:36.5680, lng:128.7290, price:1195, vol:58, fee:3.5, dist:48, settle:'D+7', hours:'접수 08:00~17:00', tags:['선별·저장 지원'], note:'저온저장 연계로 출하 시점 조절 가능.'},
+  {id:'m10', sido:'46', t:'apc', n:'무안 양파 전문 APC', lat:34.9900, lng:126.4820, price:1210, vol:96, fee:3.0, dist:392, settle:'D+7', hours:'접수 08:00~18:00', tags:['양파 특화'], note:'양파 주산지 전문 선별 라인 보유.'},
+  {id:'m25', sido:'47', t:'apc', n:'영천 농협 APC', lat:35.9730, lng:128.9390, price:1188, vol:47, fee:3.2, dist:54, settle:'D+7', hours:'접수 08:00~17:00', tags:['근거리'], note:'경북 남부 집하 거점.'},
+  {id:'m26', sido:'43', t:'apc', n:'괴산 청결 APC', lat:36.8150, lng:127.7870, price:1176, vol:33, fee:3.0, dist:172, settle:'D+7', hours:'접수 08:00~17:00', tags:['친환경 인증'], note:'친환경 인증 물량 우선 수매.'},
+  {id:'m27', sido:'44', t:'apc', n:'서산 농협 APC', lat:36.7840, lng:126.4500, price:1192, vol:51, fee:3.3, dist:296, settle:'D+7', hours:'접수 08:00~17:30', tags:['서해안권'], note:'대단위 저온저장고 보유.'},
+  {id:'m28', sido:'52', t:'apc', n:'김제 지평선 APC', lat:35.8030, lng:126.8800, price:1184, vol:44, fee:3.0, dist:282, settle:'D+7', hours:'접수 08:00~17:00', tags:['호남 곡창'], note:'호남 평야권 대량 집하.'},
+  {id:'m29', sido:'51', t:'apc', n:'평창 고랭지 APC', lat:37.5700, lng:128.3900, price:1215, vol:29, fee:3.5, dist:288, settle:'D+7', hours:'접수 08:00~17:00', tags:['고랭지'], note:'여름철 고랭지 물량 특화.'},
+
+  /* 대형유통·마트 */
+  {id:'m11', sido:'44', t:'retail', n:'롯데마트 중부 물류센터', lat:36.8060, lng:127.1140, price:1340, vol:64, fee:9.0, dist:246, settle:'D+30', hours:'입고 06:00~15:00', tags:['고단가','정산 김'], note:'규격·선별 기준이 엄격하지만 단가가 높아요. 정산 주기 확인 필요.'},
+  {id:'m12', sido:'41', t:'retail', n:'이마트 후레쉬센터', lat:37.2410, lng:127.1780, price:1352, vol:78, fee:9.5, dist:288, settle:'D+30', hours:'입고 05:00~14:00', tags:['고단가','대량 계약'], note:'연간 계약 물량 위주. 소량 출하는 어려울 수 있어요.'},
+  {id:'m13', sido:'27', t:'retail', n:'하나로마트 대구 유통센터', lat:35.8420, lng:128.6320, price:1285, vol:52, fee:7.5, dist:104, settle:'D+15', hours:'입고 06:00~16:00', tags:['근거리','농협 계열'], note:'농협 계열로 경영체 실적 연계가 수월해요.'},
+  {id:'m30', sido:'26', t:'retail', n:'홈플러스 영남 신선센터', lat:35.1780, lng:129.0750, price:1298, vol:47, fee:8.5, dist:190, settle:'D+30', hours:'입고 05:30~15:00', tags:['영남권'], note:'부산·경남 점포 공급.'},
+  {id:'m31', sido:'29', t:'retail', n:'하나로마트 호남 물류센터', lat:35.1600, lng:126.8510, price:1276, vol:39, fee:7.8, dist:310, settle:'D+15', hours:'입고 06:00~16:00', tags:['농협 계열'], note:'호남권 점포 공급 거점.'},
+  {id:'m32', sido:'41', t:'retail', n:'쿠팡 신선 물류센터 (덕평)', lat:37.1720, lng:127.3560, price:1362, vol:88, fee:10.0, dist:276, settle:'D+30', hours:'입고 상시', tags:['고단가','물량 많음'], note:'포장 규격 요건이 까다로운 편.'},
+  {id:'m33', sido:'30', t:'retail', n:'중부권 신선 물류센터', lat:36.3400, lng:127.3900, price:1292, vol:41, fee:8.0, dist:216, settle:'D+20', hours:'입고 06:00~15:00', tags:['중부권'], note:'중부 소비지 점포 공급.'},
+
+  /* 온라인·B2B 직거래 */
+  {id:'m14', sido:'41', t:'online', n:'온라인 B2B 직거래 (식자재 유통)', lat:37.3980, lng:127.1080, price:1350, vol:36, fee:5.0, dist:290, settle:'D+7', hours:'상시 접수', best:true, tags:['최소 5톤','순수익 우수'], note:'중간 유통 단계가 짧아 순수익이 높지만 최소 물량 조건이 있어요.'},
+  {id:'m15', sido:'47', t:'online', n:'로컬푸드 직매장 (경북권)', lat:36.0190, lng:129.3430, price:1420, vol:8, fee:12.0, dist:86, settle:'D+1', hours:'상시 접수', tags:['소량 가능','즉시 정산'], note:'단가는 높으나 물량이 적어 보조 판로로 적합.'},
+  {id:'m34', sido:'11', t:'online', n:'급식 식자재 B2B 플랫폼', lat:37.5140, lng:127.0590, price:1338, vol:54, fee:6.0, dist:296, settle:'D+15', hours:'상시 접수', tags:['정기 납품'], note:'학교·기업 급식 정기 납품 계약.'},
+  {id:'m35', sido:'36', t:'online', n:'세종 로컬푸드 직매장', lat:36.4800, lng:127.2890, price:1395, vol:11, fee:11.0, dist:224, settle:'D+1', hours:'상시 접수', tags:['소량 가능'], note:'소포장 위주. 잔량 처리에 유용.'},
+  {id:'m36', sido:'48', t:'online', n:'경남 산지직송 커머스', lat:35.2280, lng:128.6810, price:1372, vol:26, fee:8.0, dist:164, settle:'D+10', hours:'상시 접수', tags:['산지직송'], note:'소비자 직배송 채널.'},
+  {id:'m37', sido:'46', t:'online', n:'호남 농가직거래 플랫폼', lat:34.9450, lng:126.9560, price:1356, vol:22, fee:7.5, dist:340, settle:'D+10', hours:'상시 접수', tags:['농가 직거래'], note:'중간 마진이 적어 순수익이 높은 편.'},
+  {id:'m38', sido:'51', t:'online', n:'강원 로컬푸드 온라인관', lat:37.8810, lng:127.7350, price:1384, vol:9, fee:10.5, dist:330, settle:'D+3', hours:'상시 접수', tags:['소량 가능'], note:'강원 소비자 대상 소량 판매.'}
 ];
 let mkGroup = null, mkOn = true, selMk = null;
 const mkRef = {};   /* id → Leaflet marker (즐겨찾기 → 지도 확대용) */
@@ -2924,14 +3020,25 @@ function buildMarkets(){
       {direction:'top', offset:[0,0], className:'mk-tip', opacity:1});
     mk.bindPopup(mkPopup(m), {offset:[0,0], closeButton:true, autoPan:false});
     mk.on('popupopen', function(){
+      chLocked = true; updateCrosshair(); updateCrosshairTip();
       selMk = m.id;
       const el=mk.getElement(); if(el) el.querySelector('.mk-pin').classList.add('sel');
     });
-    mk.on('popupclose', function(){ if(selMk===m.id) selMk = null; const el=mk.getElement(); if(el) el.querySelector('.mk-pin').classList.remove('sel'); });
+    mk.on('popupclose', function(){ chLocked = false; setTimeout(queueCrosshair, 0); if(selMk===m.id) selMk = null; const el=mk.getElement(); if(el) el.querySelector('.mk-pin').classList.remove('sel'); });
     mkGroup.addLayer(mk);
     mkRef[m.id] = mk;
   });
   if(mkOn) mkGroup.addTo(panMap);
+}
+/* 유형 필터에 맞는 마커만 지도에 남긴다 */
+function applyMkFilter(){
+  if(!mkGroup || !panMap || panMap==='loading') return;
+  MARKETS.forEach(m=>{
+    const mk = mkRef[m.id]; if(!mk) return;
+    const show = !MK_TYPE_FILTER || m.t === MK_TYPE_FILTER;
+    if(show && !mkGroup.hasLayer(mk)) mkGroup.addLayer(mk);
+    if(!show && mkGroup.hasLayer(mk)) mkGroup.removeLayer(mk);
+  });
 }
 function toggleMarkets(){
   mkOn = !mkOn;

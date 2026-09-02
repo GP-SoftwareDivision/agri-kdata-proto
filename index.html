@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=153">
-<link rel="stylesheet" href="css/mobile.css?v=153">
+<link rel="stylesheet" href="css/style.css?v=155">
+<link rel="stylesheet" href="css/mobile.css?v=155">
 </head>
 <body>
 
@@ -1678,13 +1678,20 @@ docker run --rm -p 8080:8080 \
   <div class="modal" style="max-width:440px">
     <div class="m-head">
       <div>
-        <div class="m-title" style="font-size:18px">시장·청과 검색</div>
-        <div style="font-size:12.5px;color:var(--sub);margin-top:3px">고르면 그 시장으로 지도가 이동해요</div>
+        <div class="m-title" style="font-size:18px">판로 검색</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px">고르면 그 판로로 지도가 이동해요</div>
       </div>
       <button class="m-x" onclick="closeModal('mktSearchModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
     </div>
     <div class="ms-search-wrap">
-      <input class="inp" id="mktSearchInput" placeholder="시장 이름이나 청과를 입력해요" oninput="mktSearchModalFill()" autocomplete="off">
+      <select class="mt-sel ms-type" id="mktSearchType" onchange="mktSearchModalFill()">
+        <option value="">전체</option>
+        <option value="auction">공영도매시장</option>
+        <option value="apc">산지유통센터(APC)</option>
+        <option value="retail">대형유통·마트</option>
+        <option value="online">온라인·B2B 직거래</option>
+      </select>
+      <input class="inp" id="mktSearchInput" placeholder="판로 이름을 입력해요" oninput="mktSearchModalFill()" autocomplete="off">
     </div>
     <div class="ms-list-wrap">
       <div class="ms-modal-list" id="mktSearchList" data-fade></div>
@@ -1756,7 +1763,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=153"></script>
-<script src="js/mobile-flow.js?v=153"></script>
+<script src="js/app.js?v=155"></script>
+<script src="js/mobile-flow.js?v=155"></script>
 </body>
 </html>
