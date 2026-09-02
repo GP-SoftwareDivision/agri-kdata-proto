@@ -126,6 +126,8 @@ function nav(id){
   }, 180);
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof closeNotif === 'function') closeNotif();
+  /* 숨어 있던 동안은 높이가 0이라 페이드 계산이 틀어진다 — 보인 뒤 다시 계산 */
+  if(typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 80);
   if(id !== 'map' && $mapTip) $mapTip.classList.remove('show');
   if(typeof osScrollTop === 'function') osScrollTop(pg, 0);
 }
@@ -1166,7 +1168,7 @@ function mktDatesHtml(st, D){
   const F = D ? 'mktD' : 'mkt';
   return `
     <div class="mkt-row mkt-row-dates">
-      <div class="metric-seg seg-sm mkt-dates">${['어제','7일','30일'].map(p=>
+      <div class="metric-seg mkt-dates">${['어제','7일','30일'].map(p=>
         `<button class="${st.preset===p?'on':''}" onclick="${F}PickPreset('${p}')">${p}</button>`).join('')}</div>
       <div class="mkt-range fld" data-label="조회 기간">
         <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="시작일"

@@ -580,7 +580,7 @@ html.m .mf-table{position:static;margin:12px 12px 0;box-shadow:none}
 html.m .mt-filters{padding:14px 14px 10px;gap:12px}
 html.m .mt-fld{flex:1 1 100%}
 html.m .mt-sel{height:44px;font-size:14px}
-html.m .mt-scroll{max-height:52vh}
+html.m .mt-scroll{max-height:52vh;padding:0 12px 14px}
 html.m .mt-table{font-size:12.5px}
 html.m .mt-table td,html.m .mt-table th{padding:9px 10px}
 /* ── 정보·차트·순위 카드 ── */
@@ -604,7 +604,7 @@ html.m .mf-right{order:8}
 html.m .crosshair{display:none !important}
 /* 여백 */
 html.m .mf-stats{padding:0}
-html.m .mt-filters{padding:14px 14px 10px}
+html.m .mt-filters{display:flex;align-items:center;padding:14px 14px 10px}
 /* 기간 세그는 PC 전용 — 모바일은 조건설정 모달에서 고른다 */
 html.m #mktDateSeg{display:none}
 /* 보기 전환 fab 이 플로팅 챗봇 버튼에 가리지 않게 */

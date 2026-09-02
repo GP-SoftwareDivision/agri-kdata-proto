@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=130">
-<link rel="stylesheet" href="css/mobile.css?v=130">
+<link rel="stylesheet" href="css/style.css?v=132">
+<link rel="stylesheet" href="css/mobile.css?v=132">
 </head>
 <body>
 
@@ -458,7 +458,7 @@ docker run --rm -p 8080:8080 \
 
       <!-- 상단 통계: 전광판 (모바일 상시 노출) -->
       <div class="mf mf-stats">
-        <div class="metric-seg seg-sm mkt-dates" id="mktDateSeg"></div>
+        <div class="metric-seg mkt-dates" id="mktDateSeg"></div>
         <div class="stat-merge">
           <div class="si"><div class="t">전국 평균 경락가</div><div class="v" id="mf-avg">1,229<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span></div></div>
           <div class="si"><div class="t">최고 단가 지역</div><div class="v" id="mf-top" style="color:var(--g700)">서울 1,290</div></div>
@@ -1052,7 +1052,8 @@ docker run --rm -p 8080:8080 \
 
       <div class="card ds-sec">
         <div class="ds-h">2-2. Scroll List <span style="font-size:12px;color:var(--mut);font-weight:400">— 위·아래 그래디언트로 더 볼 내용이 있음을 표시</span></div>
-        <div id="dsScrollDemo" data-fade style="max-height:150px;overflow-y:auto;border:1px solid var(--bd);border-radius:10px;padding:8px">
+        <div class="scrollbox">
+        <div id="dsScrollDemo" style="max-height:150px;overflow-y:auto;padding:8px">
           <div style="display:flex;flex-direction:column;gap:2px">
             <div class="rank-row"><span class="rk">1</span><span style="flex:1;font-size:13px;font-weight:700">서울특별시</span><span style="font-size:12px;font-weight:700">1,290원/kg</span></div>
             <div class="rank-row"><span class="rk">2</span><span style="flex:1;font-size:13px;font-weight:700">경기도</span><span style="font-size:12px;font-weight:700">1,258원/kg</span></div>
@@ -1061,6 +1062,7 @@ docker run --rm -p 8080:8080 \
             <div class="rank-row"><span class="rk">5</span><span style="flex:1;font-size:13px;font-weight:700">경상남도</span><span style="font-size:12px;font-weight:700">1,240원/kg</span></div>
             <div class="rank-row"><span class="rk">6</span><span style="flex:1;font-size:13px;font-weight:700">대구광역시</span><span style="font-size:12px;font-weight:700">1,238원/kg</span></div>
           </div>
+        </div>
         </div>
         <div class="ds-note">스크롤이 생기는 <b>모든 목록</b>에 <code>data-fade</code> 를 달고 <code>osInit</code> 대상에 넣는다.
           위로 더 있으면 상단, 아래로 더 있으면 하단에 페이드가 켜진다 (<code>.osfade</code>).</div>
@@ -1743,7 +1745,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=130"></script>
-<script src="js/mobile-flow.js?v=130"></script>
+<script src="js/app.js?v=132"></script>
+<script src="js/mobile-flow.js?v=132"></script>
 </body>
 </html>
