@@ -561,7 +561,6 @@ html.m .mt-item.on{background:#fff;color:var(--g700);box-shadow:0 2px 6px rgba(1
 html.m .mf-tlwrap{margin:10px 12px 0;position:relative;z-index:810}
 html.m .mf-tl{margin:0;padding:0;background:none;border:none;box-shadow:none}
 /* 지도 보기에서는 다음 요소(지도) 위로 겹쳐 올린다 */
-html.m .map-full[data-view="map"] .mf-tlwrap{margin-bottom:-56px}
 html.m .mkt-sum{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 14px;
   background:rgba(255,255,255,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   border:1px solid var(--bd);border-radius:12px;box-shadow:0 4px 16px rgba(16,24,40,.14);position:relative}
@@ -615,7 +614,6 @@ html.m .rgn-bar .mt-sel{height:42px;font-size:13px;padding:0 26px 0 10px}
 html.m .mf-tlwrap{order:4}
 html.m .map-full[data-view="map"] .rgn-bar{margin-bottom:0}
 /* 조건 바가 지도 위로 겹치는 기준을 지역 select 바 다음으로 */
-html.m .map-full[data-view="map"] .mf-tlwrap{margin-bottom:-56px}
 html.m #mapTable,html.m .map-full #panMap{order:5}
 html.m .mf-crumb{order:6}
 html.m .mf-legend{order:7}
@@ -651,8 +649,6 @@ html.m .mkt-sum-view .mb-ico{width:34px;height:34px;box-shadow:none}
 /* 지도: 우측 하단 전환 fab · 범례 · 표 안 지도 아이콘 제거 (조건바에 전환 아이콘이 있다) */
 html.m #panMap .mf-viewfab,html.m .mf-viewfab,html.m .mf-viewfab2,html.m #mapLegend{display:none !important}
 /* 조건바가 다른 탭(순위·정보·차트)을 침범하지 않게 — 지도 탭에서만 겹친다 */
-html.m .map-full[data-view="map"] .mf-tlwrap{margin-bottom:0}
-html.m .map-full[data-view="map"][data-tab="map"] .mf-tlwrap{margin-bottom:-56px}
 /* 조건바 순서: 전환(분리) · ★ · 작물명 · 기간 */
 html.m .mkt-sum{gap:10px}
 html.m .mkt-sum-view{margin-right:2px;padding-right:10px;border-right:1px solid var(--bd)}
@@ -881,3 +877,61 @@ html.m #page-chatbot .chat-bar .ct-tgl-t{display:none}
 html.m body.chat-full .tabbar{display:none !important}
 html.m body.chat-full .chat-live{height:calc(100dvh - 54px)}
 html.m body.chat-full .chat-panel{bottom:0}
+
+/* ══════════ 판로 지도 재배치 (2026-09-02) ══════════
+   세로 순서: 탭(최상단) → 지도/표 → (하단 고정) 조건바 · 전광판.
+   지도는 화면을 꽉 쓰므로 하단 탭바를 감추고, 헤더 ‹ 로 빠져나간다. */
+
+/* 지도 화면에서는 하단 탭바를 감춘다 */
+html.m.map-page .tabbar{display:none !important}
+
+/* 탭을 최상단으로, 전광판은 흐름에서 빼 하단 고정으로 옮긴다 */
+html.m .map-tabs{order:1;margin:12px 12px 0}
+html.m .rgn-bar{order:2}
+html.m #mapTable,html.m .map-full #panMap{order:3}
+html.m .mf-crumb{order:4}
+html.m .mf-legend{order:5}
+html.m .mf-right{order:6}
+/* 조건바·전광판은 하단 고정 — 흐름에서 뺀다 */
+html.m .mf-tlwrap,html.m .mf-stats{order:99}
+html.m .map-full{padding-bottom:12px}
+
+/* 지도는 남는 높이를 flex 로 채운다 — 고정 계산은 헤더/탭 높이 변화에 약하다.
+   조건바는 그 위에 떠 있어 지도가 바 아래까지 이어진다 (지도앱 느낌) */
+html.m .map-full{min-height:calc(100dvh - 70px)}
+html.m .map-full[data-view="map"]{padding-bottom:0}
+html.m .map-full[data-view="map"] #panMap{flex:1 1 auto;height:auto;min-height:320px}
+html.m .map-full[data-view="table"]{padding-bottom:88px}
+
+/* ── 하단 고정 조건바 ── */
+/* style.css 의 .mf-tlwrap{top:16px} 이 남아 있으면 top+bottom 이 동시에 걸려 높이가 늘어난다 */
+html.m .mf-tlwrap{position:fixed;top:auto;left:12px;right:12px;
+  bottom:calc(12px + env(safe-area-inset-bottom));height:auto;margin:0;z-index:900}
+html.m .mkt-sum{box-shadow:0 6px 22px rgba(16,24,40,.18)}
+html.m .mkt-sum-grip{display:none}          /* 하단 고정이라 끌어내림 힌트는 뺀다 */
+html.m .mkt-sum-view{display:none}          /* 뷰 전환은 지도 좌측 상단으로 옮겼다 */
+html.m .ms-stats-tgl{order:3;margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:9px;color:var(--sub);
+  display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all .18s var(--ease)}
+html.m .ms-stats-tgl:active{background:var(--bd)}
+html.m .map-full.stats-on .ms-stats-tgl{background:var(--g600);color:#fff;transform:rotate(180deg)}
+
+/* ── 전광판: 조건바 위로 슬라이드 ── */
+html.m .mf-stats{position:fixed;top:auto;left:12px;right:12px;
+  bottom:calc(74px + env(safe-area-inset-bottom));height:auto;
+  margin:0;z-index:899;pointer-events:none;opacity:0;transform:translateY(14px);
+  transition:opacity .22s var(--ease),transform .26s var(--ease)}
+html.m .map-full.stats-on .mf-stats{opacity:1;transform:none;pointer-events:auto}
+html.m .mf-stats .stat-merge{box-shadow:0 6px 22px rgba(16,24,40,.16)}
+
+/* ── 지도 좌측 상단: 표 ↔ 지도 전환 (고정) ── */
+/* 앞선 정리 블록의 display:none !important 를 되돌린다 (전환 버튼을 좌측 상단으로 되살림) */
+html.m #panMap .mf-viewfab{display:block !important;position:absolute;left:12px;top:12px;
+  right:auto;bottom:auto;z-index:820}
+html.m .map-full[data-view="table"] .mf-viewfab2{display:inline-flex !important}
+
+/* ── 표 보기: 필터(뷰전환 + 시도·시군구) + 하단 고정바를 침범하지 않는 높이 ── */
+html.m .map-full[data-view="table"] .rgn-bar{display:flex;margin:10px 12px 0}
+html.m .mf-table{margin:10px 12px 0}
+/* 필터 행에는 전환 버튼만 남으므로 세로 여백을 줄인다 */
+html.m .map-full[data-view="table"] .mt-filters{padding:10px 12px 4px}
+html.m .mt-scroll{max-height:calc(100dvh - 420px);min-height:200px;padding-bottom:6px}

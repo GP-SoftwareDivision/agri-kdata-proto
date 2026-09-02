@@ -114,6 +114,8 @@ function nav(id){
   void pg.offsetWidth;
   pg.classList.add('active');
   document.querySelectorAll('.gnb-item,.tb-item,.sb-item').forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
+  /* 지도는 화면을 꽉 쓰므로 하단 탭바를 감춘다 (헤더 ‹ 로 빠져나간다) */
+  document.documentElement.classList.toggle('map-page', id==='map');
   if(currentPage && currentPage !== id) prevPage = currentPage;
   currentPage = id;
   // 챗봇 페이지에서는 플로팅 숨김
@@ -1234,6 +1236,12 @@ function mktDatesHtml(st, D){
 }
 /* 모바일 지도: 지도 위에 겹치는 컴팩트 한 줄 — 작물 · 조회기간 · ★
    바를 누르거나 아래로 끌어내리면 조건설정 모달이 열린다 (핸들러는 bindCondDrag) */
+/* 조건바 우측 ^ : 전광판(전국 평균·최고 단가·전일 대비)을 아래에서 밀어 올린다 */
+const CHEV_UP_SVG = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 10L8 6L12 10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function tglMapStats(){
+  const mf = document.querySelector('.map-full');
+  if(mf) mf.classList.toggle('stats-on');
+}
 function mktSummaryHtml(){
   return `
     <div class="mkt-sum" id="mktSumBar">
@@ -1244,6 +1252,7 @@ function mktSummaryHtml(){
         <span class="ms-date">${mktDateLabel()}</span>
       </button>
       <button class="mb-ico fav-ic" onclick="event.stopPropagation();openFavModal()" aria-label="즐겨찾기">${STAR_SVG}</button>
+      <button class="ms-stats-tgl" onclick="event.stopPropagation();tglMapStats()" aria-label="시세 요약 보기">${CHEV_UP_SVG}</button>
       <span class="mkt-sum-grip" aria-hidden="true"></span>
     </div>`;
 }
@@ -3366,7 +3375,7 @@ document.addEventListener('mouseover', e=>{
   /* 헤더 로고 자리에 현재 화면 이름을 보여 준다 */
   const PAGE_NAME = {dashboard:'대시보드', chatbot:'알농이', map:'판로 지도', docs:'행정서류 간편작성', mypage:'마이페이지', design:'디자인시스템'};
   const PAGE_SUB  = {chatbot:'AI 영농 상담'};
-  const BACK_ON   = ['chatbot'];          /* ‹ 를 보여 줄 화면 */
+  const BACK_ON   = ['chatbot','map'];     /* ‹ 를 보여 줄 화면 (지도는 탭바를 감추므로 필수) */
   window.syncMobileHeader = function(){
     const el = document.getElementById('gnbPage');
     if(el) el.innerHTML = (PAGE_NAME[currentPage] || '')
