@@ -1139,7 +1139,7 @@ const M_UI = document.documentElement.classList.contains('m');
 
 /* 검색기 마크업은 두 곳에서 쓴다 — 실제 상태(MKTSET) 와 모바일 조건설정 모달의 초안(MKTDRAFT).
    D=true 면 핸들러가 초안을 건드리는 mktD* 계열로 바뀐다. */
-function mktFindHtml(st, D){
+function mktFindHtml(st, D, iconSearch){
   const F = D ? 'mktD' : 'mkt';
   const curMk = mktMarket(st.market);
   const cropOpt = (list, star) => list.map(c=>
@@ -1154,12 +1154,14 @@ function mktFindHtml(st, D){
           <div class="select-grp">그 외 작물 <span>시세 조회만</span></div>${cropOpt(MKT_CROPS_EXTRA,false)}
         </div>
       </div>
-      <div class="select mkt-search fld" data-select data-label="시장·청과 검색">
+      ${iconSearch
+        ? `<button class="mb-ico" onclick="openMktSearch()" title="시장·청과 검색 — 지금 ${curMk?curMk.n+(st.cq?' · '+st.cq:''):'전국 평균'}" aria-label="시장·청과 검색">${SEARCH_SVG}</button>`
+        : `<div class="select mkt-search fld" data-select data-label="시장·청과 검색">
         <input class="inp ms-inp" placeholder="비워두면 전체" value="${searchVal}"
           onfocus="this.select();${F}SearchOpen(this,true)" oninput="${F}SearchOpen(this)" onclick="event.stopPropagation()">
         ${curMk?`<button class="ms-x" onclick="${F}SearchClear(event)" aria-label="조건 지우기">✕</button>`:''}
         <div class="select-list ms-list"></div>
-      </div>
+      </div>`}
       ${st.cq ? TRUST_B : ''}
       ${D ? '' : '<button class="btn btn-neu btn-sm mkt-favbtn" onclick="openFavModal()" aria-label="즐겨찾기">'+STAR_SVG+'</button>'}
     </div>`;
@@ -1280,7 +1282,7 @@ function tfPick(kind, v){
 
 function renderMktBars(){
   const curMk = mktMarket(MKTSET.market);
-  const find = mktFindHtml(MKTSET, false);
+  const find = mktFindHtml(MKTSET, false, true);   /* 대시보드도 지도처럼 돋보기 → 팝업 검색 */
   const dates = mktDatesHtml(MKTSET, false);
   const favs = mktFavListHtml();
   const d1 = document.getElementById('mktBarDash');
