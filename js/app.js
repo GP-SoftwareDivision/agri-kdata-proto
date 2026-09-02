@@ -86,6 +86,10 @@ function enterApp(){
     document.getElementById('chatPanel').classList.remove('hidden');
     nav('dashboard');
     toast('ok','로그인되었어요 — 김농가님, 환영해요');
+    /* 첫 이용이면 내 정보 입력 안내 (증빙 캡처 재현 중에는 띄우지 않는다) */
+    if(!localStorage.getItem(ONB_SEEN)
+       && !document.documentElement.classList.contains('cap-mode')
+       && !/#m?cap=/.test(location.hash)) setTimeout(onbOpen, 550);
   }, 330);
 }
 
@@ -1792,6 +1796,97 @@ function favDelete(){
   toast('info','즐겨찾기에서 뺐어요');
 }
 renderMktBars();
+
+/* ══════════ 첫 이용 안내 — 내 정보 직접 입력 (마이데이터 연계 전) ══════════
+   동의(안내) → 5단계 stepFlow → 완료. 값은 이 기기(localStorage)에만 저장한다.
+   첫 로그인에 한 번 열리고, 건너뛰면 마이페이지 > 직접 입력으로 재진입한다. */
+const ONB_KEY  = 'agriG.profile.v1';
+const ONB_SEEN = 'agriG.onboarded';
+const ONB_CROPS = ['양파','마늘','배추','무','고추','그 외'];
+function onbLoad(){ try{ return JSON.parse(localStorage.getItem(ONB_KEY)||'null')||{}; }catch(e){ return {}; } }
+function onbSeen(){ try{ localStorage.setItem(ONB_SEEN,'1'); }catch(e){} }
+
+function onbState(st){
+  const m = document.getElementById('onbModal');
+  ['st-intro','st-steps','st-done'].forEach(c=>m.classList.remove(c));
+  m.classList.add(st);
+  document.getElementById('onbIntro').style.display = st==='st-intro' ? '' : 'none';
+  document.getElementById('onbBody').style.display  = st==='st-steps' ? '' : 'none';
+  document.getElementById('onbFoot').style.display  = st==='st-steps' ? '' : 'none';
+  document.getElementById('onbDone').style.display  = st==='st-done' ? '' : 'none';
+  const prog = m.querySelector('.sheet-prog');
+  if(prog && st !== 'st-steps') prog.remove();          /* 안내·완료 화면에는 진행바를 두지 않는다 */
+  const t = document.getElementById('onbTitle'), sub = document.getElementById('onbStepLbl');
+  if(st==='st-intro'){ t.textContent='시작하기 전에, 잠깐이면 돼요'; sub.textContent='한 번만 입력해 두면 쭉 편해져요'; }
+  if(st==='st-steps'){ t.textContent='내 정보 입력'; }
+  if(st==='st-done'){ t.textContent='준비 끝!'; sub.textContent='이 창은 닫으셔도 돼요'; }
+}
+
+function onbOpen(){
+  const p = onbLoad();
+  /* 저장값 → 없으면 시연용 기본값으로 미리 채워 부담을 줄인다 */
+  document.getElementById('onbFarmNo').value = p.farmNo || '1234-5678-9012';
+  document.getElementById('onbBizNo').value  = p.bizNo  || '';
+  document.getElementById('onbAddr').value   = p.addr   || '경상북도 청송군 청송읍 중앙로 51';
+  document.getElementById('onbAddr2').value  = p.addr2  || '';
+  document.getElementById('onbPhone').value  = p.phone  || '010-1234-5678';
+  document.getElementById('onbArea').value   = p.area   || '1.2';
+  document.getElementById('onbAreaUnit').value = p.areaUnit || 'ha';
+  const crop = p.crop || '양파';
+  document.getElementById('onbCrops').innerHTML = ONB_CROPS.map(c=>
+    `<button class="onb-chip${c===crop?' on':''}" onclick="onbPickCrop(this)">${c}</button>`).join('');
+  onbState('st-intro');
+  openModal('onbModal');
+}
+function onbPickCrop(btn){
+  document.querySelectorAll('#onbCrops .onb-chip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function onbSkip(){
+  onbSeen();
+  closeModal('onbModal');
+  toast('info','마이페이지 > 직접 입력에서 언제든 이어서 할 수 있어요');
+}
+function onbBegin(){
+  onbState('st-steps');
+  stepFlow({
+    key:'onb',
+    sections: sheetSections(document.getElementById('onbBody')),
+    foot: document.getElementById('onbFoot'),
+    stepLabel: document.getElementById('onbStepLbl'),
+    labelPrefix: '하나씩만 알려주시면 돼요',
+    doneLabel: '입력 끝내기',
+    prevInFoot: !M_UI,                       /* PC 는 푸터 [이전], 모바일은 헤더 ← */
+    validate: function(i){
+      if(i===0 && !document.getElementById('onbFarmNo').value.trim()){ toast('err','경영체 등록번호를 입력해 주세요'); return false; }
+      if(i===3 && !document.getElementById('onbPhone').value.trim()){ toast('err','휴대폰 번호를 입력해 주세요'); return false; }
+      return true;
+    },
+    cancel: function(){ onbState('st-intro'); },   /* 1단계에서 이전 → 안내 화면으로 */
+    done: function(){ onbFinish(); },
+  });
+}
+function onbFinish(){
+  const crop = (document.querySelector('#onbCrops .onb-chip.on')||{}).textContent || '양파';
+  const data = {
+    farmNo: document.getElementById('onbFarmNo').value.trim(),
+    bizNo:  document.getElementById('onbBizNo').value.trim(),
+    addr:   document.getElementById('onbAddr').value.trim(),
+    addr2:  document.getElementById('onbAddr2').value.trim(),
+    phone:  document.getElementById('onbPhone').value.trim(),
+    crop, area: document.getElementById('onbArea').value.trim(),
+    areaUnit: document.getElementById('onbAreaUnit').value,
+    savedAt: new Date().toISOString().slice(0,10),
+  };
+  try{ localStorage.setItem(ONB_KEY, JSON.stringify(data)); }catch(e){}
+  onbSeen();
+  onbState('st-done');
+}
+/* 바깥(스크림)을 눌러 닫아도 다음 로그인마다 다시 조르지 않는다 */
+(function(){
+  const m = document.getElementById('onbModal');
+  if(m) m.addEventListener('click', e=>{ if(e.target === m) onbSeen(); });
+})();
 
 /* ══════════ 행정서류 — 내 서류함 + 4단계 위저드 ══════════ */
 const DOCS_KEY = 'agri_docs_v1';

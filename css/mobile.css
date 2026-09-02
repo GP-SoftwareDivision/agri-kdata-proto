@@ -935,3 +935,14 @@ html.m .mf-table{margin:10px 12px 0}
 /* 필터 행에는 전환 버튼만 남으므로 세로 여백을 줄인다 */
 html.m .map-full[data-view="table"] .mt-filters{padding:10px 12px 4px}
 html.m .mt-scroll{max-height:calc(100dvh - 420px);min-height:200px;padding-bottom:6px}
+
+/* ── 첫 이용 안내: 풀스크린 시트 ── */
+html.m #onbModal .onb-back{display:none}
+html.m #onbModal.st-steps .onb-back{display:flex}     /* 단계 중에만 ← */
+html.m #onbModal.st-steps .m-x:not(.sheet-back){display:flex}
+html.m .onb-intro{flex:1;padding:10px 18px calc(22px + env(safe-area-inset-bottom));gap:20px}
+html.m .onb-cta{margin-top:auto;gap:8px}
+html.m .onb-cta .btn{height:52px}
+html.m .onb-done{flex:1;justify-content:center;padding:20px 20px calc(30px + env(safe-area-inset-bottom))}
+html.m #onbBody .inp{height:48px}
+html.m .onb-chip{padding:11px 18px;font-size:14.5px}

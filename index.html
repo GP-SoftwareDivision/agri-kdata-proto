@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=170">
-<link rel="stylesheet" href="css/mobile.css?v=170">
+<link rel="stylesheet" href="css/style.css?v=171">
+<link rel="stylesheet" href="css/mobile.css?v=171">
 </head>
 <body>
 
@@ -906,7 +906,10 @@ docker run --rm -p 8080:8080 \
           <div class="sec-t">흩어져 있는 내 농사 자료를 한 곳에 모아 드려요</div>
           <div style="font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.6">모은 자료는 <b style="color:var(--txt)">① AI 상담</b>과 <b style="color:var(--txt)">② 서류 자동 작성</b> 딱 두 가지에만 써요. 3단계면 끝나요.</div>
         </div>
-        <button class="btn btn-pri btn-lg" onclick="mdwOpen()">내 자료 가져오기</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-pri btn-lg" onclick="mdwOpen()">내 자료 가져오기</button>
+          <button class="btn btn-out btn-lg" onclick="onbOpen()">직접 입력</button>
+        </div>
       </div>
 
       <!-- ①-1 목적별 동의 관리 · 기능 접근 제어 (CMG-02) -->
@@ -1725,6 +1728,86 @@ docker run --rm -p 8080:8080 \
   </div>
 </div>
 
+<!-- ══════════ 첫 이용 안내 — 내 정보 직접 입력 (마이데이터 연계 전) ══════════
+     동의(안내) → 5단계 입력(stepFlow) → 완료. PC 는 팝업, 모바일은 풀스크린 시트로 같은 흐름 -->
+<div class="overlay fullpage" id="onbModal">
+  <div class="modal" style="max-width:480px">
+    <div class="m-head" style="padding-bottom:10px">
+      <button class="m-x sheet-back onb-back" aria-label="이전"><svg width="17" height="17" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="#4B5563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div style="flex:1;min-width:0">
+        <div class="m-title" style="font-size:19px" id="onbTitle">시작하기 전에, 잠깐이면 돼요</div>
+        <div style="font-size:12.5px;color:var(--sub);margin-top:3px" id="onbStepLbl">한 번만 입력해 두면 쭉 편해져요</div>
+      </div>
+      <button class="m-x" onclick="onbSkip()" aria-label="건너뛰기"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <!-- ① 동의 · 안내 -->
+    <div class="onb-intro" id="onbIntro">
+      <div class="onb-lead">아직 자료 연계 전이라, 서비스에 필요한 기본 정보를 직접 받아요.</div>
+      <div class="onb-checks">
+        <div class="onb-check"><i><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.8 9L10 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i>
+          <div><b>서비스 이용 편의를 위해서만 써요</b><span>행정서류 자동 작성과 경영 리스크 분석에 활용돼요.</span></div></div>
+        <div class="onb-check"><i><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.8 9L10 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i>
+          <div><b>입력한 정보는 안전하게 보관돼요</b><span>마이페이지에서 언제든 고치거나 지울 수 있어요.</span></div></div>
+        <div class="onb-check"><i><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.8 9L10 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i>
+          <div><b>마케팅·광고에는 절대 쓰지 않아요</b><span>저희가 먼저 전화·문자·이메일을 보내는 일은 없어요.</span></div></div>
+        <div class="onb-check"><i><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.2L4.8 9L10 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></i>
+          <div><b>지금 건너뛰어도 괜찮아요</b><span>마이페이지 &gt; 직접 입력에서 언제든 이어서 할 수 있어요.</span></div></div>
+      </div>
+      <div class="onb-cta">
+        <button class="btn btn-pri btn-lg" style="width:100%" onclick="onbBegin()">동의 후 시작하기</button>
+        <button class="onb-skip" onclick="onbSkip()">건너뛰기</button>
+      </div>
+    </div>
+
+    <!-- ② 단계 입력 (stepFlow 가 한 화면씩 보여 준다) -->
+    <div class="md-body" data-fade id="onbBody" style="display:none">
+      <div>
+        <div class="q-lbl" style="display:flex;align-items:center;gap:7px">농업경영체 등록번호를 알려주세요
+          <span class="help-q">?<span class="tip">농림사업정보시스템(Agrix)에서 확인할 수 있는 10자리 번호예요. 지원사업 신청 서류에 꼭 들어가요.</span></span>
+        </div>
+        <input class="inp" id="onbFarmNo" inputmode="numeric" autocomplete="off" placeholder="예) 1234-5678-9012">
+        <div class="tcap">행정서류의 경영체 번호 칸에 자동으로 채워 드려요.</div>
+      </div>
+      <div>
+        <div class="q-lbl">사업자등록번호가 있다면 알려주세요 <span style="font-size:12.5px;color:var(--mut);font-weight:400">없으면 그냥 다음</span></div>
+        <input class="inp" id="onbBizNo" inputmode="numeric" autocomplete="off" placeholder="예) 123-45-67890">
+        <div class="tcap">법인·과세 사업자만 해당돼요. 비워 두어도 이용에 문제없어요.</div>
+      </div>
+      <div>
+        <div class="q-lbl">농장이 있는 주소를 알려주세요</div>
+        <input class="inp" id="onbAddr" autocomplete="off" placeholder="예) 경상북도 청송군 청송읍 중앙로 51">
+        <input class="inp" id="onbAddr2" autocomplete="off" placeholder="상세 주소 (선택)">
+        <div class="tcap">관할 기관 안내와 운송비 계산의 기준이 돼요.</div>
+      </div>
+      <div>
+        <div class="q-lbl">연락받을 휴대폰 번호를 알려주세요</div>
+        <input class="inp" id="onbPhone" inputmode="tel" autocomplete="off" placeholder="예) 010-1234-5678">
+        <div class="tcap">서류의 연락처 칸에만 쓰여요. 저희가 먼저 연락하지 않아요.</div>
+      </div>
+      <div>
+        <div class="q-lbl">주로 무엇을 재배하시나요?</div>
+        <div class="onb-chips" id="onbCrops"></div>
+        <div class="onb-area">
+          <input class="inp" id="onbArea" inputmode="decimal" autocomplete="off" placeholder="재배 면적">
+          <select class="mt-sel" id="onbAreaUnit"><option value="ha">ha</option><option value="평">평</option><option value="㎡">㎡</option></select>
+        </div>
+        <div class="tcap">면적은 대략이면 충분해요. 수확량·리스크 분석의 기준이 돼요.</div>
+      </div>
+    </div>
+    <div class="m-foot" id="onbFoot" style="display:none;align-items:center"></div>
+
+    <!-- ③ 완료 -->
+    <div class="onb-done" id="onbDone" style="display:none">
+      <img src="assets/alnongi.png" alt="">
+      <b>입력이 끝났어요!</b>
+      <p>이제 서류 자동 작성부터 경영 리스크 분석까지<br>agriG를 편하게 사용하실 수 있어요!</p>
+      <button class="btn btn-pri btn-lg" style="width:100%" onclick="closeModal('onbModal')">시작하기</button>
+      <div class="tcap" style="margin-top:10px">입력한 내용은 마이페이지에서 언제든 고칠 수 있어요.</div>
+    </div>
+  </div>
+</div>
+
 <!-- 판로 조건 설정: 품목(최대 5) → 시장 → 청과(선택) → 날짜 -->
 <div class="overlay" id="favModal">
   <div class="modal" style="max-width:420px">
@@ -1774,7 +1857,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=170"></script>
-<script src="js/mobile-flow.js?v=170"></script>
+<script src="js/app.js?v=171"></script>
+<script src="js/mobile-flow.js?v=171"></script>
 </body>
 </html>
