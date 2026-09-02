@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=120">
-<link rel="stylesheet" href="css/mobile.css?v=120">
+<link rel="stylesheet" href="css/style.css?v=125">
+<link rel="stylesheet" href="css/mobile.css?v=125">
 </head>
 <body>
 
@@ -453,8 +453,12 @@ docker run --rm -p 8080:8080 \
       <!-- 지도 우측 하단: 지도 ↔ 목록 아이콘 토글 (모바일) -->
       <div class="mf mf-viewfab" id="mapViewFab"></div>
 
+      <!-- 모바일: 지역 select (시도 › 시군구 › 읍면동) — 지도·목록 공통 -->
+      <div class="mf rgn-bar" id="rgnSelsM"></div>
+
       <!-- 상단 통계: 전광판 (모바일 상시 노출) -->
       <div class="mf mf-stats">
+        <div class="metric-seg seg-sm mkt-dates" id="mktDateSeg"></div>
         <div class="stat-merge">
           <div class="si"><div class="t">전국 평균 경락가</div><div class="v" id="mf-avg">1,229<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span></div></div>
           <div class="si"><div class="t">최고 단가 지역</div><div class="v" id="mf-top" style="color:var(--g700)">서울 1,290</div></div>
@@ -473,9 +477,6 @@ docker run --rm -p 8080:8080 \
       <!-- 목록(테이블) 보기 — 시도 › 시군구 › 읍면동 필터 -->
       <div class="mf mf-table" id="mapTable" data-pane="map">
         <div class="mt-filters">
-          <div class="fld mt-fld" data-label="시도"><select class="mt-sel" id="tfSido" onchange="tfChange('sido',this.value)"></select></div>
-          <div class="fld mt-fld" data-label="시군구"><select class="mt-sel" id="tfSig" onchange="tfChange('sig',this.value)"></select></div>
-          <div class="fld mt-fld" data-label="읍면동"><select class="mt-sel" id="tfEmd" onchange="tfChange('emd',this.value)"></select></div>
           <span class="mt-count" id="mtCount"></span>
           <span class="mf-viewfab2" id="mapViewFab2"></span>
         </div>
@@ -527,10 +528,6 @@ docker run --rm -p 8080:8080 \
           <div style="display:flex;align-items:center;gap:8px;background:#F5F8FD;border:1px solid #D8E4F5;border-radius:9px;padding:8px 12px;font-size:12px;color:#24559E">
             <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="flex-shrink:0"><circle cx="8" cy="8" r="6.5" stroke="#2E6BD6" stroke-width="1.4"/><path d="M8 7.5V11" stroke="#2E6BD6" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="5.2" r=".9" fill="#2E6BD6"/></svg>
             <span>추천 판로: <b id="sr-ch">가락시장 경매</b></span>
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-pri btn-sm" style="flex:1" onclick="toast('info','판로 상세 분석 — 시안 범위 외')">판로 상세</button>
-            <button class="btn btn-out btn-sm" style="flex:1" onclick="askRegion()">챗봇에게 질문</button>
           </div>
         </div>
 
@@ -1729,7 +1726,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=120"></script>
-<script src="js/mobile-flow.js?v=120"></script>
+<script src="js/app.js?v=125"></script>
+<script src="js/mobile-flow.js?v=125"></script>
 </body>
 </html>

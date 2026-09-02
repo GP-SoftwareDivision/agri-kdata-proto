@@ -1110,6 +1110,7 @@ const MKTSET = {
   inited: false,
 };
 const MKT_PRESETS = {'어제':['2026-08-18','2026-08-18'],'7일':['2026-08-12','2026-08-18'],'30일':['2026-07-20','2026-08-18']};
+var rgnReady = false;     /* 지역 select 를 채울 수 있는 시점인지 (var: 호이스팅으로 TDZ 회피) */
 let mktSel = null;        /* 즐겨찾기 편집 임시값 */
 let mktFavIdx = -1;       /* 편집 중인 즐겨찾기 index (-1 = 새로 추가) */
 /* 지도 ↔ 목록 보기. renderMktBars() 가 스크립트 평가 중에 읽으므로 여기서 미리 선언한다 (TDZ 방지) */
@@ -1197,7 +1198,8 @@ function mktViewIconHtml(){
   const lbl = toList ? '목록으로 보기' : '지도로 보기';
   return `<button class="mb-ico view-ico" onclick="setMapView('${toList?'table':'map'}')" title="${lbl}" aria-label="${lbl}">${toList?LIST_SVG:MAP_SVG}</button>`;
 }
-/* PC 지도: 컨테이너 없이 한 줄 — 작물 · 돋보기 · 기간 · ★(호버 목록) · 보기 전환 */
+/* PC 지도: 컨테이너 없이 한 줄
+   [보기 전환] [작물] [★ 즐겨찾기] [돋보기] [시도] [시군구] [읍면동] */
 function mktPcBarHtml(){
   const curMk = mktMarket(MKTSET.market);
   const cond = curMk ? curMk.n + (MKTSET.cq ? ' · ' + MKTSET.cq : '') : '전국 평균';
@@ -1205,6 +1207,7 @@ function mktPcBarHtml(){
     `<div class="select-opt${c===MKTSET.crop?' sel':''}" onclick="mktPickCrop('${c}')"><span>${star?'<b class="star">★</b> ':''}${c}</span></div>`).join('');
   return `
     <div class="mkt-row mkt-pcbar">
+      ${mktViewIconHtml()}
       <div class="select mkt-crop-sel" data-select>
         <button class="select-btn" onclick="tglSelect(this)">${MKTSET.crop} <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#6E7681" stroke-width="1.5" stroke-linecap="round"/></svg></button>
         <div class="select-list">
@@ -1212,39 +1215,53 @@ function mktPcBarHtml(){
           <div class="select-grp">그 외 작물 <span>시세 조회만</span></div>${cropOpt(MKT_CROPS_EXTRA,false)}
         </div>
       </div>
+      ${mktFavIcHtml()}
       <button class="mb-ico" onclick="openMktSearch()" title="시장·청과 검색 — 지금 ${cond}" aria-label="시장·청과 검색">${SEARCH_SVG}</button>
-      ${MKTSET.cq ? TRUST_B : ''}
-      <div class="metric-seg seg-sm mkt-dates">${['어제','7일','30일'].map(p=>
-        `<button class="${MKTSET.preset===p?'on':''}" onclick="mktPickPreset('${p}')">${p}</button>`).join('')}</div>
-      <div class="mkt-range">
-        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="시작일"
-          value="${MKTSET.dateFrom}" onchange="mktPickDateFrom(this.value)">
-        <span class="mr-sep">~</span>
-        <input type="date" class="inp mkt-date-inp" min="2025-08-19" max="2026-08-18" aria-label="종료일"
-          value="${MKTSET.dateTo}" onchange="mktPickDateTo(this.value)">
-      </div>
-      <div class="fav-ic-wrap">
-        <button class="mb-ico fav-ic" onclick="openFavModal()" aria-label="즐겨찾기">${STAR_SVG}</button>
-        <div class="fav-pop">
-          <div class="fav-pop-t">즐겨찾기 <span>내가 정해 둔 작물·시장</span></div>
-          ${mktFavListHtml()}
-        </div>
-      </div>
-      ${mktViewIconHtml()}
+      <div class="rgn-sels" id="rgnSels"></div>
     </div>`;
 }
-/* 즐겨찾기 칩 목록 (PC 호버 팝오버 · 대시보드 공용) */
-function mktFavListHtml(){
+/* 즐겨찾기 ★ + 호버 팝오버 (설정 필요 항목이 있으면 아이콘에 느낌표) */
+function mktFavIcHtml(){
+  const need = MKTSET.favs.some(f=>!f.market);
+  return `
+    <div class="fav-ic-wrap">
+      <button class="mb-ico fav-ic" onclick="openFavModal()" aria-label="즐겨찾기">${STAR_SVG}
+        ${need?'<span class="fav-warn" aria-hidden="true">!</span>':''}
+      </button>
+      <div class="fav-pop">
+        <div class="fav-pop-inner">
+          <div class="fav-pop-t">즐겨찾기 <span>내가 정해 둔 작물·시장</span>
+            <button class="fav-pop-add" onclick="favAdd()">＋ 추가</button>
+          </div>
+          ${mktFavListHtml(true)}
+        </div>
+      </div>
+    </div>`;
+}
+/* 즐겨찾기 칩 목록. pop=true 면 팝오버용 — 신뢰는 좌상단 배지, 설정필요는 느낌표로 줄인다 */
+function mktFavListHtml(pop){
   return `<div class="mkt-row mkt-row-favs">${MKTSET.favs.map((fv,i)=>{
       const mk = mktMarket(fv.market);
-      return `<button class="fav-chip${fv.crop===MKTSET.crop && fv.market && fv.market===MKTSET.market?' on':''}" onclick="favApply(${i})">
+      const badge = pop
+        ? (!fv.market ? '<span class="fv-warn" aria-label="설정 필요">!<span class="fv-warn-tip">시장 설정이 필요해요</span></span>'
+                      : fv.cq ? '<span class="fv-trust" aria-label="청과 실측 — 신뢰도 높음">신뢰</span>' : '')
+        : (!fv.market ? '<span class="fv-need">설정 필요</span>' : fv.cq ? TRUST_B : '');
+      return `<button class="fav-chip${pop?' fav-chip-pop':''}${fv.crop===MKTSET.crop && fv.market && fv.market===MKTSET.market?' on':''}" onclick="favApply(${i})">
+        ${pop ? badge : ''}
         <span class="fedit" onclick="event.stopPropagation();favEdit(${i})" aria-label="${fv.crop} 즐겨찾기 수정">${PENCIL_SVG}</span>
         ${fv.crop}${mk?' <span class="fm">'+mk.s+'</span>':''}
-        ${!fv.market?'<span class="fv-need">설정 필요</span>':fv.cq?TRUST_B:''}
+        ${pop ? '' : badge}
         <span class="fx" onclick="favRemove(event,${i})" aria-label="${fv.crop} 즐겨찾기 빼기">✕</span>
       </button>`;}).join('')}
-      ${MKTSET.favs.length<5?'<button class="fav-add" onclick="favAdd()">＋ 추가</button>':''}
+      ${(!pop && MKTSET.favs.length<5)?'<button class="fav-add" onclick="favAdd()">＋ 추가</button>':''}
     </div>`;
+}
+/* ── 지역 select (시도 › 시군구 › 읍면동) — 지도·목록 공통 ── */
+function rgnSelsHtml(){
+  return `
+    <div class="fld rgn-fld" data-label="시도"><select class="mt-sel" id="tfSido" onchange="tfChange('sido',this.value)"></select></div>
+    <div class="fld rgn-fld" data-label="시군구"><select class="mt-sel" id="tfSig" onchange="tfChange('sig',this.value)"></select></div>
+    <div class="fld rgn-fld" data-label="읍면동"><select class="mt-sel" id="tfEmd" onchange="tfChange('emd',this.value)"></select></div>`;
 }
 function renderMktBars(){
   const curMk = mktMarket(MKTSET.market);
@@ -1265,6 +1282,14 @@ function renderMktBars(){
     const el = document.getElementById(id);
     if(el) el.innerHTML = mktViewIconHtml();
   });
+  /* 지역 select 는 지도·목록 공통 — PC 는 상단 줄, 모바일은 탭 아래 한 줄 */
+  const rg = document.getElementById(M_UI ? 'rgnSelsM' : 'rgnSels');
+  /* 지역 목록은 지도 데이터(SIDO_DATA·GEO)가 준비된 뒤에만 채운다 — 스크립트 평가 중에는 아직 TDZ */
+  if(rg){ rg.innerHTML = rgnSelsHtml(); if(rgnReady) renderTableFilters(); }
+  /* 기간 세그는 우측 현황판 옆 (PC) */
+  const ds = document.getElementById('mktDateSeg');
+  if(ds) ds.innerHTML = ['어제','7일','30일'].map(p=>
+    `<button class="${MKTSET.preset===p?'on':''}" onclick="mktPickPreset('${p}')">${p}</button>`).join('');
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof segObserve === 'function') segObserve();
   /* 차트 제목에 반영 */
@@ -2103,6 +2128,7 @@ function hideMapTip(){
 /* 조준점이 가리키는 타일에 hover 와 동일한 툴팁 표시 */
 function updateCrosshairTip(){
   const t = ensureTip();
+  if(M_UI){ tipHover = false; t.classList.remove('show'); return; }
   if(modalOpen()){ tipHover = false; t.classList.remove('show'); return; }
   const ch = document.getElementById('crosshair');
   /* 지도가 안 보이는 상태(목록 보기·모바일 다른 탭)면 조준점 툴팁도 띄우지 않는다 */
@@ -2333,6 +2359,7 @@ function ptInFeature(lat, lng, feature){
 }
 let chRaf = 0, chSwitching = false;
 function updateCrosshair(){
+  if(M_UI) return;                 /* 모바일은 조준점 없이 터치로만 지역을 고른다 */
   const el = document.getElementById('crosshair');
   if(!el || !panMap || panMap === 'loading') return;
   el.classList.add('on');                      /* 모든 레벨에서 상시 표시 */
@@ -2394,6 +2421,7 @@ function updateCrosshair(){
   updateCrosshairTip();
 }
 function queueCrosshair(){
+  if(M_UI) return;
   if(chRaf) return;
   chRaf = setTimeout(function(){ chRaf = 0; updateCrosshair(); }, 40);
 }
@@ -2416,7 +2444,7 @@ function initPanMap(){
     panMap.getPane('drillLabels').style.zIndex = 460;
     panMap.getPane('drillLabels').style.pointerEvents = 'none';
     panMap.on('zoomend', onZoomEnd);
-    panMap.on('move zoom', queueCrosshair);
+    if(!M_UI) panMap.on('move zoom', queueCrosshair);   /* 모바일은 화면 이동으로 지역이 바뀌지 않는다 */
     panMap.on('movestart', function(){ if(Date.now() >= suppressUntil) userMoved = true; });
     groups.sido = buildGroup(GEO.sido.features, 'sido');
     panMap.addLayer(groups.sido);
@@ -2424,6 +2452,7 @@ function initPanMap(){
     panMap.fitBounds(koreaBounds, fitPad());
     lockNationZoom();                       /* 전국이 보이는 레벨 이하로는 축소 금지 */
     buildMarkets();
+    rgnReady = true; renderTableFilters();  /* 이제 지역 select 를 채울 수 있다 */
     refreshAll();
   })
   .catch(function(){ panMap=null; toast('err','지도 데이터를 불러오지 못했어요'); });
@@ -2499,8 +2528,37 @@ function tfChange(k, v){
   else if(k==='sig'){ TF.sig = v; TF.emd = ''; }
   else { TF.emd = v; }
   /* 읍면동 목록은 7MB 라 시군구를 고른 시점에 지연 로드한다 */
-  if(k==='sig' && v && !GEO.emd){ ensureEmdIndex(()=>{ renderTableFilters(); renderMapTable(); }); }
-  renderTableFilters(); renderMapTable();
+  if(k==='sig' && v && !GEO.emd){ ensureEmdIndex(()=>{ renderTableFilters(); renderMapTable(); tfApplyToMap(); }); }
+  renderTableFilters(); renderMapTable(); tfApplyToMap();
+}
+/* select 를 바꾸면 지도·패널도 그 지역으로 따라간다 */
+let tfSyncing = false;
+function tfApplyToMap(){
+  if(tfSyncing || !panMap || panMap === 'loading') return;
+  tfSyncing = true;
+  try{
+    if(TF.emd && emdBySig[TF.sig]){
+      PANEL = {level:'emd', code:TF.emd};
+      if(VIEW.level !== 'emd' || VIEW.sig !== TF.sig) enterEmdView(TF.sig); else { renderSel(); markRank(); }
+    } else if(TF.sig){
+      PANEL = {level:'sig', code:TF.sig};
+      if(VIEW.level === 'nation' || VIEW.sido !== TF.sido) focusSidoView(TF.sido); else { renderSel(); markRank(); }
+    } else if(TF.sido){
+      if(VIEW.level !== 'sido' || VIEW.sido !== TF.sido) focusSidoView(TF.sido);
+      else { PANEL = {level:'sido', code:TF.sido}; renderSel(); markRank(); }
+    } else if(VIEW.level !== 'nation'){ showNationView(); }
+  } finally { tfSyncing = false; }
+}
+/* 반대 방향 — 지도·표에서 지역을 고르면 select 도 따라 바뀐다 */
+function syncTFfromPanel(){
+  if(tfSyncing || !PANEL.code) return;
+  const c = PANEL.code, lv = PANEL.level;
+  const next = lv==='sido' ? {sido:c, sig:'', emd:''}
+             : lv==='sig'  ? {sido:c.slice(0,2), sig:c, emd:''}
+             :               {sido:c.slice(0,2), sig:c.slice(0,5), emd:c};
+  if(next.sido===TF.sido && next.sig===TF.sig && next.emd===TF.emd) return;
+  TF = next;
+  renderTableFilters();
 }
 function tableRows(){
   if(TF.emd) return [['emd', TF.emd]];
@@ -2564,6 +2622,7 @@ function renderSel(){
   const rank = nets.indexOf(sd.net)+1;
   document.getElementById('sr-badge').textContent = '순수익 '+rank+'위';
   document.getElementById('sr-badge').className = 'badge '+(rank<=3?'bg-ok':'bg-mut');
+  if(typeof syncTFfromPanel === 'function') syncTFfromPanel();   /* 지역 select 연동 */
 }
 function mapMetricSafe(metric){ return mapValue(metric, PANEL.level, PANEL.code); }
 function renderRank(){
@@ -2989,7 +3048,7 @@ document.addEventListener('mouseover', e=>{
      (지역명·판로 토글은 상시표시로 바뀌어 버튼 자체를 쓰지 않는다) */
   const pan = document.getElementById('panMap');
   const ch = document.getElementById('crosshair');
-  if(pan && ch) pan.appendChild(ch);
+  if(ch) ch.remove();               /* 모바일은 조준점 자체를 쓰지 않는다 */
   /* 보기 전환 아이콘은 지도 우측 하단에 얹는다 */
   const fab = document.getElementById('mapViewFab');
   if(pan && fab) pan.appendChild(fab);

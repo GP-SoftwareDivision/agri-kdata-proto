@@ -379,7 +379,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mf-crumb .sep2{color:var(--bd2);font-size:12px}
 .mf-right{top:16px;right:16px;bottom:16px;width:372px;display:flex;flex-direction:column;gap:12px;pointer-events:none}
 .mf-right > *{pointer-events:auto}
-.mf-stats{top:16px;right:404px;display:flex;gap:8px}
+.mf-stats{top:64px;right:404px;display:flex;gap:10px;align-items:center}
 .stat-merge{display:flex;background:#fff;border:1px solid var(--bd);border-radius:12px;box-shadow:0 4px 14px rgba(16,24,40,.08);padding:10px 2px}
 .stat-merge .si{padding:0 16px;text-align:right}
 .stat-merge .si+.si{border-left:1px solid var(--bd)}
@@ -820,35 +820,63 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .select-opt .dup{font-size:11px;color:var(--mut);font-weight:400}
 /* 지도 조건설정부: 컨테이너 없이 상단 한 줄 — 컨트롤만 지도 위에 떠 있다 */
 .mf-tlwrap{top:14px;left:16px;right:404px;z-index:860}
+/* 전광판·기간 세그는 조건바 아래 단으로 (같은 밴드에 두면 가로가 모자란다) */
 .mf-tl{padding:0;background:none;border:none;box-shadow:none}
 .mf-tl .mkt-inline{display:block}
-.mkt-pcbar{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}
-.mkt-pcbar .mkt-crop-sel{width:112px;flex-shrink:0}
-.mkt-pcbar .mkt-crop-sel .select-btn{box-shadow:0 2px 8px rgba(16,24,40,.10)}
-.mkt-pcbar .mkt-dates,.mkt-pcbar .mkt-range{flex-shrink:0}
-.mkt-pcbar .metric-seg{background:rgba(255,255,255,.92);box-shadow:0 2px 8px rgba(16,24,40,.10)}
-.mkt-pcbar .mkt-date-inp{box-shadow:0 2px 8px rgba(16,24,40,.10)}
-.mkt-pcbar .view-ico{margin-left:auto}
-/* 아이콘 버튼 (돋보기 · ★ · 보기 전환) */
-.mb-ico{width:36px;height:36px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
-  border:1px solid var(--bd2);border-radius:9px;background:#fff;color:var(--sub);
+.mkt-pcbar{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;min-width:0}
+.mkt-pcbar .mkt-crop-sel{width:116px;flex-shrink:0}
+.mkt-pcbar .mkt-crop-sel .select-btn{height:38px;box-shadow:0 2px 8px rgba(16,24,40,.10)}
+/* 지역 select 3종 */
+.rgn-sels{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.rgn-fld{flex:1 1 0;min-width:106px}
+.rgn-fld .mt-sel{box-shadow:0 2px 8px rgba(16,24,40,.10)}
+/* 아이콘 버튼 (보기 전환 · ★ · 돋보기) */
+.mb-ico{width:38px;height:38px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--bd2);border-radius:9px;background:#fff;color:var(--sub);position:relative;
   box-shadow:0 2px 8px rgba(16,24,40,.10);transition:all .15s var(--ease)}
 .mb-ico:hover{border-color:var(--g400);color:var(--g700);background:var(--g50)}
 .fav-ic{color:#F0A500}
 .fav-ic:hover{color:#D98E00}
-/* 즐겨찾기: 아이콘에 올리면 목록이 내려온다 (칩까지 마우스가 갈 수 있게 위쪽 여백으로 다리를 놓는다) */
+/* 설정 필요 알림 — ★ 위 느낌표 + 붉은 툴팁 */
+.fav-warn{position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;
+  background:#D9534F;color:#fff;font-size:10.5px;font-weight:900;line-height:16px;text-align:center;
+  border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+
+/* 즐겨찾기: 아이콘에 올리면 목록이 슬라이드되며 내려온다 */
 .fav-ic-wrap{position:relative;flex-shrink:0}
-.fav-pop{position:absolute;top:100%;right:0;padding-top:8px;width:max-content;max-width:420px;
-  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .16s var(--ease),visibility 0s linear .16s;z-index:870}
-.fav-ic-wrap:hover .fav-pop,.fav-pop:hover{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .16s var(--ease)}
-.fav-pop > *{background:#fff;border:1px solid var(--bd);border-radius:12px;box-shadow:0 8px 28px rgba(16,24,40,.16);padding:10px 12px}
-.fav-pop-t{font-size:12px;font-weight:800;color:var(--sub);margin-bottom:0;border-bottom:none !important;
-  border-radius:12px 12px 0 0 !important;padding-bottom:6px !important}
-.fav-pop-t span{font-weight:400;color:var(--mut);font-size:11px;margin-left:4px}
-.fav-pop .mkt-row-favs{border-radius:0 0 12px 12px !important;border-top:none !important;padding-top:2px !important;flex-wrap:wrap;gap:6px}
+.fav-pop{position:absolute;top:100%;left:50%;padding-top:10px;width:max-content;max-width:440px;
+  opacity:0;visibility:hidden;pointer-events:none;z-index:870;
+  transform:translateX(-50%) translateY(-10px);
+  transition:opacity .22s var(--ease),transform .22s var(--ease),visibility 0s linear .22s}
+.fav-ic-wrap:hover .fav-pop,.fav-pop:hover{opacity:1;visibility:visible;pointer-events:auto;
+  transform:translateX(-50%) translateY(0);transition:opacity .22s var(--ease),transform .22s var(--ease)}
+.fav-pop-inner{background:#fff;border:1px solid var(--bd);border-radius:14px;
+  box-shadow:0 12px 34px rgba(16,24,40,.18);overflow:hidden}
+.fav-pop-t{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;font-size:12.5px;font-weight:800;
+  color:var(--sub);border-bottom:1px solid var(--bd)}
+.fav-pop-t span{font-weight:400;color:var(--mut);font-size:11.5px}
+.fav-pop-add{margin-left:auto;flex-shrink:0;font-size:12px;font-weight:700;color:var(--g700);
+  padding:5px 10px;border-radius:8px;background:var(--g50);border:1px solid #DCEBE2;transition:all .14s}
+.fav-pop-add:hover{background:var(--g100)}
+.fav-pop .mkt-row-favs{padding:16px 16px 18px;flex-wrap:wrap;gap:12px}
+/* 팝오버 칩: 신뢰/느낌표는 좌상단에 살짝 겹치는 배지 */
+.fav-chip-pop{position:relative;overflow:visible;height:38px;padding:0 14px}
+.fv-trust,.fv-warn{position:absolute;top:-7px;left:-6px;height:17px;padding:0 6px;border-radius:99px;
+  font-size:10px;font-weight:800;display:inline-flex;align-items:center;border:1.5px solid #fff;z-index:2}
+.fv-trust{background:var(--g600);color:#fff;box-shadow:0 2px 6px rgba(14,122,70,.28)}
+.fv-warn{width:17px;padding:0;justify-content:center;background:#D9534F;color:#fff;
+  box-shadow:0 2px 6px rgba(217,83,79,.3);cursor:help}
+.fv-warn-tip{position:absolute;bottom:calc(100% + 7px);left:0;background:#D9534F;color:#fff;
+  font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;white-space:nowrap;
+  opacity:0;visibility:hidden;pointer-events:none;transition:all .16s var(--ease);
+  box-shadow:0 6px 16px rgba(217,83,79,.3)}
+.fv-warn:hover .fv-warn-tip{opacity:1;visibility:visible}
+/* 기간 세그 — 현황판 옆, 글자 가운데 정렬 */
+.mkt-dates{background:rgba(255,255,255,.94);box-shadow:0 4px 14px rgba(16,24,40,.10);flex-shrink:0}
+.mkt-dates button{min-width:52px;padding:7px 0;text-align:center;justify-content:center}
 /* 검색 팝업 목록 */
-.ms-modal-list{max-height:340px;overflow-y:auto;padding:0 14px 14px}
-.ms-modal-list .select-opt{padding:11px 12px;border-radius:9px}
+.ms-modal-list{max-height:340px;overflow-y:auto;padding:0 14px 16px}
+.ms-modal-list .select-opt{padding:12px 12px;border-radius:9px}
 
 
 /* ══════════ 판로 지도: 목록(표) 보기 · 탭 · 차트 (PC 기준) ══════════ */
@@ -896,3 +924,15 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 /* 모바일 탭·보기 전환 fab 은 PC 에서 숨긴다 (PC 는 상단 줄의 아이콘을 쓴다) */
 .map-tabs{display:none}
 .mf-viewfab,.mf-viewfab2{display:none}
+
+/* ── 여백 정리 (지도 페이지) ── */
+.stat-merge{padding:12px 4px}
+.stat-merge .si{padding:0 16px}
+.mf-stats{gap:10px;align-items:center}
+#mfInfo{padding:18px 20px !important;gap:12px !important}
+#mfRank{padding:18px 18px !important}
+#mfChart{padding:16px 18px 12px !important}
+.mf-table{border-radius:14px}
+.mt-filters{padding:16px 18px 12px}
+.mt-table th{padding:11px 14px}
+.mt-table td{padding:12px 14px}

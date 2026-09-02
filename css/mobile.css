@@ -587,3 +587,25 @@ html.m .mt-table td,html.m .mt-table th{padding:9px 10px}
 html.m #mapPriceChart{height:240px}
 html.m #rankScroll{max-height:none}
 html.m #mfRank{max-height:none}
+
+/* ── 지역 select 바 (탭 아래, 지도·목록 공통) ── */
+html.m .rgn-bar{order:3;display:flex;gap:8px;margin:10px 12px 0}
+html.m .rgn-bar .rgn-fld{flex:1;min-width:0}
+html.m .rgn-bar .mt-sel{height:42px;font-size:13px;padding:0 26px 0 10px}
+html.m .mf-tlwrap{order:4}
+html.m .map-full[data-view="map"] .rgn-bar{margin-bottom:0}
+/* 조건 바가 지도 위로 겹치는 기준을 지역 select 바 다음으로 */
+html.m .map-full[data-view="map"] .mf-tlwrap{margin-bottom:-56px}
+html.m #mapTable,html.m .map-full #panMap{order:5}
+html.m .mf-crumb{order:6}
+html.m .mf-legend{order:7}
+html.m .mf-right{order:8}
+/* 조준점은 모바일에서 쓰지 않는다 */
+html.m .crosshair{display:none !important}
+/* 여백 */
+html.m .mf-stats{padding:0}
+html.m .mt-filters{padding:14px 14px 10px}
+/* 기간 세그는 PC 전용 — 모바일은 조건설정 모달에서 고른다 */
+html.m #mktDateSeg{display:none}
+/* 보기 전환 fab 이 플로팅 챗봇 버튼에 가리지 않게 */
+html.m #panMap .mf-viewfab{right:14px;bottom:16px;z-index:955}
