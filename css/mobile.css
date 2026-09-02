@@ -601,7 +601,6 @@ html.m .mf-crumb{order:6}
 html.m .mf-legend{order:7}
 html.m .mf-right{order:8}
 /* 조준점은 모바일에서 쓰지 않는다 */
-html.m .crosshair{display:none !important}
 /* 여백 */
 html.m .mf-stats{padding:0}
 html.m .mt-filters{display:flex;align-items:center;padding:14px 14px 10px}

@@ -798,7 +798,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .fav-add{display:inline-flex;align-items:center;height:34px;padding:0 13px;border:1.5px dashed var(--bd2);border-radius:99px;background:transparent;font-size:12.5px;font-weight:600;color:var(--sub);transition:all .18s var(--ease)}
 .fav-add:hover{border-color:var(--g400);color:var(--g700);background:var(--g50)}
 /* 신뢰 뱃지 — 청과 실측 기반임을 은근히 표시, 호버 시 이유 툴팁 */
-.trust-b{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:6px;background:var(--g100);color:var(--g700);font-size:10.5px;font-weight:800;cursor:help;position:relative;flex-shrink:0}
+.trust-b{display:inline-flex;align-items:center;height:18px;padding:0 7px;border-radius:6px;background:var(--g100);color:var(--g700);font-size:10.5px;font-weight:800;cursor:default;position:relative;flex-shrink:0}
 .trust-b .tip{position:fixed;left:0;top:0;transform:translateX(-50%);background:#1A1E24;color:#fff;font-size:11.5px;font-weight:400;padding:9px 13px;border-radius:8px;white-space:normal;width:252px;line-height:1.6;z-index:2000;text-align:left;box-shadow:0 8px 22px rgba(0,0,0,.28);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s var(--ease),visibility 0s linear .18s}
 .trust-b:hover .tip{opacity:1;visibility:visible;transition:opacity .18s var(--ease)}
 /* 단계형 진행바 (PC·모바일 공용 — stepFlow 가 헤더 아래에 끼워 넣는다) */
@@ -878,7 +878,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
   font-size:10px;font-weight:800;display:inline-flex;align-items:center;z-index:2}
 .fv-trust{background:var(--g600);color:#fff;box-shadow:0 2px 6px rgba(14,122,70,.28)}
 .fv-warn{width:17px;height:17px;padding:0;justify-content:center;line-height:1;background:#D9534F;color:#fff;
-  box-shadow:0 2px 6px rgba(217,83,79,.3);cursor:help}
+  box-shadow:0 2px 6px rgba(217,83,79,.3);cursor:default}
 .fv-warn-tip{position:absolute;bottom:calc(100% + 7px);left:0;background:#D9534F;color:#fff;
   font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;white-space:nowrap;
   opacity:0;visibility:hidden;pointer-events:none;transition:all .16s var(--ease);
@@ -924,7 +924,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .mt-sel:focus{outline:none;border:1.5px solid var(--g600)}
 .mt-sel:disabled{background-color:var(--bg);color:var(--mut);cursor:not-allowed}
 
-.mt-scroll{flex:1;min-height:0;overflow:auto;padding:0 18px 18px}
+.mt-scroll{flex:1;min-height:0;overflow:auto;padding:16px 18px 18px}
 .mt-table{width:100%;border-collapse:collapse;font-size:13px}
 .mt-table th{position:sticky;top:0;z-index:2;background:#F7F9F8;border-bottom:1px solid var(--bd);
   padding:9px 12px;text-align:left;font-size:11.5px;font-weight:800;color:var(--sub);white-space:nowrap}
@@ -964,6 +964,18 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .scrollbox{position:relative;border:1px solid var(--bd);border-radius:10px;overflow:hidden}
 /* 날짜 입력 표시 텍스트 오버레이 (로캘 무관 YYYY-MM-DD) */
 .dp{position:relative;display:inline-flex;align-items:center}
-.dp .mkt-date-inp{color:transparent}
-.dp-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  pointer-events:none;font-size:12.5px;font-weight:600;color:var(--txt);font-variant-numeric:tabular-nums}
+/* 네이티브 입력은 투명하게 위에 얹어 클릭·달력만 담당하고, 보이는 글자는 .dp-txt 가 그린다
+   (색만 투명하게 하면 세그먼트 선택 하이라이트가 겹쳐 보인다) */
+.dp .mkt-date-inp{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.dp-txt{position:relative;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;font-size:12.5px;font-weight:600;color:var(--txt);font-variant-numeric:tabular-nums;
+  min-width:92px;padding:0 4px}
+
+/* ── 시안 전반: 텍스트 드래그 선택 금지 (입력 요소는 예외) ── */
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select,[contenteditable="true"]{-webkit-user-select:text;user-select:text}
+img,svg{-webkit-user-drag:none;user-drag:none}
+/* 도움말 툴팁도 기본 커서 */
+.help-q{cursor:default}
+/* amCharts 워터마크 (dispose 가 막히는 경우 대비) */
+[class*="amcharts"] a[href*="amcharts"],g[aria-labelledby*="title"] a{display:none !important}
