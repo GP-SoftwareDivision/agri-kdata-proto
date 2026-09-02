@@ -1242,6 +1242,15 @@ function mktDatesHtml(st, D){
    바를 누르거나 아래로 끌어내리면 조건설정 모달이 열린다 (핸들러는 bindCondDrag) */
 /* 조건바 우측 ^ : 전광판(전국 평균·최고 단가·전일 대비)을 아래에서 밀어 올린다 */
 const CHEV_UP_SVG = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 10L8 6L12 10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+/* 지도뷰: 순위·정보·차트를 아이콘으로 열고 닫는다 (탭과 달리 지도는 계속 보인다) */
+function mapPanel(t){
+  const mf = document.querySelector('.map-full'); if(!mf) return;
+  const next = (mf.dataset.mpanel === t) ? '' : t;
+  mf.dataset.mpanel = next;
+  document.querySelectorAll('#mapIcons .mi-btn').forEach(b=>b.classList.toggle('on', b.dataset.mp===next));
+  if(next === 'chart') setTimeout(initMapChart, 160);
+  if(next === 'rank' && typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 80);
+}
 function tglMapStats(){
   const mf = document.querySelector('.map-full');
   if(mf) mf.classList.toggle('stats-on');
@@ -2790,6 +2799,10 @@ function setMapView(v){
   renderMktBars();                            /* 세그 활성 표시 갱신 */
   const tgt = v==='table' ? document.getElementById('mapTable') : document.getElementById('panMap');
   if(tgt){ tgt.classList.remove('pane-in'); void tgt.offsetWidth; tgt.classList.add('pane-in'); }
+  /* 표에서는 탭의 '지도'를 '목록'으로 — 지금 보고 있는 것이 목록이므로 */
+  const t0 = document.querySelector('#mapTabs .mt-item[data-tab="map"]');
+  if(t0) t0.textContent = (v === 'table') ? '목록' : '지도';
+  if(v !== 'map' && mf.dataset.mpanel) mapPanel(mf.dataset.mpanel);   /* 열린 패널 닫기 */
   if(v==='table'){ renderTableFilters(); renderMapTable(); syncTableTop(); }
   else if(panMap && panMap.invalidateSize) setTimeout(()=>panMap.invalidateSize(), 60);
   if(typeof updateCrosshairTip === 'function') updateCrosshairTip();
@@ -2814,7 +2827,8 @@ function renderTableFilters(){
   const host = document.getElementById(M_UI ? 'rgnSelsM' : 'rgnSels');
   if(!host) return;
   host.innerHTML =
-      rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '전체', false)
+      (M_UI ? '<span class="rgn-view">'+mktViewIconHtml(MKTSET)+'</span>' : '')
+    + rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '전체', false)
     + rgnSelHtml('sig','시군구', TF.sig, TF.sido ? tfSigList(TF.sido) : [], '전체', !TF.sido)
     ;
 }

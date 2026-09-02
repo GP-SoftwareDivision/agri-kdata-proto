@@ -946,3 +946,66 @@ html.m .onb-cta .btn{height:52px}
 html.m .onb-done{flex:1;justify-content:center;padding:20px 20px calc(30px + env(safe-area-inset-bottom))}
 html.m #onbBody .inp{height:48px}
 html.m .onb-chip{padding:11px 18px;font-size:14.5px}
+
+/* ══════════ 판로 지도 v2 — 지도 풀블리드 · 아이콘 패널 (2026-09-02) ══════════ */
+
+/* ── 지도뷰: 지도가 헤더 아래까지 화면 전체를 쓴다 ──
+   .map-full 을 헤더 높이만큼 끌어올려 뷰포트 전체로 만들고, 그 안에서 절대배치한다.
+   (position:fixed 는 .page 의 pageIn transform 에 갇히므로 쓰지 않는다) */
+html.m .map-full[data-view="map"]{position:relative;margin-top:-70px;
+  height:calc(100dvh + 70px);min-height:calc(100dvh + 70px);padding:0;overflow:hidden}
+html.m .map-full[data-view="map"] #panMap{position:absolute;inset:0;width:auto;height:auto;
+  flex:none;min-height:0;order:0}
+/* 지도뷰에서는 상단 탭 메뉴 대신 아이콘을 쓴다 */
+html.m .map-full[data-view="map"] .map-tabs{display:none}
+
+/* 헤더·조건바·패널은 반투명으로 지도를 비춘다 */
+html.m.map-page .gnb{background:rgba(255,255,255,.62)}
+html.m .mkt-sum{background:rgba(255,255,255,.80);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%)}
+html.m .mf-stats .stat-merge,html.m .map-full[data-view="map"] .mf-panel{
+  background:rgba(255,255,255,.86);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);backdrop-filter:blur(16px) saturate(180%)}
+
+/* 조건바·전광판을 .map-full 기준 절대배치로 (뷰포트와 같은 크기라 결과가 같다) */
+html.m .map-full[data-view="map"] .mf-tlwrap{position:absolute;bottom:12px}
+html.m .map-full[data-view="map"] .mf-stats{position:absolute;bottom:74px}
+/* 보기 전환 버튼은 헤더 아래로 내린다 */
+html.m .map-full[data-view="map"] #panMap .mf-viewfab{top:152px}   /* 헤더(70) + 12 */
+
+/* ── 순위·정보·차트 아이콘 레일 (지도 우측) ── */
+html.m .map-full[data-view="map"] .map-icons{display:flex;flex-direction:column;gap:8px;position:absolute;right:12px;top:152px;z-index:830}
+html.m .mi-btn{width:42px;height:42px;border-radius:12px;color:var(--sub);
+  background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:0 4px 14px rgba(16,24,40,.16);display:flex;align-items:center;justify-content:center;
+  transition:background .16s,color .16s}
+html.m .mi-btn.on{background:var(--g600);color:#fff}
+
+/* ── 아이콘 패널: 조건바 위로 슬라이드 (한 번에 하나) ── */
+/* style.css 의 .mf-right{top:16px} 을 풀지 않으면 top+bottom 으로 화면 전체가 늘어난다 */
+html.m .map-full[data-view="map"] .mf-right{position:absolute;top:auto;left:12px;right:12px;bottom:74px;
+  width:auto;height:auto;margin:0;z-index:870;pointer-events:none}
+/* #mfRank{max-height:none} 같은 ID 규칙이 있어 !important 로 눌러야 한다 */
+html.m .map-full[data-view="map"] .mf-right .mf-panel{display:none !important;
+  max-height:46dvh !important;overflow-y:auto;box-shadow:0 8px 28px rgba(16,24,40,.20)}
+html.m .map-full[data-view="map"] .mf-right .mf-panel,
+html.m .map-full[data-view="map"] #mfRank{flex:0 1 auto !important}
+html.m .map-full[data-view="map"][data-mpanel="rank"] #mfRank,
+html.m .map-full[data-view="map"][data-mpanel="info"] #mfInfo,
+html.m .map-full[data-view="map"][data-mpanel="chart"] #mfChart{display:flex !important;
+  pointer-events:auto;animation:mpUp .26s var(--ease)}
+@keyframes mpUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+/* 패널이 열려 있으면 전광판은 그 위로 밀지 않고 감춘다 (겹침 방지) */
+html.m .map-full[data-view="map"]:not([data-mpanel=""]) .mf-stats{display:none}
+
+/* ── 표 보기: 하단 여백 제거 · 필터는 시도/시군구 행으로 통합 ── */
+/* flex:1 이 높이를 나눠 가지려면 컨테이너 높이가 '확정' 이어야 한다 (min-height 로는 안 된다) */
+html.m .map-full[data-view="table"]{height:calc(100dvh - 70px);min-height:0;overflow:hidden;
+  padding-bottom:78px}
+html.m .map-full[data-view="table"] .mt-filters{display:none}   /* 전환 아이콘은 시도/시군구 행으로 옮겼다 */
+html.m .rgn-view{flex:0 0 auto;display:inline-flex;align-self:center}
+html.m .rgn-view .mb-ico{width:42px;height:42px;box-shadow:none;border:1px solid var(--bd);background:#fff}
+html.m .map-full[data-view="table"] .rgn-bar{align-items:center}
+/* 표가 남는 높이를 채워 아래에 빈 띠가 생기지 않게 */
+html.m .map-full[data-view="table"] #mapTable{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+html.m .map-full[data-view="table"] .mt-scroll{flex:1 1 auto;max-height:none;min-height:0}

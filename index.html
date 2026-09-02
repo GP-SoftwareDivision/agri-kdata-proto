@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=172">
-<link rel="stylesheet" href="css/mobile.css?v=172">
+<link rel="stylesheet" href="css/style.css?v=177">
+<link rel="stylesheet" href="css/mobile.css?v=177">
 </head>
 <body>
 
@@ -517,6 +517,19 @@ docker run --rm -p 8080:8080 \
 
       <!-- 지도 내 위치 브레드크럼 -->
       <div class="mf mf-crumb" id="mapCrumb" data-pane="map"></div>
+
+      <!-- 모바일 지도뷰: 순위·정보·차트를 아이콘으로 (누르면 패널이 슬라이드, 한 번에 하나) -->
+      <div class="mf map-icons" id="mapIcons">
+        <button class="mi-btn" data-mp="rank" onclick="mapPanel('rank')" aria-label="순위">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M4 15V9M10 15V5M16 15v-4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+        </button>
+        <button class="mi-btn" data-mp="info" onclick="mapPanel('info')" aria-label="지역 정보">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.2" stroke="currentColor" stroke-width="1.7"/><path d="M10 9v4.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="10" cy="6.6" r="1" fill="currentColor"/></svg>
+        </button>
+        <button class="mi-btn" data-mp="chart" onclick="mapPanel('chart')" aria-label="가격 추이">
+          <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><path d="M3 14l4.5-5 3.5 3L17 5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 5H17v3.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
 
       <!-- 우측: 선택 지역 + 차트 + 순위 -->
       <div class="mf mf-right">
@@ -1857,7 +1870,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=172"></script>
-<script src="js/mobile-flow.js?v=172"></script>
+<script src="js/app.js?v=177"></script>
+<script src="js/mobile-flow.js?v=177"></script>
 </body>
 </html>

@@ -1061,3 +1061,5 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 .onb-done img{width:92px;height:92px;object-fit:contain;margin-bottom:8px}
 .onb-done b{font-size:20px;letter-spacing:-.4px}
 .onb-done p{font-size:13.5px;color:var(--sub);line-height:1.7;margin:6px 0 16px;word-break:keep-all}
+/* 지도 아이콘 레일은 모바일 지도뷰 전용 (PC 는 우측 패널을 상시 노출한다) */
+.map-icons{display:none}
