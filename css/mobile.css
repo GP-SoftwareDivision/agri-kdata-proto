@@ -757,3 +757,13 @@ html.m #page-dashboard .kpi.hl::before{content:'';position:absolute;z-index:-1;t
 /* 제목+범례를 세로로 쌓는 규칙이 '판로 추천' 목록 컨테이너까지 잡아
    행들이 내용 폭으로 줄어들어 있었다 — 목록은 폭을 채운다 */
 html.m .card > div[style*="justify-content:space-between"]:has(.mkt){align-items:stretch !important}
+
+/* ── 전체 메뉴 · 서비스 바둑판: 테두리 없이 아이콘 + 이름만 ── */
+html.m .am-cell{background:transparent;border:none;border-radius:12px;padding:14px 8px 12px;min-height:0}
+html.m .am-cell:active{background:var(--g50)}
+html.m .am-cell .ic{width:46px;height:46px;border-radius:14px}
+html.m .am-cell .ic svg{width:22px;height:22px}
+html.m .am-cell b{font-size:13px;font-weight:500;color:var(--txt)}
+html.m .am-cell.now{border:none;background:var(--g50)}
+html.m .am-cell.now b{color:var(--g700);font-weight:700}
+html.m .am-grid{gap:4px}
