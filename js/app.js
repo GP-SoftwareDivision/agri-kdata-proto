@@ -2908,51 +2908,82 @@ function flyRegion(b, minZ, maxZ){
 /* 반대 방향 — 지도·표에서 지역을 고르면 select 도 따라 바뀐다 */
 function syncTFfromPanel(){
   if(tfSyncing || !PANEL.code) return;
+  /* 표 보기에서는 select 가 데이터의 기준이다 — 숨은 지도의 조준점이 되돌리면 안 된다 */
+  if(mapView === 'table') return;
   const c = PANEL.code, lv = PANEL.level;
   const next = lv==='sido' ? {sido:c, sig:''} : {sido:c.slice(0,2), sig:c.slice(0,5)===c?c:c.slice(0,5)};
   if(next.sido===TF.sido && next.sig===TF.sig) return;
   TF = next;
   renderTableFilters();
 }
-function tableRows(){
-  if(TF.sig) return [['sig', TF.sig]];
-  if(TF.sido) return (sigBySido[TF.sido]||[]).map(f=>['sig', f.properties.SIG_CD]);
-  return Object.keys(SIDO_DATA).map(cd=>['sido', cd]);
+/* 표는 '지역' 이 아니라 그 지역에 속한 '판로' 를 보여 준다.
+   시도만 고르면 그 시도의 모든 판로, 시군구까지 고르면 그 시군구의 판로. */
+function tableMarkets(){
+  const lv = TF.sig ? 'sig' : (TF.sido ? 'sido' : '');
+  return marketsIn(lv, TF.sig || TF.sido || '').slice().sort((x,y)=>y.price-x.price);
+}
+/* 주소는 좌표가 실제로 속한 시도·시군구에서 만든다 (지어내지 않는다) */
+function mkAddr(m){
+  const sd = SIDO_DATA[m.sido] ? SIDO_DATA[m.sido].full : '';
+  const sg = mkSigOf(m);
+  return (sd + (sg ? ' ' + nameOf('sig', sg) : '')).trim() || '—';
 }
 function renderMapTable(){
   const body = document.getElementById('mapTableBody'); if(!body) return;
-  const rows = tableRows().map(([lv,c])=>({lv, c,
-    n: lv==='sido' ? SIDO_DATA[c].full : nameOf(lv,c),
-    p: mapValue('price',lv,c), net: mapValue('net',lv,c), vol: volOf(lv,c), fee: feeOf(lv,c)
-  })).sort((a,b)=>b.p-a.p);
-  body.innerHTML = rows.length ? rows.map((r,i)=>`
-    <tr class="${(PANEL.level===r.lv&&PANEL.code===r.c)?'sel':''}" data-code="${r.c}"
-      onmouseenter="tableRowHover('${r.lv}','${r.c}')" onclick="tableRowDrill('${r.lv}','${r.c}')">
+  const ms = tableMarkets();
+  body.innerHTML = ms.length ? ms.map((m,i)=>{
+    const c = mkNet(m);
+    return `<tr class="${selMk===m.id?'sel':''}" data-mk="${m.id}" onclick="selectMarketRow('${m.id}')">
       <td class="rk">${i+1}</td>
-      <td class="nm">${r.n}</td>
-      <td class="num">${Math.round(r.p).toLocaleString()}</td>
-      <td class="num ${r.net>=0?'up':'down'}">${(r.net>=0?'+':'')+r.net.toFixed(1)}</td>
-      <td class="num">${r.vol.toLocaleString()}</td>
-      <td class="num">${r.fee.toLocaleString()}</td>
-    </tr>`).join('')
-    : '<tr><td colspan="6" class="mt-empty">표시할 지역이 없어요 — 필터를 확인해주세요.</td></tr>';
+      <td class="nm"><b>${m.n}</b><span class="mt-ty">${MK_TYPE[m.t].label}</span></td>
+      <td class="addr">${mkAddr(m)}</td>
+      <td class="num">${Math.round(m.price * ITEM_BASE[curCrop()]/1240 * dateF()).toLocaleString()}</td>
+      <td class="num ${c.rate>=0?'up':'down'}">${(c.rate>=0?'+':'')+c.rate.toFixed(1)}</td>
+      <td class="num">${m.vol.toLocaleString()}</td>
+      <td class="num">${c.ship.toLocaleString()}</td>
+    </tr>`;}).join('')
+    : '<tr><td colspan="7" class="mt-empty">이 지역에는 등록된 판로가 없어요 — 시도·시군구를 바꿔보세요.</td></tr>';
   if(typeof osUpdateFades === 'function') osUpdateFades();
 }
-/* 지도와 같은 규칙: 올리면 정보만 바뀌고, 클릭하면 그 하위 레벨로 들어간다 */
-function tableRowHover(lv, c){
-  if(PANEL.level===lv && PANEL.code===c) return;
-  tableRowSelect(lv, c);
+/* 행 클릭 = 그 판로 선택. depth 도 select 도 건드리지 않는다 (hover 는 하이라이트만) */
+function selectMarketRow(id){
+  selMk = id;
+  document.querySelectorAll('#mapTableBody tr').forEach(tr=>tr.classList.toggle('sel', tr.dataset.mk===id));
+  const m = MARKETS.find(x=>x.id===id); if(!m) return;
+  renderMarketDetail(m);
+  if(mapView === 'map' && mkRef[id]){ try{ mkRef[id].openPopup(); centerPopup(mkRef[id]); }catch(e){} }
 }
-/* depth 이동은 시도·시군구 select 로 옮겼으므로, 행을 누르면 '선택'만 한다.
-   선택하면 정보·차트·순위 패널이 그 지역 기준으로 바뀐다. */
-function tableRowDrill(lv, c){
-  tableRowSelect(lv, c);
+/* 선택한 판로를 정보 패널에 채운다 */
+function renderMarketDetail(m){
+  const c = mkNet(m), set = (id,v)=>{ const el=document.getElementById(id); if(el) el.innerHTML = v; };
+  const price = Math.round(m.price * ITEM_BASE[curCrop()]/1240 * dateF());
+  const U = t=>'<span style="font-size:11px;font-weight:500;color:var(--sub)">'+t+'</span>';
+  set('sr-name', m.n);
+  const bd = document.getElementById('sr-badge');
+  if(bd){ bd.textContent = MK_TYPE[m.t].label; bd.className = 'badge ' + (m.best ? 'bg-ok' : 'bg-mut'); }
+  set('sr-price', price.toLocaleString()+U('원/kg'));
+  set('sr-net', (c.rate>=0?'+':'')+c.rate.toFixed(1)+U('%'));
+  set('sr-vol', m.vol.toLocaleString()+U('톤'));
+  set('sr-fee', c.ship.toLocaleString()+U('원/kg'));
+  const tip = document.getElementById('sr-ch');
+  if(tip) tip.textContent = mkAddr(m) + ' · 정산 ' + m.settle;
 }
-function tableRowSelect(lv, c){
-  PANEL = {level:lv, code:c};
-  renderSel(); markRank();
-  document.querySelectorAll('#mapTableBody tr').forEach(tr=>tr.classList.toggle('sel', tr.dataset.code===c));
-  if(typeof syncMapChart === 'function') syncMapChart();
+/* 팝업이 화면 한가운데 오도록 지도를 옮긴다 (마커가 아니라 팝업 기준) */
+function centerPopup(mk){
+  if(!panMap || !mk) return;
+  setTimeout(()=>{
+    const p = mk.getPopup(), el = p && p.getElement();
+    if(!el) return;
+    const h = el.offsetHeight || 200;
+    /* panBy 는 마커가 화면 밖이면 못 쓴다 — 투영 좌표에서 목표 중심을 직접 구한다 */
+    const z = panMap.getZoom();
+    const pt = panMap.project(mk.getLatLng(), z);
+    const target = panMap.unproject(L.point(pt.x, pt.y - (46 + h/2)), z);
+    suppressUntil = Date.now() + 900;
+    const cp = panMap.latLngToContainerPoint(target), sz = panMap.getSize();
+    const far = cp.x < 0 || cp.y < 0 || cp.x > sz.x || cp.y > sz.y;
+    panMap.setView(target, z, far ? {animate:false} : {animate:true, duration:.35});
+  }, 60);
 }
 
 /* ══════════ 모바일 탭 (지도 · 순위 · 정보 · 차트) ══════════ */
@@ -3198,6 +3229,10 @@ function buildMarkets(){
       {direction:'top', offset:[0,0], className:'mk-tip', opacity:1});
     mk.bindPopup(mkPopup(m), {offset:[0,0], closeButton:true, autoPan:false});
     mk.on('popupopen', function(){
+      selMk = m.id;
+      if(typeof renderMarketDetail === 'function') renderMarketDetail(m);
+      document.querySelectorAll('#mapTableBody tr').forEach(tr=>tr.classList.toggle('sel', tr.dataset.mk===m.id));
+      if(typeof centerPopup === 'function') centerPopup(mk);
       chLocked = true; updateCrosshair(); updateCrosshairTip();
       selMk = m.id;
       const el=mk.getElement(); if(el) el.querySelector('.mk-pin').classList.add('sel');

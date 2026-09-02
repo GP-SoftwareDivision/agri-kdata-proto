@@ -527,17 +527,21 @@ window.msubClose = function(){
   btn.innerHTML = '새 서류 작성';                       /* '+' 아이콘 제거 */
   ttl.textContent = '내 서류 목록';
   var wrap = document.createElement('div');
-  wrap.style.cssText = 'padding:6px 16px 18px';
+  wrap.className = 'mdc-newwrap';
   btn.style.width = '100%';
   wrap.appendChild(btn);
-  card.appendChild(wrap);                               /* 목록 아래 3번째 블록으로 */
+  card.parentNode.appendChild(wrap);                    /* 흰 박스 '밖' — 화면 하단에 상시 */
   var info = document.createElement('button');
   info.className = 'help-q'; info.textContent = '?'; info.setAttribute('aria-label','내 서류 목록 도움말');
   info.onclick = function(){ toast('info','완성 서류와 변환한 서식은 이 기기(브라우저)에만 저장돼요. 개인정보 원본은 서버에 보관하지 않고, 작성할 때마다 마이데이터를 실시간 조회해 최신 값으로 채워요.'); };
   ttl.after(info);
-  /* '내 서류함' 헤더를 카드 밖 독립 타이틀로 분리 */
+  /* '내 서류함' 헤더를 카드 밖 독립 타이틀로 분리 + 초록 서브타이틀 */
   head.classList.add('mdc-sec');
   card.parentNode.insertBefore(head, card);
+  var sub = document.createElement('div');
+  sub.className = 'mdc-sub';
+  sub.textContent = '자주 쓰는 행정 서식을 자동으로 채워서 만들어 드려요';
+  card.parentNode.insertBefore(sub, card);
 })();
 
 /* ④-a 서류 목록 렌더러 교체 (모바일 전용 박스형) */
@@ -553,17 +557,17 @@ window.renderDocList = function(){
   box.innerHTML = docs.map(function(d,i){
     var draft = d.status === 'draft';
     return '<div class="mdc" onclick="'+(draft?'resumeDoc('+i+')':'mdocDetail('+i+')')+'">'
-      + (draft ? '<span class="badge bg-info mdc-badge">작성 중</span>'
-               : '<span class="badge bg-ok mdc-badge">완료 · TSA ✓</span>')
-      + '<div class="mdc-t"><b>'+d.name+'</b>'+MDC_CHEV+'</div>'
-      + '<div class="mdc-org">'+d.org+'</div>'
-      + '<div class="mdc-bot">'
-      +   '<span class="mdc-date">'+d.date+'</span>'
-      +   (draft ? '<span class="mini-prog" style="width:52px"><i style="width:'+(d.prog||60)+'%"></i></span>'
-                 + '<span style="font-size:11.5px;font-weight:700;color:var(--blue)">'+(d.prog||60)+'%</span>' : '')
+      + '<div class="mdc-l">'
+      +   '<b class="mdc-nm">'+d.name+'</b>'
+      +   '<span class="mdc-org">'+d.org+'</span>'
+      +   (draft ? '<span class="mdc-prog"><span class="mini-prog"><i style="width:'+(d.prog||60)+'%"></i></span><b>'+(d.prog||60)+'%</b></span>' : '')
       + '</div>'
-      + '<button class="mdc-del" onclick="event.stopPropagation();delDoc('+i+')" aria-label="이 기기에서 삭제">'+MDC_TRASH+'</button>'
-      + '</div>';
+      + '<div class="mdc-r">'
+      +   MDC_CHEV
+      +   (draft ? '<span class="badge bg-info">작성 중</span>' : '<span class="badge bg-ok">완료 · TSA ✓</span>')
+      +   '<span class="mdc-rb"><span class="mdc-date">'+d.date+'</span>'
+      +   '<button class="mdc-del" onclick="event.stopPropagation();delDoc('+i+')" aria-label="이 기기에서 삭제">'+MDC_TRASH+'</button></span>'
+      + '</div></div>';
   }).join('');
 };
 renderDocList();

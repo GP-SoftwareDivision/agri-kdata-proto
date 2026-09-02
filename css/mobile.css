@@ -1076,10 +1076,30 @@ html.m #page-docs .wrap{padding-left:10px;padding-right:10px}
 html.m .mdc-sec{padding:12px 12px 8px !important}
 html.m .mdc-sec .sec-t{font-size:20px;font-weight:800;letter-spacing:-.4px}
 /* 목록: 개별 박스 대신 흰 카드 하나 + 헤어라인 행 */
-html.m #dv-home > .card:first-of-type{border:none;border-radius:18px}
-html.m #dv-home #docList{display:flex;flex-direction:column;gap:0;padding:4px 20px 0}
-html.m .mdc{border:none;border-radius:0;padding:16px 2px 14px;border-bottom:1px solid #F1F3F2}
+/* 타이틀(밖) 아래 초록 서브타이틀 */
+html.m .mdc-sec{padding:12px 12px 4px !important}
+html.m .mdc-sub{padding:0 12px 10px;font-size:12.5px;font-weight:600;color:var(--g600);word-break:keep-all}
+/* 화면을 꽉 채우는 스켈레톤: 타이틀 → 흰 박스(내부 스크롤) → 새 서류 작성(하단 상시) */
+html.m.docs-page #page-docs .wrap{height:calc(100dvh - 54px);
+  padding:6px 10px calc(70px + env(safe-area-inset-bottom))}
+html.m #dv-home{display:flex;flex-direction:column;min-height:0;height:100%}
+html.m #dv-home > .card{border:none;border-radius:18px;
+  box-shadow:0 4px 18px rgba(16,24,40,.07);
+  flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+html.m #dv-home #docList{flex:1 1 auto;min-height:0;overflow-y:auto;
+  display:flex;flex-direction:column;flex-wrap:nowrap;gap:0;padding:2px 14px 8px}
+html.m .mdc-newwrap{flex:none;padding:12px 2px 0}
+/* 카드 행: 좌(제목·설명·진행) · 우(화살표·뱃지·날짜+삭제) */
+html.m .mdc{border:none;border-radius:0;padding:15px 2px 13px;border-bottom:1px solid #F1F3F2;
+  display:flex;justify-content:space-between;gap:12px}
 html.m #dv-home #docList .mdc:last-child{border-bottom:none}
+html.m #dv-home > .card + .card{display:none !important}   /* 하단 안내 카드는 계속 숨김 */
 html.m .mdc:active{box-shadow:none;background:var(--g50)}
-html.m .mdc-badge{top:17px;right:0}
-html.m .mdc-del{right:-8px;bottom:6px}
+html.m .mdc-l{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+html.m .mdc-nm{font-size:15px;letter-spacing:-.3px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.m .mdc-prog{display:flex;align-items:center;gap:7px;margin-top:auto;padding-top:9px}
+html.m .mdc-prog b{font-size:11.5px;color:var(--blue)}
+html.m .mdc-r{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:6px}
+html.m .mdc-r .badge{font-size:11px}
+html.m .mdc-rb{display:flex;align-items:center;gap:2px}
+html.m .mdc-del{position:static;width:30px;height:30px;margin-right:-8px}
