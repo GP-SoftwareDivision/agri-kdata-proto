@@ -1095,6 +1095,7 @@ html.m .mdc{border:none;border-radius:0;padding:15px 2px 13px;border-bottom:1px 
 html.m #dv-home #docList .mdc:last-child{border-bottom:none}
 html.m #dv-home > .card + .card{display:none !important}   /* 하단 안내 카드는 계속 숨김 */
 html.m .mdc:active{box-shadow:none;background:var(--g50)}
+<<<<<<< Updated upstream
 html.m .mdc-l{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px}
 html.m .mdc-nm{font-size:15px;letter-spacing:-.3px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 html.m .mdc-prog{display:flex;align-items:center;gap:7px;margin-top:auto;padding-top:9px}
@@ -1103,3 +1104,13 @@ html.m .mdc-r{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-
 html.m .mdc-r .badge{font-size:11px}
 html.m .mdc-rb{display:flex;align-items:center;gap:2px}
 html.m .mdc-del{position:static;width:30px;height:30px;margin-right:-8px}
+=======
+html.m .mdc-badge{top:17px;right:0}
+html.m .mdc-del{right:-8px;bottom:6px}
+
+/* 판로 표(모바일): 주소는 더 작게, 열 폭 조정 */
+html.m .mt-table .c-addr{width:30%}
+html.m .mt-table td.addr{font-size:10.5px}
+html.m .mt-table td.nm b{font-size:12.5px}
+html.m .mt-table .mt-ty{font-size:10px}
+>>>>>>> Stashed changes

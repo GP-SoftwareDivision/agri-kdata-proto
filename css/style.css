@@ -1073,3 +1073,17 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 .rgn-bar{z-index:900}
 .rgn-sel .select-list,.mt-fld .select-list{z-index:920}
 .rgn-sel.open,.mt-fld .select.open{z-index:921}
+
+/* ── 판로 표: 헤더 sticky (별도 테이블을 쓰면 열 폭이 어긋난다) ── */
+.mt-table thead th{position:sticky;top:0;z-index:3;background:#fff;
+  box-shadow:inset 0 -1px 0 var(--bd)}
+.mt-table .c-addr{width:24%}
+.mt-table td.addr{font-size:11.5px;color:var(--sub);line-height:1.4;word-break:keep-all}
+.mt-table td.nm b{display:block;font-size:13px}
+.mt-table .mt-ty{display:block;font-size:11px;color:var(--mut);margin-top:2px}
+/* hover 는 회색 하이라이트만, 선택은 초록으로 더 강조 (대상 변경은 클릭에서만) */
+.mt-table tbody tr{cursor:pointer;transition:background .12s}
+.mt-table tbody tr:hover{background:#F3F5F4}
+.mt-table tbody tr.sel{background:var(--g100);box-shadow:inset 3px 0 0 var(--g600)}
+.mt-table tbody tr.sel:hover{background:var(--g100)}
+.mt-table tbody tr.sel td{font-weight:700}
