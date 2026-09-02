@@ -979,8 +979,9 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 .help-q{cursor:default}
 /* amCharts 워터마크 (dispose 가 막히는 경우 대비) */
 [class*="amcharts"] a[href*="amcharts"],g[aria-labelledby*="title"] a{display:none !important}
-/* 헤더의 화면 이름은 모바일 전용 */
+/* 헤더의 화면 이름·뒤로가기는 모바일 전용 (PC 는 GNB 메뉴로 이동한다) */
 .gnb-page{display:none}
+.gnb-back{display:none}
 
 /* ── 탭·보기 전환 애니메이션 (슬라이드 + 페이드) ── */
 @keyframes paneIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
