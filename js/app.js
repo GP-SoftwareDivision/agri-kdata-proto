@@ -1155,14 +1155,13 @@ function mktFindHtml(st, D, iconSearch){
         </div>
       </div>
       ${iconSearch
-        ? `<button class="mb-ico" onclick="openMktSearch()" title="시장·청과 검색 — 지금 ${curMk?curMk.n+(st.cq?' · '+st.cq:''):'전국 평균'}" aria-label="시장·청과 검색">${SEARCH_SVG}</button>`
+        ? ''
         : `<div class="select mkt-search fld" data-select data-label="시장·청과 검색">
         <input class="inp ms-inp" placeholder="비워두면 전체" value="${searchVal}"
           onfocus="this.select();${F}SearchOpen(this,true)" oninput="${F}SearchOpen(this)" onclick="event.stopPropagation()">
         ${curMk?`<button class="ms-x" onclick="${F}SearchClear(event)" aria-label="조건 지우기">✕</button>`:''}
         <div class="select-list ms-list"></div>
       </div>`}
-      ${st.cq ? TRUST_B : ''}
       ${D ? '' : '<button class="btn btn-neu btn-sm mkt-favbtn" onclick="openFavModal()" aria-label="즐겨찾기">'+STAR_SVG+'</button>'}
     </div>`;
 }
@@ -1284,7 +1283,7 @@ function renderMktBars(){
   const curMk = mktMarket(MKTSET.market);
   const find = mktFindHtml(MKTSET, false, true);   /* 대시보드도 지도처럼 돋보기 → 팝업 검색 */
   const dates = mktDatesHtml(MKTSET, false);
-  const favs = mktFavListHtml();
+  const favs = mktFavListHtml(true);   /* 대시보드도 지도와 같은 배지 규격 */
   const d1 = document.getElementById('mktBarDash');
   if(d1) d1.innerHTML = `<div class="mkt-row-top">${find}${dates}</div>
     <div class="mkt-row-favwrap"><span class="flabel">즐겨찾기</span>${favs}</div>`;
@@ -1673,7 +1672,9 @@ function openFavModal(){
     return `<div class="share-org" onclick="closeModal('favModal');favApply(${i})">
       <button class="fav-edit" onclick="event.stopPropagation();closeModal('favModal');favEdit(${i})" aria-label="${fv.crop} 수정">${PENCIL_SVG}</button>
       <div style="flex:1"><div class="on">${fv.crop}</div><div class="od">${mk?mk.s+(fv.cq?' · '+fv.cq:''):'시장을 아직 안 골랐어요'}</div></div>
-      ${!fv.market?'<span class="fv-need">설정 필요</span>':fv.cq?TRUST_B:''}
+      ${!fv.market
+        ? '<span class="fv-warn fv-warn-row" aria-label="설정 필요">!<span class="fv-warn-tip">시장 설정이 필요해요</span></span>'
+        : fv.cq ? '<span class="fv-trust fv-trust-row">신뢰</span>' : ''}
     </div>`;}).join('')
     + (MKTSET.favs.length<5?`<button class="btn btn-out" style="width:100%" onclick="closeModal('favModal');favAdd()">＋ 즐겨찾기 추가</button>`:'')
     + (MKTSET.favs.length?'':'<div class="tcap" style="text-align:center;padding:8px 0">아직 담아 둔 즐겨찾기가 없어요.</div>');

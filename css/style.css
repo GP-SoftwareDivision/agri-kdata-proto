@@ -260,7 +260,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .overlay.open{opacity:1;pointer-events:auto}
 .modal{width:460px;max-width:92vw;background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(16,24,40,.12);transform:translateY(14px) scale(.97);transition:transform .3s var(--ease);display:flex;flex-direction:column}
 .overlay.open .modal{transform:none}
-.m-head{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:flex-start}
+.m-head{padding:22px 24px 0;display:flex;justify-content:space-between;align-items:flex-start}
 .m-title{font-size:17px;font-weight:900}
 .m-x{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background .15s}
 .m-x:hover{background:var(--bg)}
@@ -320,7 +320,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 #map-tooltip.show{opacity:1}
 #map-tooltip .tip-name{font-weight:900;margin-bottom:2px}
 #map-tooltip .tip-val b{color:#7FC9A2}
-.metric-seg{position:relative;display:inline-flex;align-items:stretch;gap:3px;background:#F9F9F9;border:1px solid var(--bd);border-radius:10px;padding:3px;isolation:isolate;height:40px}
+.metric-seg{position:relative;display:inline-flex;align-items:stretch;gap:3px;background:#fff;border:1px solid var(--bd);border-radius:10px;padding:3px;isolation:isolate;height:40px}
 /* 활성 배경은 실제 버튼이 아니라 하나의 인디케이터가 미끄러져 이동한다 */
 .metric-seg::before{content:'';position:absolute;z-index:-1;top:3px;bottom:3px;left:0;width:0;
   background:var(--g700);border-radius:7px;box-shadow:0 1px 3px rgba(10,92,54,.28);opacity:0;
@@ -506,7 +506,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 /* ── 마이데이터 공통기능 (규약 준수 UI) ─────────────── */
 /* 동의 화면: 중요 내용은 본문(13.5px)보다 20%+ 크게(16px+), 필수/선택 색 분리 */
 .md-modal{width:520px;max-height:calc(100vh - 80px);display:flex;flex-direction:column}
-.md-body{overflow-y:auto;padding:4px 24px 20px;display:flex;flex-direction:column;gap:14px}
+.md-body{overflow-y:auto;padding:20px 24px 22px;display:flex;flex-direction:column;gap:14px}
 .md-summary{background:var(--g50);border:1px solid #DCEBE2;border-radius:12px;padding:14px 18px}
 .md-summary b{font-size:17px;color:var(--g700)}
 .md-summary p{margin:6px 0 0;font-size:13.5px;color:#374151;line-height:1.65}
@@ -745,7 +745,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 #mktBarDash{display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:12px 20px}
 .mkt-inline{display:flex;flex-direction:column;align-items:stretch;gap:8px}
 .mkt-row{display:flex;align-items:center;gap:10px;min-width:0}
-.mkt-row-top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.mkt-row-top{display:flex;align-items:center;justify-content:flex-start;gap:20px;flex-wrap:wrap}
 .mkt-row-favwrap{display:flex;align-items:center;gap:14px;padding-top:10px;border-top:1px solid var(--bd)}
 .mkt-row-favs{flex-wrap:wrap;gap:8px}
 /* 작물 셀렉트 (검색기용 컴팩트) */
@@ -795,7 +795,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .trust-b .tip{position:fixed;left:0;top:0;transform:translateX(-50%);background:#1A1E24;color:#fff;font-size:11.5px;font-weight:400;padding:9px 13px;border-radius:8px;white-space:normal;width:252px;line-height:1.6;z-index:2000;text-align:left;box-shadow:0 8px 22px rgba(0,0,0,.28);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s var(--ease),visibility 0s linear .18s}
 .trust-b:hover .tip{opacity:1;visibility:visible;transition:opacity .18s var(--ease)}
 /* 단계형 진행바 (PC·모바일 공용 — stepFlow 가 헤더 아래에 끼워 넣는다) */
-.sheet-prog{height:4px;background:#EDF0EE;flex-shrink:0}
+.sheet-prog{height:4px;background:#EDF0EE;flex-shrink:0;margin-top:18px}
 .sheet-prog i{display:block;height:100%;background:var(--g600);width:0;transition:width .3s var(--ease)}
 /* 즐겨찾기 설정 모달: 잠금 안내 · 중복 작물 */
 .mkt-wait{padding:16px;border:1.5px dashed var(--bd2);border-radius:10px;color:var(--mut);font-size:13px;text-align:center}
@@ -901,7 +901,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .map-full[data-view="table"] .mf-mkt{display:none}
 .map-full[data-view="map"] #mapTable{display:none}
 /* 목록 보기에서는 배경을 짙은 녹색으로 (지도 대신 표가 주인공) */
-.map-full[data-view="table"]{background:var(--g700)}
+.map-full[data-view="table"]{background:var(--bg)}
 /* PC: 표는 검색기·전광판 아래를 채운다 (top 은 syncTableTop 이 계산) */
 .mf-table{left:16px;right:404px;top:200px;bottom:16px;background:#fff;border:1px solid var(--bd);
   border-radius:14px;box-shadow:0 8px 28px rgba(16,24,40,.12);display:flex;flex-direction:column;
@@ -950,5 +950,8 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 
 .mt-table th{padding:14px 14px}
 .mt-table td{padding:14px}
+#favModalBody{padding:18px 24px 22px !important;gap:10px !important}
+/* 목록 행 안의 배지는 겹치지 않고 줄 안에 놓인다 (칩과 달리 자리가 넉넉하다) */
+.fv-trust-row,.fv-warn-row{position:static;flex-shrink:0}
 /* 스크롤 목록 공통 박스 — 페이드가 목록 테두리 안쪽에 걸리도록 감싸는 래퍼 */
 .scrollbox{position:relative;border:1px solid var(--bd);border-radius:10px;overflow:hidden}

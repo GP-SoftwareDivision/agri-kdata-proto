@@ -609,3 +609,5 @@ html.m .mt-filters{display:flex;align-items:center;padding:14px 14px 10px}
 html.m #mktDateSeg{display:none}
 /* 보기 전환 fab 이 플로팅 챗봇 버튼에 가리지 않게 */
 html.m #panMap .mf-viewfab{right:14px;bottom:16px;z-index:955}
+/* 즐겨찾기 목록 모달 — 바텀시트 여백 */
+html.m #favModalBody{padding:16px 16px calc(20px + env(safe-area-inset-bottom)) !important}
