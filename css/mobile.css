@@ -665,6 +665,9 @@ html.m .card .sec-t span{display:block;margin-top:3px;line-height:1.5}
 /* 제목 + 범례가 한 줄에서 서로를 짓누르지 않게 세로로 쌓는다 */
 html.m .card > div[style*="justify-content:space-between"]{
   flex-direction:column !important;align-items:flex-start !important;gap:8px}
+/* 단, '제목 + 전체보기' 처럼 짧은 헤더는 한 줄로 둔다 */
+html.m .card > div[style*="justify-content:space-between"]:has(.sec-more){
+  flex-direction:row !important;align-items:center !important;justify-content:space-between !important}
 html.m .kpi-lb{word-break:keep-all}
 html.m .ch-item{word-break:keep-all}
 html.m .ch-item .t,html.m .ch-item .d{word-break:keep-all}
@@ -683,3 +686,8 @@ html.m .kpis .kpi-2c .kpi-val{line-height:1.15}
 html.m .kpi-docs .kpi-v{font-size:24px}
 /* 이어서 작성 카드의 '전체' 링크는 모바일에서 감춘다 (하단 탭에 행정서류가 있다) */
 html.m .doc-all{display:none}
+/* 판로 추천: 이름 윗줄 · 정보 아랫줄, 배지는 우측 상단 레이어 */
+html.m .mkt{padding:14px 16px;gap:4px}
+html.m .mkt-net{top:12px;right:14px}
+html.m .mkt-n{padding-right:92px;font-size:14.5px;word-break:keep-all}
+html.m .mkt-d{word-break:keep-all;line-height:1.55}

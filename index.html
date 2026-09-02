@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=152">
-<link rel="stylesheet" href="css/mobile.css?v=152">
+<link rel="stylesheet" href="css/style.css?v=153">
+<link rel="stylesheet" href="css/mobile.css?v=153">
 </head>
 <body>
 
@@ -298,20 +298,23 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
         <div class="card" style="padding:20px 22px;display:flex;flex-direction:column;gap:12px">
           <div style="display:flex;align-items:center;justify-content:space-between">
             <div class="sec-t">판로 추천 TOP 3</div>
-            <a href="#" style="font-size:12px;font-weight:500" onclick="toast('info','판로 전체 목록은 시안 범위 외예요');return false">전체보기</a>
+            <a href="#" class="sec-more" style="font-size:12px;font-weight:500" onclick="toast('info','판로 전체 목록은 시안 범위 외예요');return false">전체보기</a>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;flex:1;justify-content:space-between">
             <div class="mkt top" onclick="toast('info','가락시장 상세 — 시안 범위 외')">
-              <div style="display:flex;justify-content:space-between;align-items:center"><b>1. 서울 가락시장 (경매)</b><span class="badge bg-ok">순수익 +8.2%</span></div>
-              <div style="font-size:12px;color:var(--sub)">예상 단가 1,290원 · 운송비 84원/kg · 수수료 7%</div>
+              <span class="badge bg-ok mkt-net">순수익 +8.2%</span>
+              <b class="mkt-n">서울 가락시장 (경매)</b>
+              <div class="mkt-d" style="font-size:12px;color:var(--sub)">예상 단가 1,290원 · 운송비 84원/kg · 수수료 7%</div>
             </div>
             <div class="mkt" onclick="toast('info','온라인 B2B 상세 — 시안 범위 외')">
-              <div style="display:flex;justify-content:space-between;align-items:center"><b>2. 온라인 B2B 직거래</b><span class="badge bg-mut">순수익 +6.1%</span></div>
-              <div style="font-size:12px;color:var(--sub)">예상 단가 1,350원 · 최소 5톤 · 정산 D+7</div>
+              <span class="badge bg-mut mkt-net">순수익 +6.1%</span>
+              <b class="mkt-n">온라인 B2B 직거래</b>
+              <div class="mkt-d" style="font-size:12px;color:var(--sub)">예상 단가 1,350원 · 최소 5톤 · 정산 D+7</div>
             </div>
             <div class="mkt" onclick="toast('info','지역 APC 상세 — 시안 범위 외')">
-              <div style="display:flex;justify-content:space-between;align-items:center"><b>3. 지역 APC 계약 출하</b><span class="badge bg-mut">순수익 +4.8%</span></div>
-              <div style="font-size:12px;color:var(--sub)">고정가 1,180원 · 물류 부담 없음 · 안정형</div>
+              <span class="badge bg-mut mkt-net">순수익 +4.8%</span>
+              <b class="mkt-n">지역 APC 계약 출하</b>
+              <div class="mkt-d" style="font-size:12px;color:var(--sub)">고정가 1,180원 · 물류 부담 없음 · 안정형</div>
             </div>
           </div>
         </div>
@@ -1753,7 +1756,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=152"></script>
-<script src="js/mobile-flow.js?v=152"></script>
+<script src="js/app.js?v=153"></script>
+<script src="js/mobile-flow.js?v=153"></script>
 </body>
 </html>

@@ -991,3 +991,8 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 /* 즐겨찾기 팝오버가 조상 카드에 잘리지 않게 */
 .mf-tlwrap,.mf-tl,.mkt-inline,.mkt-dashbar,.mkt-pcbar{overflow:visible}
 .bg-blue{background:var(--blue-bg);color:var(--blue)}
+
+/* 판로 추천 카드: 순수익 배지를 우측 상단에 겹쳐 올린다 */
+.mkt{position:relative}
+.mkt-net{position:absolute;top:10px;right:12px;z-index:1}
+.mkt-n{padding-right:96px}          /* 배지와 겹치지 않게 이름 줄 확보 */
