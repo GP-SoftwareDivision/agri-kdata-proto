@@ -1018,3 +1018,13 @@ img,svg{-webkit-user-drag:none;user-drag:none}
 .lg-all{background:linear-gradient(90deg,#0E7A46,#2E6BD6 35%,#E17A17 70%,#7A3FCB);border-radius:50%;width:11px;height:11px}
 .tip-none{color:#C9CEC9}
 .tip-sub{color:#9AA3A0;font-weight:400}
+
+/* ── 섹션 헤더: 아이콘 + 제목 (PC·모바일 공통 마크업) ── */
+.sec-hl{display:flex;align-items:center;gap:8px;min-width:0}
+.sec-ic{width:28px;height:28px;border-radius:8px;background:var(--g100);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center}
+.sec-ic-g{background:var(--g100)}
+/* 신뢰 뱃지 툴팁도 탭(.force)으로 열 수 있게 */
+.trust-b.force .tip{opacity:1;visibility:visible;transition:opacity .18s var(--ease)}
+/* SNS 로그인 CI 안내는 모바일에서만 (PC 는 하단 안내 박스를 그대로 쓴다) */
+.sns-hint{display:none}

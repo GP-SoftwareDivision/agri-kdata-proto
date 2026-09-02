@@ -1192,6 +1192,15 @@ function mktRangeHtml(st, F){
       ${dpHtml(st.dateTo, F+'PickDateTo', '종료일')}
     </div>`;
 }
+/* 모바일 대시보드는 탭 대신 select — 폭을 아껴 우측 상단에 둔다 */
+function mktPresetSelHtml(st, F){
+  const cur = st.preset || '직접 선택';
+  return `<div class="select mkt-preset-sel" data-select>
+    <button class="select-btn" onclick="tglSelect(this)">${cur} ${CHEV_SVG}</button>
+    <div class="select-list">${['어제','7일','30일'].map(p=>
+      `<div class="select-opt${st.preset===p?' sel':''}" onclick="${F}PickPreset('${p}')"><span>${p}</span></div>`).join('')}</div>
+  </div>`;
+}
 function mktPresetSegHtml(st, F){
   return `<div class="metric-seg mkt-dates">${['어제','7일','30일'].map(p=>
     `<button class="${st.preset===p?'on':''}" onclick="${F}PickPreset('${p}')">${p}</button>`).join('')}</div>`;
@@ -1247,8 +1256,8 @@ function mktDashBarHtml(){
     <div class="mkt-row mkt-dashbar">
       ${mktFavIcHtml()}
       ${mktCropSelHtml(MKTSET,'mkt')}
-      ${mktRangeHtml(MKTSET,'mkt')}
-      ${mktPresetSegHtml(MKTSET,'mkt')}
+      ${M_UI ? mktPresetSelHtml(MKTSET,'mkt') : mktRangeHtml(MKTSET,'mkt')+mktPresetSegHtml(MKTSET,'mkt')}
+      ${M_UI ? mktRangeHtml(MKTSET,'mkt') : ''}
     </div>`;
 }
 /* 즐겨찾기 ★ + 호버 팝오버 (설정 필요 항목이 있으면 아이콘에 느낌표) */
@@ -1356,7 +1365,7 @@ function renderMktBars(){
   /* 차트 제목에 반영 */
   document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
     if(el.textContent.indexOf('가격 추이')>-1){
-      el.innerHTML = MKTSET.crop+' 가격 추이 · 예측 <span style="font-size:12px;color:var(--mut);font-weight:400">'
+      el.innerHTML = MKTSET.crop+' 가격 추이 <span style="font-size:12px;color:var(--mut);font-weight:400">'
         + (curMk ? curMk.n+(MKTSET.cq?' · '+MKTSET.cq:'') : '전국 평균') + ' · ' + mktDateLabel() + ' · 원/kg</span>';
     }
   });
@@ -3307,6 +3316,15 @@ function positionHelpTip(q){
   tip.style.left = Math.round(x) + 'px';
   tip.style.top  = Math.round(y) + 'px';
 }
+/* 모바일은 hover 가 없으므로 탭으로 툴팁을 켜고 끈다 (.force 는 캡처 모드와 같은 클래스) */
+document.addEventListener('click', e=>{
+  const q = e.target.closest && e.target.closest('.help-q,.trust-b');
+  document.querySelectorAll('.help-q.force,.trust-b.force').forEach(el=>{ if(el!==q) el.classList.remove('force'); });
+  if(!q) return;
+  e.stopPropagation();
+  q.classList.toggle('force');
+  if(q.classList.contains('force')) positionHelpTip(q);
+});
 document.addEventListener('mouseover', e=>{
   const q = e.target.closest && e.target.closest('.help-q,.trust-b');
   if(q) positionHelpTip(q);
@@ -3346,6 +3364,8 @@ document.addEventListener('mouseover', e=>{
       if(ALWAYS.indexOf(currentPage) > -1 || document.getElementById('allMenu')?.classList.contains('open')){
         tb.classList.remove('tb-hide'); lastY = y; return;
       }
+      /* 최하단에 닿으면 감추지 않는다 — 더 스크롤할 곳이 없으니 되돌릴 방법이 없다 */
+      if(vp.scrollTop + vp.clientHeight >= vp.scrollHeight - 24){ tb.classList.remove('tb-hide'); lastY = y; return; }
       if(y > lastY + 6 && y > 40) tb.classList.add('tb-hide');
       else if(y < lastY - 6) tb.classList.remove('tb-hide');
       lastY = y;

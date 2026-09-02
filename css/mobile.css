@@ -767,3 +767,28 @@ html.m .am-cell b{font-size:13px;font-weight:500;color:var(--txt)}
 html.m .am-cell.now{border:none;background:var(--g50)}
 html.m .am-cell.now b{color:var(--g700);font-weight:700}
 html.m .am-grid{gap:4px}
+
+/* ══════════ 모바일 로그인: 설명 걷어내고 로고 + 입력 + SNS 만 ══════════ */
+/* 브랜드 헤드라인·체크리스트는 인라인 display:flex 라 !important 가 필요하다 */
+html.m .login-brand > div:nth-child(2){display:none !important}
+html.m .login-head{display:none}          /* '로그인' 제목·부제 */
+html.m .login-ci-box{display:none}        /* CI 안내 박스 → SNS 툴팁으로 이동 */
+html.m .sns-group{position:relative}
+html.m .sns-hint{display:flex;align-items:center;justify-content:flex-end;gap:6px;
+  font-size:12px;color:var(--sub);margin-bottom:2px}
+
+/* ══════════ 대시보드: 섹션 제목을 박스 바깥으로 ══════════
+   제목·아이콘은 회색 배경 위에 두고, 내용만 흰 박스에 담는다. */
+html.m #page-dashboard .card.sec{background:transparent !important;box-shadow:none !important;
+  padding:0 !important;border-radius:0}
+html.m #page-dashboard .sec-h{padding:0 2px}
+html.m #page-dashboard .sec-t{font-size:17px;font-weight:900;letter-spacing:-.4px}
+html.m #page-dashboard .sec-b{background:#fff;border-radius:16px;padding:16px 18px;
+  box-shadow:0 1px 3px rgba(16,24,40,.05)}
+/* 리스크 알림은 안쪽 경고 박스가 이미 색을 갖고 있어 여백만 준다 */
+html.m #page-dashboard .card.sec .sec-b>[style*="border-left"]{border-radius:0 8px 8px 0}
+
+/* ══════════ 조건바: 기간을 탭 대신 select 로 우측 상단에 ══════════ */
+html.m .mkt-dashbar .mkt-preset-sel{order:3;margin-left:auto;flex:0 0 auto;width:98px}
+html.m .mkt-dashbar .mkt-preset-sel .select-btn{height:38px;padding:0 10px;font-size:13px;font-weight:700}
+html.m .mkt-dashbar .mkt-preset-sel .select-list{width:100%;min-width:0;left:auto;right:0}
