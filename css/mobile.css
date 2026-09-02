@@ -691,3 +691,49 @@ html.m .mkt{padding:14px 16px;gap:4px}
 html.m .mkt-net{top:12px;right:14px}
 html.m .mkt-n{padding-right:92px;font-size:14.5px;word-break:keep-all}
 html.m .mkt-d{word-break:keep-all;line-height:1.55}
+
+/* ══════════ 모바일 대시보드 정돈 (2026-09-02) ══════════ */
+
+/* ── 조건바: 라벨 배지 제거 · 셀렉트 축소 · 날짜 탭 확대 ──
+   라벨(.fld::before)이 없어도 작물명·날짜 자체가 무엇인지 말해 준다.
+   셀렉트가 좁아진 만큼 날짜 탭이 넓어져 가시성이 올라간다. */
+html.m .mkt-dashbar .fld::before{display:none}
+html.m .mkt-dashbar{padding-top:0;row-gap:10px}
+html.m .mkt-dashbar .mkt-crop-sel{flex:0 1 132px;min-width:0}
+html.m .mkt-dashbar .mkt-crop-sel .select-btn{height:38px;padding:0 10px;font-size:13px}
+/* 옵션 목록 폭을 셀렉트 박스와 똑같이 맞춘다 (기본값 230px 해제) */
+html.m .mkt-dashbar .mkt-crop-sel .select-list{width:100%;min-width:0;left:0;right:auto}
+html.m .mkt-dashbar .mkt-crop-sel .select-opt{padding:10px 10px;font-size:13.5px}
+/* 폭이 좁아졌으므로 그룹 헤더는 라벨/설명을 가로가 아니라 세로로 쌓는다 */
+html.m .mkt-dashbar .mkt-crop-sel .select-grp{display:block;padding:9px 10px 4px;font-size:11px;line-height:1.3}
+html.m .mkt-dashbar .mkt-crop-sel .select-grp span{display:block;margin:2px 0 0;font-size:10.5px}
+/* 날짜 프리셋 탭 — 좁아진 셀렉트만큼 넓게, 글자도 키운다 */
+html.m .mkt-dashbar .mkt-dates{flex:1 1 auto;min-width:0}
+html.m .mkt-dashbar .mkt-dates button{flex:1;padding:9px 4px;font-size:13px;font-weight:700}
+html.m .mkt-dashbar .mkt-range{height:38px}
+html.m .mkt-dashbar .mkt-range .mkt-date-inp{font-size:13px;height:34px}
+
+/* ── 조건바를 상단에 고정 + 아래에만 옅은 구분선 ──
+   좌우로 패딩을 준 인셋 라인이라 아래 내용과 완전히 단절돼 보이지 않는다. */
+html.m #page-dashboard #mktBarDash{position:sticky;top:0;z-index:40;background:#fff}
+html.m #page-dashboard #mktBarDash::after{content:'';position:absolute;left:18px;right:18px;bottom:0;
+  height:1px;background:var(--bd)}
+
+/* ── 섹션 구분: 회색 디바이더 대신 여백 + 큰 제목 + 내어쓰기 ──
+   구분선을 걷어내고, 제목을 키워 콘텐츠보다 살짝 왼쪽으로 내어써서
+   눈이 '여기서 새 섹션이 시작된다'를 읽게 한다. */
+html.m #page-dashboard .wrap{background:#fff}
+html.m #page-dashboard .wrap>*{border-bottom:none}
+html.m #page-dashboard .wrap>*+*{margin-top:28px}
+html.m #page-dashboard #mktBarDash+*{margin-top:18px}   /* 조건바 바로 아래는 조금 좁게 */
+/* 섹션 좌우 기준선을 20px 로 통일 — 들여쓰기 대비가 성립하려면 기준이 같아야 한다 */
+html.m #page-dashboard .wrap>.kpis{padding:0 20px}
+html.m #page-dashboard .wrap>.grid-2>.card,
+html.m #page-dashboard .wrap>.grid-3>.card{padding-left:20px !important;padding-right:20px !important}
+html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:28px}
+html.m #page-dashboard .wrap>.grid-2>.card+.card,
+html.m #page-dashboard .wrap>.grid-3>.card+.card{border-top:none}
+/* 제목: 크게 + 4px 내어쓰기(hanging) */
+html.m #page-dashboard .card .sec-t{font-size:18px;font-weight:900;letter-spacing:-.45px;
+  line-height:1.35;margin-left:-4px}
+html.m #page-dashboard .card .sec-t span{font-size:12.5px;margin-top:4px}
