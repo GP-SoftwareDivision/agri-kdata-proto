@@ -1049,7 +1049,9 @@ function segSync(seg){
   if(!seg) return;
   const on = seg.querySelector('button.on');
   if(!on){ seg.classList.remove('seg-ready'); return; }
-  seg.style.setProperty('--seg-x', (on.offsetLeft - 3) + 'px');
+  /* offsetLeft 는 부모의 padding edge 기준이고 ::before 의 left:0 도 같은 기준이라 보정값이 필요 없다.
+     (예전의 -3 은 padding 3px 인 기본 세그에만 맞아서 활성 배경이 왼쪽으로 밀려 나갔다) */
+  seg.style.setProperty('--seg-x', on.offsetLeft + 'px');
   seg.style.setProperty('--seg-w', on.offsetWidth + 'px');
   seg.classList.add('seg-ready');
 }
@@ -1290,6 +1292,11 @@ function renderMktBars(){
   const ds = document.getElementById('mktDateSeg');
   if(ds) ds.innerHTML = ['어제','7일','30일'].map(p=>
     `<button class="${MKTSET.preset===p?'on':''}" onclick="mktPickPreset('${p}')">${p}</button>`).join('');
+  /* PC 는 조건바·기간·현황판을 한 줄에 둔다 — 현황판을 조건바 행 안으로 옮긴다 */
+  if(!M_UI && d2){
+    const st = document.querySelector('.mf-stats'), row = d2.querySelector('.mkt-pcbar');
+    if(st && row) row.appendChild(st);
+  }
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof segObserve === 'function') segObserve();
   /* 차트 제목에 반영 */

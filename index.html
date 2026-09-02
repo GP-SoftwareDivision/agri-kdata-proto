@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=125">
-<link rel="stylesheet" href="css/mobile.css?v=125">
+<link rel="stylesheet" href="css/style.css?v=126">
+<link rel="stylesheet" href="css/mobile.css?v=126">
 </head>
 <body>
 
@@ -1655,10 +1655,12 @@ docker run --rm -p 8080:8080 \
       </div>
       <button class="m-x" onclick="closeModal('mktSearchModal')"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5" stroke="#9AA3A0" stroke-width="1.6" stroke-linecap="round"/></svg></button>
     </div>
-    <div style="padding:0 24px 10px">
+    <div class="ms-search-wrap">
       <input class="inp" id="mktSearchInput" placeholder="시장 이름이나 청과를 입력해요" oninput="mktSearchModalFill()" autocomplete="off">
     </div>
-    <div class="ms-modal-list" id="mktSearchList" data-fade></div>
+    <div class="ms-list-wrap">
+      <div class="ms-modal-list" id="mktSearchList"></div>
+    </div>
   </div>
 </div>
 
@@ -1726,7 +1728,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=125"></script>
-<script src="js/mobile-flow.js?v=125"></script>
+<script src="js/app.js?v=126"></script>
+<script src="js/mobile-flow.js?v=126"></script>
 </body>
 </html>
