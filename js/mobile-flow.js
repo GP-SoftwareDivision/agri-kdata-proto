@@ -513,7 +513,9 @@ window.msubClose = function(){
   if(profile) profile.after(nav); else if(pur) pur.after(nav);
 })();
 
-/* ④ 행정서류 홈: [내 서류함 + ⓘ] → [서류 목록] → [새 서류 작성 버튼] 3블록 */
+/* ④ 행정서류 홈: [내 서류함(타이틀)] → [서류 박스 목록] → [새 서류 작성 버튼]
+   목록은 은행앱 스타일 박스 — 좌상 제목·우상 상태 배지·좌하 날짜·우하 삭제 아이콘,
+   박스 탭(제목 옆 ›) = 상세 보기 */
 (function(){
   var home = document.getElementById('dv-home'); if(!home) return;
   var card = home.querySelector('.card');
@@ -531,7 +533,75 @@ window.msubClose = function(){
   info.className = 'ihelp'; info.textContent = 'i'; info.setAttribute('aria-label','내 서류함 도움말');
   info.onclick = function(){ toast('info','완성 서류와 변환한 서식은 이 기기(브라우저)에만 저장돼요. 개인정보 원본은 서버에 보관하지 않고, 작성할 때마다 마이데이터를 실시간 조회해 최신 값으로 채워요.'); };
   ttl.after(info);
+  /* '내 서류함' 헤더를 카드 밖 독립 타이틀로 분리 */
+  head.classList.add('mdc-sec');
+  card.parentNode.insertBefore(head, card);
 })();
+
+/* ④-a 서류 목록 렌더러 교체 (모바일 전용 박스형) */
+var MDC_CHEV = '<svg width="7" height="12" viewBox="0 0 8 12" fill="none" style="flex-shrink:0"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#B7C0BA" stroke-width="1.7" stroke-linecap="round"/></svg>';
+var MDC_TRASH = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 4.5H13M6.2 4.2V2.8H9.8V4.2M4.2 4.8L4.9 13.2H11.1L11.8 4.8" stroke="#9AA3A0" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.7 7V11M9.3 7V11" stroke="#9AA3A0" stroke-width="1.3" stroke-linecap="round"/></svg>';
+window.renderDocList = function(){
+  loadDocs();
+  var box = document.getElementById('docList');
+  if(!docs.length){
+    box.innerHTML = '<div style="padding:36px;text-align:center;font-size:13px;color:var(--sub)">아직 작성한 서류가 없어요. <b>새 서류 작성</b>으로 시작해보세요.</div>';
+    return;
+  }
+  box.innerHTML = docs.map(function(d,i){
+    var draft = d.status === 'draft';
+    return '<div class="mdc" onclick="'+(draft?'resumeDoc('+i+')':'mdocDetail('+i+')')+'">'
+      + (draft ? '<span class="badge bg-info mdc-badge">작성 중</span>'
+               : '<span class="badge bg-ok mdc-badge">완료 · TSA ✓</span>')
+      + '<div class="mdc-t"><b>'+d.name+'</b>'+MDC_CHEV+'</div>'
+      + '<div class="mdc-org">'+d.org+'</div>'
+      + '<div class="mdc-bot">'
+      +   '<span class="mdc-date">'+d.date+'</span>'
+      +   (draft ? '<span class="mini-prog" style="width:52px"><i style="width:'+(d.prog||60)+'%"></i></span>'
+                 + '<span style="font-size:11.5px;font-weight:700;color:var(--blue)">'+(d.prog||60)+'%</span>' : '')
+      + '</div>'
+      + '<button class="mdc-del" onclick="event.stopPropagation();delDoc('+i+')" aria-label="이 기기에서 삭제">'+MDC_TRASH+'</button>'
+      + '</div>';
+  }).join('');
+};
+renderDocList();
+
+/* ④-b 서류 상세 (풀페이지 서브뷰) */
+var docDetailEl = null;
+window.mdocDetail = function(i){
+  loadDocs();
+  var d = docs[i]; if(!d) return;
+  if(!docDetailEl){
+    docDetailEl = document.createElement('div');
+    docDetailEl.className = 'mdoc'; docDetailEl.id = 'docDetail';
+    docDetailEl.innerHTML =
+      '<div class="mdoc-top">'
+      + '<button class="mdoc-x" onclick="mdocDetailClose()" aria-label="뒤로">'+BACK_SVG+'</button>'
+      + '<div class="mdoc-title">서류 상세</div></div>'
+      + '<div class="mdoc-body" id="docDetailBody"></div>';
+    document.body.appendChild(docDetailEl);
+  }
+  var no = 'DOC-' + (d.date||'').replace(/-/g,'').slice(0,8) + '-' + String(i+1).padStart(3,'0');
+  document.getElementById('docDetailBody').innerHTML =
+    '<span class="badge bg-ok">완료 · TSA ✓</span>'
+    + '<div style="font-size:20px;font-weight:900;letter-spacing:-.4px;margin:10px 0 4px">'+d.name+'</div>'
+    + '<div style="font-size:13px;color:var(--sub);margin-bottom:18px">'+d.org+'</div>'
+    + '<div class="card" style="padding:6px 18px;margin-bottom:14px">'
+    +   '<div class="meta-row"><span class="k">문서번호</span><span class="v">'+no+'</span></div>'
+    +   '<div class="meta-row"><span class="k">생성일</span><span class="v">'+d.date+'</span></div>'
+    +   '<div class="meta-row"><span class="k">전자서명</span><span class="v">TSA 타임스탬프 검증됨</span></div>'
+    +   '<div class="meta-row"><span class="k">보관 위치</span><span class="v">내 서류함 — 이 기기에만 저장</span></div>'
+    + '</div>'
+    + '<button class="btn btn-pri" style="width:100%;height:52px;border-radius:14px" '
+    +   'onclick="toast(\'info\',\'PDF 열기 — 시안에서는 생략돼요\')">PDF 보기</button>'
+    + '<div style="font-size:12px;color:var(--mut);line-height:1.7;margin-top:14px">개인정보 원본은 서버에 보관하지 않아요. 이 서류는 작성 시점의 마이데이터를 실시간 조회해 생성되었고, 활용 사실은 데이터 영수증에 기록되어 있어요.</div>';
+  docDetailEl.classList.add('on');
+  if(typeof syncFocus === 'function') syncFocus();
+};
+window.mdocDetailClose = function(){
+  docDetailEl.classList.remove('on');
+  if(typeof syncFocus === 'function') syncFocus();
+};
 
 }
 

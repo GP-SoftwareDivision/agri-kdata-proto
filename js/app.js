@@ -3364,7 +3364,7 @@ document.addEventListener('mouseover', e=>{
   mapTab('map');                     /* 첫 진입은 지도 탭 */
 
   /* 헤더 로고 자리에 현재 화면 이름을 보여 준다 */
-  const PAGE_NAME = {dashboard:'대시보드', chatbot:'알농이', map:'판로 지도', docs:'행정서류', mypage:'마이페이지', design:'디자인시스템'};
+  const PAGE_NAME = {dashboard:'대시보드', chatbot:'알농이', map:'판로 지도', docs:'행정서류 간편작성', mypage:'마이페이지', design:'디자인시스템'};
   const PAGE_SUB  = {chatbot:'AI 영농 상담'};
   const BACK_ON   = ['chatbot'];          /* ‹ 를 보여 줄 화면 */
   window.syncMobileHeader = function(){

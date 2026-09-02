@@ -402,6 +402,26 @@ html.m #msub .mdoc-body{padding:6px 0 24px;background:#fff}
 /* ④ 행정서류 홈: 하단 안내 카드는 i 도움말로 대체 */
 html.m #dv-home>.card+.card{display:none !important}
 html.m #dv-home .badge.bg-mut{display:none}
+/* 헤더에 화면 이름이 있으므로 페이지 큰 제목은 생략, 설명만 */
+html.m #docPageTitle{display:none}
+/* '내 서류함' — 카드 밖 독립 섹션 타이틀 */
+html.m .mdc-sec{padding:6px 20px 10px !important}
+html.m .mdc-sec .sec-t{font-size:16px}
+/* 서류 박스 목록 (은행앱 스타일) */
+html.m #dv-home #docList{padding:0 16px 4px;display:flex;flex-direction:column;gap:10px}
+html.m .mdc{position:relative;text-align:left;background:#fff;border:1px solid var(--bd);
+  border-radius:14px;padding:15px 16px 13px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s}
+html.m .mdc:active{border-color:#CFE6D9;box-shadow:0 2px 10px rgba(14,122,70,.08)}
+html.m .mdc-badge{position:absolute;top:13px;right:13px;font-size:11px}
+html.m .mdc-t{display:flex;align-items:center;gap:7px;padding-right:88px}
+html.m .mdc-t b{font-size:15px;letter-spacing:-.3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html.m .mdc-org{font-size:12px;color:var(--sub);margin-top:3px}
+html.m .mdc-bot{display:flex;align-items:center;gap:8px;margin-top:13px;padding-right:40px}
+html.m .mdc-date{font-size:12px;color:var(--mut)}
+html.m .mdc-del{position:absolute;right:6px;bottom:5px;width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;border-radius:10px}
+html.m .mdc-del:active{background:var(--bg)}
 html.m .ihelp{width:20px;height:20px;border-radius:50%;background:#EDF0EE;color:var(--sub);
   font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
 /* 서브페이지에서는 상단바 타이틀과 중복되는 카드 제목 숨김 */

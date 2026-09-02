@@ -20,8 +20,8 @@ if(q?q[1]==='1':(location.pathname.indexOf('/mobile')>-1||mob))document.document
 <link rel="stylesheet" href="vendor/overlayscrollbars/overlayscrollbars.min.css">
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/agri-chat/agri-chat.min.js"></script>
-<link rel="stylesheet" href="css/style.css?v=165">
-<link rel="stylesheet" href="css/mobile.css?v=165">
+<link rel="stylesheet" href="css/style.css?v=166">
+<link rel="stylesheet" href="css/mobile.css?v=166">
 </head>
 <body>
 
@@ -581,7 +581,7 @@ docker run --rm -p 8080:8080 \
       <!-- 헤더 + 스테퍼 -->
       <div style="display:flex;align-items:flex-end;justify-content:space-between">
         <div>
-          <div style="font-size:22px;font-weight:900;letter-spacing:-.4px">행정서류 자동 작성</div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:-.4px" id="docPageTitle">행정서류 자동 작성</div>
           <div style="font-size:13px;color:var(--sub);margin-top:4px" id="docSubtitle">완성된 서류는 이 기기에만 저장되고, 내 데이터는 작성 시점마다 실시간으로 조회해요.</div>
         </div>
         <div class="stepper" id="docStepper" style="display:none">
@@ -1774,7 +1774,7 @@ docker run --rm -p 8080:8080 \
 </div>
 
 <script src="vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
-<script src="js/app.js?v=165"></script>
-<script src="js/mobile-flow.js?v=165"></script>
+<script src="js/app.js?v=166"></script>
+<script src="js/mobile-flow.js?v=166"></script>
 </body>
 </html>
