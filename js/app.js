@@ -2920,12 +2920,7 @@ function syncTFfromPanel(){
    시도만 고르면 그 시도의 모든 판로, 시군구까지 고르면 그 시군구의 판로. */
 function tableMarkets(){
   const lv = TF.sig ? 'sig' : (TF.sido ? 'sido' : '');
-<<<<<<< Updated upstream
   return marketsIn(lv, TF.sig || TF.sido || '').slice().sort((x,y)=>y.price-x.price);
-=======
-  const code = TF.sig || TF.sido || '';
-  return marketsIn(lv, code).slice().sort((x,y)=>y.price-x.price);
->>>>>>> Stashed changes
 }
 /* 주소는 좌표가 실제로 속한 시도·시군구에서 만든다 (지어내지 않는다) */
 function mkAddr(m){
@@ -2962,7 +2957,6 @@ function selectMarketRow(id){
 function renderMarketDetail(m){
   const c = mkNet(m), set = (id,v)=>{ const el=document.getElementById(id); if(el) el.innerHTML = v; };
   const price = Math.round(m.price * ITEM_BASE[curCrop()]/1240 * dateF());
-<<<<<<< Updated upstream
   const U = t=>'<span style="font-size:11px;font-weight:500;color:var(--sub)">'+t+'</span>';
   set('sr-name', m.n);
   const bd = document.getElementById('sr-badge');
@@ -2971,15 +2965,6 @@ function renderMarketDetail(m){
   set('sr-net', (c.rate>=0?'+':'')+c.rate.toFixed(1)+U('%'));
   set('sr-vol', m.vol.toLocaleString()+U('톤'));
   set('sr-fee', c.ship.toLocaleString()+U('원/kg'));
-=======
-  set('sr-name', m.n);
-  const bd = document.getElementById('sr-badge');
-  if(bd){ bd.textContent = MK_TYPE[m.t].label; bd.className = 'badge ' + (m.best ? 'bg-ok' : 'bg-mut'); }
-  set('sr-price', price.toLocaleString()+'<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span>');
-  set('sr-net', (c.rate>=0?'+':'')+c.rate.toFixed(1)+'<span style="font-size:11px;font-weight:500;color:var(--sub)">%</span>');
-  set('sr-vol', m.vol.toLocaleString()+'<span style="font-size:11px;font-weight:500;color:var(--sub)">톤</span>');
-  set('sr-fee', c.ship.toLocaleString()+'<span style="font-size:11px;font-weight:500;color:var(--sub)">원/kg</span>');
->>>>>>> Stashed changes
   const tip = document.getElementById('sr-ch');
   if(tip) tip.textContent = mkAddr(m) + ' · 정산 ' + m.settle;
 }
@@ -2990,21 +2975,11 @@ function centerPopup(mk){
     const p = mk.getPopup(), el = p && p.getElement();
     if(!el) return;
     const h = el.offsetHeight || 200;
-<<<<<<< Updated upstream
     /* panBy 는 마커가 화면 밖이면 못 쓴다 — 투영 좌표에서 목표 중심을 직접 구한다 */
     const z = panMap.getZoom();
     const pt = panMap.project(mk.getLatLng(), z);
     const target = panMap.unproject(L.point(pt.x, pt.y - (46 + h/2)), z);
     suppressUntil = Date.now() + 900;
-=======
-    /* panBy 는 마커가 화면 밖이면 못 쓴다 — 투영 좌표에서 목표 중심을 직접 구한다.
-       팝업은 마커 위로 뜨므로, 팝업 중심(마커에서 위로 46+h/2)이 화면 중앙에 오게 한다 */
-    const z = panMap.getZoom();
-    const pt = panMap.project(mk.getLatLng(), z);
-    const target = panMap.unproject(L.point(pt.x, pt.y - (46 + h/2)), z);
-    suppressUntil = Date.now() + 900;       /* 이동 중 줌 기반 레벨 전환 억제 */
-    /* 목표가 화면 밖이면 애니메이션이 생략·중단될 수 있어 즉시 이동한다 */
->>>>>>> Stashed changes
     const cp = panMap.latLngToContainerPoint(target), sz = panMap.getSize();
     const far = cp.x < 0 || cp.y < 0 || cp.x > sz.x || cp.y > sz.y;
     panMap.setView(target, z, far ? {animate:false} : {animate:true, duration:.35});
