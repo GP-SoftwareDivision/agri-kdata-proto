@@ -741,14 +741,13 @@ html.m #page-dashboard #mktBarDash::after{content:'';position:absolute;left:18px
    박스는 테두리 없이 흰색으로 띄워, 명도 대비만으로 경계를 만든다. */
 html.m #page-dashboard .wrap{background:var(--bg);padding:0 0 104px}
 html.m #page-dashboard .wrap>*{background:transparent;border-bottom:none}
-html.m #page-dashboard .wrap>*:not(#mktBarDash){padding-left:14px;padding-right:14px}
+html.m #page-dashboard .wrap>*:not(#mktBarDash){padding:0 14px}   /* 공용 .wrap>div 의 세로 16px 를 없앤다 */
 /* 고정 조건바는 박스가 아니라 바 — 풀폭 흰색 유지 */
 html.m #page-dashboard #mktBarDash{background:#fff;border-radius:0;box-shadow:none;
   padding:12px 16px !important}
 /* 박스: 테두리 없이 흰색 + 아주 옅은 그림자로만 띄운다 */
 html.m #page-dashboard .card:not(.filterbar){background:#fff;border:none !important;border-radius:16px;
   box-shadow:0 1px 3px rgba(16,24,40,.05);padding:18px !important}
-html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:14px}
 html.m #page-dashboard .wrap>.grid-2>.card+.card,
 html.m #page-dashboard .wrap>.grid-3>.card+.card{border-top:none}
 html.m #page-dashboard .kpis{gap:10px !important}
@@ -796,7 +795,7 @@ html.m .sns-hint{display:flex;align-items:center;justify-content:flex-end;gap:6p
 /* ══════════ 대시보드: 섹션 제목을 박스 바깥으로 ══════════
    제목·아이콘은 회색 배경 위에 두고, 내용만 흰 박스에 담는다. */
 html.m #page-dashboard .card.sec{background:transparent !important;box-shadow:none !important;
-  padding:0 !important;border-radius:0}
+  padding:0 14px !important;border-radius:0}   /* grid 래퍼가 display:contents 라 좌우 여백을 직접 갖는다 */
 html.m #page-dashboard .sec-h{padding:0 2px}
 html.m #page-dashboard .sec-t{font-size:17px;font-weight:900;letter-spacing:-.4px}
 html.m #page-dashboard .sec-b{background:#fff;border-radius:16px;padding:16px 18px;
@@ -826,10 +825,13 @@ html.m .tabbar{background:rgba(255,255,255,.82);border-top:none;
   -webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
   box-shadow:0 -6px 20px rgba(16,24,40,.07)}
 
-/* ── 섹션 간격은 .wrap 의 gap 하나로만 준다 — 섹션 자체에는 상·하 margin 을 두지 않는다 ── */
-html.m #page-dashboard .wrap{gap:26px}
+/* ── 섹션 간격은 .wrap 의 gap 하나로만 준다 ──
+   grid-2·grid-3 래퍼를 display:contents 로 걷어내 5개 섹션(브리핑·가격추이·판로추천·행정서류·리스크)을
+   .wrap 의 직계 flex 자식으로 세운다. 중첩 gap 과 래퍼 패딩이 겹쳐 간격이 26/42/58 로 들쭉날쭉했다.
+   margin 은 쓰지 않는다 — gap 은 첫 항목 위에 여백을 만들지 않는다. */
+html.m #page-dashboard .wrap{gap:20px}
 html.m #page-dashboard .wrap>*{margin:0}
-html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:26px}
+html.m #page-dashboard .grid-2,html.m #page-dashboard .grid-3{display:contents}
 html.m #page-dashboard .sec-h{padding:0 2px}
 /* 제목 우측 판로명(시장 · 청과)은 작게, 길면 말줄임 */
 html.m #page-dashboard .sec-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
