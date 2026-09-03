@@ -545,7 +545,6 @@ window.msubClose = function(){
 })();
 
 /* ④-a 서류 목록 렌더러 교체 (모바일 전용 박스형) */
-var MDC_CHEV = '<svg width="7" height="12" viewBox="0 0 8 12" fill="none" style="flex-shrink:0"><path d="M1.5 1.5L6 6L1.5 10.5" stroke="#B7C0BA" stroke-width="1.7" stroke-linecap="round"/></svg>';
 var MDC_TRASH = '<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 4.5H13M6.2 4.2V2.8H9.8V4.2M4.2 4.8L4.9 13.2H11.1L11.8 4.8" stroke="#9AA3A0" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.7 7V11M9.3 7V11" stroke="#9AA3A0" stroke-width="1.3" stroke-linecap="round"/></svg>';
 window.renderDocList = function(){
   loadDocs();
@@ -563,7 +562,6 @@ window.renderDocList = function(){
       +   (draft ? '<span class="mdc-prog"><span class="mini-prog"><i style="width:'+(d.prog||60)+'%"></i></span><b>'+(d.prog||60)+'%</b></span>' : '')
       + '</div>'
       + '<div class="mdc-r">'
-      +   MDC_CHEV
       +   (draft ? '<span class="badge bg-info">작성 중</span>' : '<span class="badge bg-ok">완료 · TSA ✓</span>')
       +   '<span class="mdc-rb"><span class="mdc-date">'+d.date+'</span>'
       +   '<button class="mdc-del" onclick="event.stopPropagation();delDoc('+i+')" aria-label="이 기기에서 삭제">'+MDC_TRASH+'</button></span>'

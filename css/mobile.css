@@ -860,8 +860,14 @@ html.m .gnb-back{display:none;align-items:center;justify-content:center;width:34
   margin-left:-4px;border-radius:10px;background:transparent;color:var(--txt);flex-shrink:0}
 html.m .gnb-back.on{display:flex}
 html.m .gnb-back:active{background:var(--bg)}
-html.m .gnb-page{display:flex;align-items:baseline;gap:7px;min-width:0}
-html.m .gnb-sub{font-size:12px;font-weight:500;color:var(--sub);white-space:nowrap}
+/* 타이틀·부제는 baseline 이 아니라 '광학 중앙' 으로 맞춘다 — baseline 정렬은 작은 부제가 아래로 처져 보인다.
+   line-height:1 로 글리프 박스를 줄여 아이콘(‹·벨·아바타)과 같은 중심선(27px)에 놓는다 */
+html.m .gnb-page{display:flex;align-items:center;gap:7px;min-width:0;line-height:1}
+html.m .gnb-sub{font-size:12px;font-weight:500;color:var(--sub);white-space:nowrap;line-height:1}
+/* 벨 버튼도 ‹ 와 같은 34px 정사각 히트영역 + 중앙정렬 (인라인 style 은 display 만 지정) */
+html.m .notif-anchor > button{width:34px;height:34px;align-items:center;justify-content:center;padding:0;border-radius:10px}
+html.m .notif-anchor > button:active{background:var(--bg)}
+html.m .bell-badge{top:0;right:0}
 
 /* ── 알농이: 전체화면 + 목록 아이콘만 지도 위에 고정 ── */
 html.m .chat-live{position:relative}
