@@ -832,8 +832,11 @@ html.m #page-dashboard .wrap>*+*{margin-top:26px}
 html.m #page-dashboard #mktBarDash+*{margin-top:16px}
 html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:26px}
 html.m #page-dashboard .sec-h{padding:0 2px;margin-bottom:2px}
-/* 제목 옆 보조 텍스트(청과·기간)는 줄바꿈해서 작게 */
-html.m #page-dashboard .sec-t .sec-sub{display:block;margin-top:3px}
+/* 제목 우측 판로명(시장 · 청과)은 작게, 길면 말줄임 */
+html.m #page-dashboard .sec-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+html.m #page-dashboard .sec-r{font-size:12px;color:var(--sub);max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 오늘의 브리핑(KPI 묶음)은 박스가 아니라 제목 + 타일 — 제목↔타일 간격은 다른 섹션과 같게 */
+html.m #page-dashboard .sec-kpi{display:flex;flex-direction:column;gap:12px}
 
 /* ── 차트: 범례는 ? 를 눌렀을 때만 ── */
 .chart-b{position:relative}

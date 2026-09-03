@@ -170,21 +170,18 @@ function buildPriceChart(elId){
   const root = am5.Root.new(elId);
   try{ if(root._logo) root._logo.dispose(); }catch(e){}   /* 차트 워터마크 숨김 */
   root.setThemes([am5themes_Animated.new(root)]);
-  const chart = root.container.children.push(am5xy.XYChart.new(root, {panX:false, panY:false, layout:root.verticalLayout, paddingLeft:0}));
+  /* 기본 30일 데이터를 최근 7일로 확대해 보여 준다 — 휠(PC)·핀치(모바일)·가로 드래그로 30일까지 축소.
+     amCharts 는 세로 휠이 wheelY 다 (wheelX 는 트랙패드 가로 스크롤) — 마우스 휠 축소는 wheelY 에 건다 */
+  const chart = root.container.children.push(am5xy.XYChart.new(root, {
+    panX:true, panY:false, wheelX:'panX', wheelY:'zoomX', pinchZoomX:true,
+    layout:root.verticalLayout, paddingLeft:0
+  }));
+  chart.zoomOutButton.set('forceHidden', true);           /* 우상단 ? 버튼 자리와 겹친다 — 축소는 휠·핀치로 */
 
-  const data = [
-    {d:"7/20", a:1128},{d:"7/23", a:1135},{d:"7/26", a:1120},{d:"7/29", a:1148},
-    {d:"8/1", a:1160},{d:"8/4", a:1152},{d:"8/7", a:1171},{d:"8/10", a:1185},
-    {d:"8/13", a:1198},{d:"8/16", a:1224},
-    {d:"8/19", a:1240, f:1240, lo:1240, hi:1240},
-    {d:"8/21", f:1258, lo:1240, hi:1278},
-    {d:"8/23", f:1272, lo:1246, hi:1300},
-    {d:"8/25", f:1290, lo:1254, hi:1324},
-    {d:"8/26", f:1305, lo:1258, hi:1342}
-  ];
+  const data = priceChartData();
 
   const xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
-    categoryField:"d",
+    categoryField:"d", minZoomCount:7,                     /* 7일보다 더 확대하지 않는다 */
     renderer: am5xy.AxisRendererX.new(root, {minGridDistance:36, stroke:am5.color(0xE4E8E6)})
   }));
   xAxis.data.setAll(data);
@@ -225,23 +222,47 @@ function buildPriceChart(elId){
   s2.strokes.template.setAll({strokeWidth:3, strokeDasharray:[7,5]});
   s2.data.setAll(data);
 
-  // 오늘 지점 불릿
+  // 오늘 지점 · 예측 끝 지점 불릿
   s1.bullets.push((root, series, di)=>{
-    if(di.dataContext.d === "8/19"){
+    if(di.dataContext.d === PRICE_TODAY){
       return am5.Bullet.new(root, {sprite: am5.Circle.new(root, {radius:5, fill:am5.color(0x0E7A46), stroke:am5.color(0xFFFFFF), strokeWidth:2})});
     }
     return null;
   });
   s2.bullets.push((root, series, di)=>{
-    if(di.dataContext.d === "8/26"){
+    if(di.dataContext.d === data[data.length-1].d){
       return am5.Bullet.new(root, {sprite: am5.Circle.new(root, {radius:5, fill:am5.color(0xE17A17), stroke:am5.color(0xFFFFFF), strokeWidth:2})});
     }
     return null;
   });
 
-  chart.set("cursor", am5xy.XYCursor.new(root, {behavior:"none"}));
+  /* PC 는 가로 드래그로 구간 확대, 모바일은 드래그를 세로 스크롤에 양보하고 핀치로만 */
+  chart.set("cursor", am5xy.XYCursor.new(root, {behavior: M_UI ? "none" : "zoomX"}));
   chart.get("cursor").lineY.set("visible", false);
+  /* 첫 화면은 최근 7일 실측 + 예측 7일 구간.
+     datavalidated 시점의 줌은 축 데이터 검증·진입 애니메이션에 되돌아가 중간값에서 멈추는 일이 있어
+     (실측 start 0.2), 애니메이션 없이(duration 0) 첫 프레임 뒤에 한 번 더 고정한다 */
+  const zoomInit = ()=> xAxis.zoomToIndexes(data.length - (7 + PRICE_FC.length), data.length, 0);
+  s1.events.once("datavalidated", zoomInit);
+  root.events.once("frameended", zoomInit);
+  setTimeout(zoomInit, 400);
   s1.appear(600); s2.appear(600); band.appear(600);
+}
+/* 차트 Mock — 오늘(8/19) 기준 30일 실측 + 7일 예측 */
+const PRICE_TODAY = "8/19";
+const PRICE_ACT = [1128,1131,1126,1135,1139,1133,1120,1124,1131,1148,1152,1146,1160,1157,1152,1163,1171,1168,1176,1185,1181,1190,1198,1204,1211,1224,1219,1228,1236,1240];  /* 7/21 ~ 8/19 */
+const PRICE_FC  = [[1246,1236,1258],[1258,1240,1278],[1265,1243,1290],[1272,1246,1300],[1281,1250,1312],[1290,1254,1324],[1305,1258,1342]];  /* 8/20 ~ 8/26: [예측, 하한, 상한] */
+function priceChartData(){
+  const out = [];
+  let m = 7, d = 21;                                  /* 7/21 부터 하루씩 */
+  const next = ()=>{ d++; if(m===7 && d>31){ m=8; d=1; } };
+  PRICE_ACT.forEach((a, i)=>{
+    const row = {d:m+"/"+d, a};
+    if(i === PRICE_ACT.length-1){ row.f = a; row.lo = a; row.hi = a; }   /* 오늘: 예측선이 실측 끝에서 이어진다 */
+    out.push(row); next();
+  });
+  PRICE_FC.forEach(([f,lo,hi])=>{ out.push({d:m+"/"+d, f, lo, hi}); next(); });
+  return out;
 }
 
 /* ══════════ 커스텀 셀렉트 ══════════ */
@@ -1403,14 +1424,11 @@ function renderMktBars(){
   }
   if(typeof segSyncSoon === 'function') segSyncSoon();
   if(typeof segObserve === 'function') segObserve();
-  /* 차트 제목에 반영 */
-  document.querySelectorAll('#page-dashboard .sec-t').forEach(el=>{
-    if(el.textContent.indexOf('가격 추이')>-1){
-      /* 제목 옆은 최소 정보만 — 청과명(없으면 시장명) · 기간. 단위는 차트를 누르면 나온다 */
-      const who = MKTSET.cq || (curMk ? curMk.s : '전국 평균');
-      el.innerHTML = MKTSET.crop+' 가격 추이 <span class="sec-sub">'+ who +' · '+ mktDateShort() +'</span>';
-    }
-  });
+  /* 홈 차트 헤더: 좌측 '작물 가격 추이', 우측 판로명(시장 · 청과). 기간은 차트 자체가 보여 준다 */
+  const ct = document.getElementById('chartTitle');
+  if(ct) ct.textContent = MKTSET.crop + ' 가격 추이';
+  const cw = document.getElementById('chartWho');
+  if(cw) cw.textContent = curMk ? (M_UI ? curMk.s : curMk.n) + (MKTSET.cq ? ' · ' + MKTSET.cq : '') : '전국 평균';
 }
 
 /* 행정서류 현황 카드 → 아래 '이어서 작성' 카드로 스크롤 (모바일은 그 카드가 아래에 있다) */
@@ -3560,7 +3578,7 @@ document.addEventListener('mouseover', e=>{
   mapTab('map');                     /* 첫 진입은 지도 탭 */
 
   /* 헤더 로고 자리에 현재 화면 이름을 보여 준다 */
-  const PAGE_NAME = {dashboard:'대시보드', chatbot:'알농이', map:'판로 지도', docs:'행정서류 간편작성', mypage:'마이페이지', design:'디자인시스템'};
+  const PAGE_NAME = {dashboard:'홈', chatbot:'알농이', map:'판로 지도', docs:'행정서류 간편작성', mypage:'마이페이지', design:'디자인시스템'};
   const PAGE_SUB  = {chatbot:'AI 영농 상담'};
   const BACK_ON   = ['chatbot','map'];     /* ‹ 를 보여 줄 화면 (지도는 탭바를 감추므로 필수) */
   window.syncMobileHeader = function(){

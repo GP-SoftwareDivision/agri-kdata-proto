@@ -152,6 +152,15 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .grid-2{display:grid;grid-template-columns:2fr 1fr;gap:16px}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .sec-t{font-size:16px;font-weight:700}
+/* 홈 섹션 규격 — 제목(아이콘 28px + 16px/700) · 카드 여백 · 제목↔내용 간격을 한 곳에서 통일 */
+#page-dashboard .sec{display:flex;flex-direction:column;gap:12px;min-width:0}
+#page-dashboard .card.sec{padding:20px 22px}
+#page-dashboard .sec-h{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}
+#page-dashboard .sec-t{font-size:16px;font-weight:700;letter-spacing:-.2px;line-height:1.3}
+#page-dashboard .sec-hl .badge{margin-left:2px}
+#page-dashboard .sec-more,#page-dashboard .sec-r{font-size:12px;font-weight:500;flex-shrink:0;white-space:nowrap}
+#page-dashboard .sec-r{color:var(--sub);overflow:hidden;text-overflow:ellipsis;max-width:55%}
+#page-dashboard .sec-kpi .sec-h{padding:0 2px}
 .mkt{border:1px solid var(--bd);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;transition:border .2s,background .2s;cursor:pointer}
 .mkt:hover{border-color:var(--g400);background:var(--g50)}
 .mkt.top{border-color:#DCEBE2;background:var(--g50)}
