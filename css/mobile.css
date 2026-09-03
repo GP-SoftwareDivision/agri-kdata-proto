@@ -742,7 +742,6 @@ html.m #page-dashboard #mktBarDash::after{content:'';position:absolute;left:18px
 html.m #page-dashboard .wrap{background:var(--bg);padding:0 0 104px}
 html.m #page-dashboard .wrap>*{background:transparent;border-bottom:none}
 html.m #page-dashboard .wrap>*:not(#mktBarDash){padding-left:14px;padding-right:14px}
-html.m #page-dashboard .wrap>*+*{margin-top:14px}
 /* 고정 조건바는 박스가 아니라 바 — 풀폭 흰색 유지 */
 html.m #page-dashboard #mktBarDash{background:#fff;border-radius:0;box-shadow:none;
   padding:12px 16px !important}
@@ -827,11 +826,11 @@ html.m .tabbar{background:rgba(255,255,255,.82);border-top:none;
   -webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);
   box-shadow:0 -6px 20px rgba(16,24,40,.07)}
 
-/* ── 섹션: 제목 + 내용만, 사이 여백을 넉넉히 ── */
-html.m #page-dashboard .wrap>*+*{margin-top:26px}
-html.m #page-dashboard #mktBarDash+*{margin-top:16px}
+/* ── 섹션 간격은 .wrap 의 gap 하나로만 준다 — 섹션 자체에는 상·하 margin 을 두지 않는다 ── */
+html.m #page-dashboard .wrap{gap:26px}
+html.m #page-dashboard .wrap>*{margin:0}
 html.m #page-dashboard .wrap>.grid-2,html.m #page-dashboard .wrap>.grid-3{gap:26px}
-html.m #page-dashboard .sec-h{padding:0 2px;margin-bottom:2px}
+html.m #page-dashboard .sec-h{padding:0 2px}
 /* 제목 우측 판로명(시장 · 청과)은 작게, 길면 말줄임 */
 html.m #page-dashboard .sec-h{display:flex;align-items:center;justify-content:space-between;gap:8px}
 html.m #page-dashboard .sec-r{font-size:12px;color:var(--sub);max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

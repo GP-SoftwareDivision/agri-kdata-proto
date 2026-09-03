@@ -153,6 +153,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--g600);width:17px;heigh
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .sec-t{font-size:16px;font-weight:700}
 /* 홈 섹션 규격 — 제목(아이콘 28px + 16px/700) · 카드 여백 · 제목↔내용 간격을 한 곳에서 통일 */
+#page-dashboard .wrap>*{margin:0}                 /* 섹션 간격은 .wrap gap(16px) 하나로만 */
 #page-dashboard .sec{display:flex;flex-direction:column;gap:12px;min-width:0}
 #page-dashboard .card.sec{padding:20px 22px}
 #page-dashboard .sec-h{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:28px}
