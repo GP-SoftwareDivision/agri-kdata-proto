@@ -575,13 +575,6 @@ html.m .mkt-sum .mb-ico{width:34px;height:34px;box-shadow:none}
 html.m .mkt-sum-grip{position:absolute;left:50%;bottom:3px;transform:translateX(-50%);
   width:26px;height:3px;border-radius:99px;background:var(--bd2)}
 
-/* ── 지도 우측 하단: 지도 ↔ 목록 아이콘 ── */
-html.m #panMap .mf-viewfab{display:block;position:absolute;right:12px;bottom:12px;z-index:800}
-html.m .mf-viewfab .mb-ico,html.m .mf-viewfab2 .mb-ico{width:42px;height:42px;
-  box-shadow:0 4px 14px rgba(16,24,40,.20)}
-html.m .mf-viewfab2{display:inline-flex;margin-left:auto}
-html.m .mt-count{margin-left:auto}
-html.m .mt-count + .mf-viewfab2{margin-left:10px}
 
 /* ── 조건설정 모달 본문 ── */
 html.m #mktCondBody{display:flex;flex-direction:column;gap:16px;padding:8px 16px 12px}
@@ -597,7 +590,6 @@ html.m #mktCondBody .mkt-range .mkt-date-inp{flex:1;width:auto !important;min-wi
 
 /* ── 목록(표) ── */
 html.m .mf-table{position:static;margin:12px 12px 0;box-shadow:none}
-html.m .mt-filters{padding:14px 14px 10px;gap:12px}
 html.m .mt-fld{flex:1 1 100%}
 html.m .mt-sel{height:44px;font-size:14px}
 html.m .mt-scroll{max-height:52vh;padding:0 12px 14px}
@@ -622,11 +614,8 @@ html.m .mf-right{order:8}
 /* 조준점은 모바일에서 쓰지 않는다 */
 /* 여백 */
 html.m .mf-stats{padding:0}
-html.m .mt-filters{display:flex;align-items:center;padding:14px 14px 10px}
 /* 기간 세그는 PC 전용 — 모바일은 조건설정 모달에서 고른다 */
 html.m #mktDateSeg{display:none}
-/* 보기 전환 fab 이 플로팅 챗봇 버튼에 가리지 않게 */
-html.m #panMap .mf-viewfab{right:14px;bottom:16px;z-index:955}
 /* 즐겨찾기 목록 모달 — 바텀시트 여백 */
 html.m #favModalBody{padding:16px 16px calc(20px + env(safe-area-inset-bottom)) !important}
 
@@ -641,18 +630,14 @@ html.m .mkt-range{flex:1 1 100%;justify-content:center}
 html.m .mkt-range .mkt-date-inp{flex:0 1 auto;width:auto !important;min-width:0;height:36px}
 /* 대시보드 정보 패널은 1열로 (바둑판 배치 금지) */
 html.m .kpis{grid-template-columns:1fr !important}
-/* 조건바 안 보기 전환 아이콘 (지도 우측 하단 fab 과 별개로 항상 닿는 자리) */
-html.m .mkt-sum{padding:8px 8px 8px 8px}
-html.m .mkt-sum-view{flex-shrink:0;display:inline-flex}
-html.m .mkt-sum-view .mb-ico{width:34px;height:34px;box-shadow:none}
+html.m .mkt-sum{padding:8px}
 
 /* ══════════ 모바일 정리 (2026-09-02) ══════════ */
-/* 지도: 우측 하단 전환 fab · 범례 · 표 안 지도 아이콘 제거 (조건바에 전환 아이콘이 있다) */
-html.m #panMap .mf-viewfab,html.m .mf-viewfab,html.m .mf-viewfab2,html.m #mapLegend{display:none !important}
+/* 지도 범례는 모바일에서 쓰지 않는다 (전환은 우측 하단 고정 버튼 하나로 통일) */
+html.m #mapLegend{display:none !important}
 /* 조건바가 다른 탭(순위·정보·차트)을 침범하지 않게 — 지도 탭에서만 겹친다 */
-/* 조건바 순서: 전환(분리) · ★ · 작물명 · 기간 */
+/* 조건바 순서: ★ · 작물명·기간 · ^(전광판) */
 html.m .mkt-sum{gap:10px}
-html.m .mkt-sum-view{margin-right:2px;padding-right:10px;border-right:1px solid var(--bd)}
 html.m .mkt-sum .fav-ic{order:1}
 html.m .mkt-sum-main{order:2}
 /* 플로팅 알농이 버튼 제거 (하단 탭의 '알농이'로 간다) */
@@ -919,7 +904,6 @@ html.m .mf-tlwrap{position:fixed;top:auto;left:12px;right:12px;
   bottom:calc(12px + env(safe-area-inset-bottom));height:auto;margin:0;z-index:900}
 html.m .mkt-sum{box-shadow:0 6px 22px rgba(16,24,40,.18)}
 html.m .mkt-sum-grip{display:none}          /* 하단 고정이라 끌어내림 힌트는 뺀다 */
-html.m .mkt-sum-view{display:none}          /* 뷰 전환은 지도 좌측 상단으로 옮겼다 */
 html.m .ms-stats-tgl{order:3;margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:9px;color:var(--sub);
   display:flex;align-items:center;justify-content:center;background:var(--bg);transition:all .18s var(--ease)}
 html.m .ms-stats-tgl:active{background:var(--bd)}
@@ -932,16 +916,38 @@ html.m .mf-stats{position:fixed;top:auto;left:12px;right:12px;
   transition:opacity .22s var(--ease),transform .26s var(--ease)}
 html.m .map-full.stats-on .mf-stats{opacity:1;transform:none;pointer-events:auto}
 html.m .mf-stats .stat-merge{box-shadow:0 6px 22px rgba(16,24,40,.16)}
+/* 카드를 조건바와 같은 폭으로 꽉 채우고 세 칸을 같은 너비로 나눈다.
+   .mf-stats 가 flex 컨테이너라 카드를 내용 크기로 두면 오른쪽에 빈 자리가 남아 잘린 것처럼 보였다.
+   overflow-x:auto(위쪽 공용 규칙)도 풀어 준다 — 스크롤 컨테이너가 되면 오른쪽 끝이 잘린다. */
+html.m .mf-stats{overflow:visible}
+html.m .mf-stats .stat-merge{flex:1 1 auto;min-width:0;padding:9px 0}
+html.m .mf-stats .stat-merge .si{flex:1 1 0;min-width:0;padding:0 6px;text-align:center}
+/* 세 KPI 는 같은 글자 크기로 통일 — 단위(원/kg)만 작게.
+   단위는 마크업에 인라인 style 로 박혀 있어 !important 가 있어야 이긴다 */
+html.m .mf-stats .stat-merge .t{font-size:10.5px}
+html.m .mf-stats .stat-merge .v{font-size:15px;letter-spacing:-.3px}
+html.m .mf-stats .stat-merge .v span{font-size:10.5px !important}
 
-/* ── 지도 좌측 상단: 표 ↔ 지도 전환 (고정) ── */
-/* 앞선 정리 블록의 display:none !important 를 되돌린다 (전환 버튼을 좌측 상단으로 되살림) */
-html.m .map-full[data-view="table"] .mf-viewfab2{display:inline-flex !important}
+/* ── 우측 하단 고정: 지도 ↔ 목록 전환 ──
+   지도뷰·목록뷰 어느 쪽이든 같은 자리에 있어야 하므로 조건바(.mf-tlwrap)와 같은 방식을 쓴다.
+   지도뷰는 .map-full 기준 absolute, 목록뷰는 fixed (지도뷰의 .map-full 이 곧 뷰포트 크기라 결과가 같다).
+   순위·정보·차트 레일과는 성격이 다른 버튼이라 색을 어둡게 해 구분한다. */
+html.m .mf-viewfab{display:block;position:fixed;top:auto;left:auto;
+  right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:905}
+html.m .map-full[data-view="map"] .mf-viewfab{position:absolute;bottom:76px}
+html.m .mf-viewfab .mb-ico{width:44px;height:44px;border:none;border-radius:14px;
+  background:var(--txt);color:#fff;box-shadow:0 6px 18px rgba(16,24,40,.30)}
+html.m .mf-viewfab .mb-ico:active{background:#000;transform:scale(.94)}
+/* '^' 로 전광판이 올라오면 우측 버튼(레일 3개 + 전환)이 그만큼 밀려 올라간다.
+   밀어 올릴 거리는 전광판 실제 높이(--stats-h, tglMapStats 가 잰다) + 간격 — 높이를 박아 두면
+   전광판 내용이 바뀔 때 어긋난다. 목록뷰는 레일이 없어 전환 버튼만 올라간다. */
+html.m .mf-viewfab,html.m .map-icons{transition:transform .26s var(--ease)}
+html.m .map-full.stats-on .mf-viewfab,
+html.m .map-full.stats-on .map-icons{transform:translateY(calc(-1 * (var(--stats-h,61px) + 10px)))}
 
 /* ── 표 보기: 필터(뷰전환 + 시도·시군구) + 하단 고정바를 침범하지 않는 높이 ── */
 html.m .map-full[data-view="table"] .rgn-bar{display:flex;margin:10px 12px 0}
 html.m .mf-table{margin:10px 12px 0}
-/* 필터 행에는 전환 버튼만 남으므로 세로 여백을 줄인다 */
-html.m .map-full[data-view="table"] .mt-filters{padding:10px 12px 4px}
 html.m .mt-scroll{max-height:calc(100dvh - 420px);min-height:200px;padding-bottom:6px}
 
 /* ── 첫 이용 안내: 풀스크린 시트 ── */
@@ -981,15 +987,9 @@ html.m .map-full[data-view="map"] .mf-stats{position:absolute;bottom:74px}
 /* 보기 전환 버튼은 헤더 아래로 내린다 */
 
 /* ── 순위·정보·차트 아이콘 레일 (지도 우측) ── */
+/* 전환 버튼(bottom:76 · 44px) 바로 위에서 시작한다 */
 html.m .map-full[data-view="map"] .map-icons{display:flex;flex-direction:column;gap:8px;
-  position:absolute;right:12px;top:auto;bottom:76px;z-index:830}
-/* 레일 안으로 옮긴 전환 버튼은 레일 흐름을 따른다 (절대배치 해제) */
-/* 레일로 옮겼으므로 #panMap 기준 예외가 아니라 레일 기준으로 다시 살린다 */
-html.m .map-icons .mf-viewfab{display:block !important;position:static !important;
-  top:auto;left:auto;right:auto;bottom:auto}
-html.m .map-icons .mf-viewfab .mb-ico{width:42px;height:42px;border-radius:12px;
-  background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
-  box-shadow:0 4px 14px rgba(16,24,40,.16)}
+  position:absolute;right:12px;top:auto;bottom:128px;z-index:830}
 html.m .mi-btn{width:42px;height:42px;border-radius:12px;color:var(--sub);
   background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   box-shadow:0 4px 14px rgba(16,24,40,.16);display:flex;align-items:center;justify-content:center;
@@ -1010,16 +1010,14 @@ html.m .map-full[data-view="map"][data-mpanel="info"] #mfInfo,
 html.m .map-full[data-view="map"][data-mpanel="chart"] #mfChart{display:flex !important;
   pointer-events:auto;animation:mpUp .26s var(--ease)}
 @keyframes mpUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-/* 패널이 열려 있으면 전광판은 그 위로 밀지 않고 감춘다 (겹침 방지) */
-html.m .map-full[data-view="map"]:not([data-mpanel=""]) .mf-stats{display:none}
+/* 전광판과 아이콘 패널은 같은 자리를 쓰므로 한 번에 하나만 — mapPanel·tglMapStats 가 서로를 닫는다.
+   (예전에는 :not([data-mpanel=""]) 로 감췄는데, 속성이 아예 없는 최초 상태에서 이 선택자가 참이 되어
+    전광판이 계속 display:none 이었다. '^' 가 먹지 않던 원인이다 — 속성 선택자로 감추지 말 것) */
 
 /* ── 표 보기: 하단 여백 제거 · 필터는 시도/시군구 행으로 통합 ── */
 /* flex:1 이 높이를 나눠 가지려면 컨테이너 높이가 '확정' 이어야 한다 (min-height 로는 안 된다) */
 html.m .map-full[data-view="table"]{height:calc(100dvh - var(--hdr,54px));min-height:0;overflow:hidden;
   padding-bottom:78px}
-html.m .map-full[data-view="table"] .mt-filters{display:none}   /* 전환 아이콘은 시도/시군구 행으로 옮겼다 */
-html.m .rgn-view{flex:0 0 auto;display:inline-flex;align-self:center}
-html.m .rgn-view .mb-ico{width:42px;height:42px;box-shadow:none;border:1px solid var(--bd);background:#fff}
 html.m .map-full[data-view="table"] .rgn-bar{align-items:center}
 /* 표가 남는 높이를 채워 아래에 빈 띠가 생기지 않게 */
 html.m .map-full[data-view="table"] #mapTable{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}

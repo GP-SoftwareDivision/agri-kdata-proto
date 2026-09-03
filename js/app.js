@@ -1270,18 +1270,23 @@ function mapPanel(t){
   const mf = document.querySelector('.map-full'); if(!mf) return;
   const next = (mf.dataset.mpanel === t) ? '' : t;
   mf.dataset.mpanel = next;
+  if(next) mf.classList.remove('stats-on');   /* 패널과 전광판은 같은 자리 — 하나만 연다 */
   document.querySelectorAll('#mapIcons .mi-btn').forEach(b=>b.classList.toggle('on', b.dataset.mp===next));
   if(next === 'chart') setTimeout(initMapChart, 160);
   if(next === 'rank' && typeof osUpdateFades === 'function') setTimeout(osUpdateFades, 80);
 }
 function tglMapStats(){
   const mf = document.querySelector('.map-full');
-  if(mf) mf.classList.toggle('stats-on');
+  if(!mf) return;
+  if(mf.dataset.mpanel) mapPanel(mf.dataset.mpanel);   /* 열린 패널을 먼저 닫는다 (자리가 겹친다) */
+  /* 우측 버튼을 밀어 올릴 거리를 실제 높이에서 잰다 — CSS 가 --stats-h 로 쓴다 */
+  const st = document.querySelector('.mf-stats');
+  if(st) mf.style.setProperty('--stats-h', Math.round(st.getBoundingClientRect().height) + 'px');
+  mf.classList.toggle('stats-on');
 }
 function mktSummaryHtml(){
   return `
     <div class="mkt-sum" id="mktSumBar">
-      <span class="mkt-sum-view" onclick="event.stopPropagation()">${mktViewIconHtml()}</span>
       <button class="mkt-sum-main" onclick="openMktCond()">
         <span class="ms-crop">${MKTSET.crop}</span>
         <span class="ms-dot">·</span>
@@ -1404,11 +1409,9 @@ function renderMktBars(){
     d2.innerHTML = M_UI ? mktSummaryHtml() : mktPcBarHtml();
     if(M_UI) bindCondDrag();
   }
-  /* 지도 우측 하단(모바일) · 목록 필터 줄의 보기 전환 아이콘 */
-  ['mapViewFab','mapViewFab2'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.innerHTML = mktViewIconHtml();
-  });
+  /* 지도 ↔ 목록 전환 — 모바일은 우측 하단 고정 버튼 하나 (지도·목록 같은 자리) */
+  const vf = document.getElementById('mapViewFab');
+  if(vf) vf.innerHTML = mktViewIconHtml();
   /* 지역 select 는 지도·목록 공통 — PC 는 상단 줄, 모바일은 탭 아래 한 줄 */
   const rg = document.getElementById(M_UI ? 'rgnSelsM' : 'rgnSels');
   /* 지역 목록은 지도 데이터(SIDO_DATA·GEO)가 준비된 뒤에만 채운다 — 스크립트 평가 중에는 아직 TDZ */
@@ -2868,9 +2871,9 @@ function fillSel(el, list, ph, val){
 function renderTableFilters(){
   const host = document.getElementById(M_UI ? 'rgnSelsM' : 'rgnSels');
   if(!host) return;
+  /* 전환 아이콘은 여기 두지 않는다 — 지도·목록 공통으로 우측 하단 고정 버튼 하나(#mapViewFab) */
   host.innerHTML =
-      (M_UI ? '<span class="rgn-view">'+mktViewIconHtml(MKTSET)+'</span>' : '')
-    + rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '전체', false)
+      rgnSelHtml('sido','시도', TF.sido, Object.keys(SIDO_DATA).map(cd=>({v:cd, n:SIDO_DATA[cd].full})), '전체', false)
     + rgnSelHtml('sig','시군구', TF.sig, TF.sido ? tfSigList(TF.sido) : [], '전체', !TF.sido)
     ;
 }
@@ -3563,10 +3566,6 @@ document.addEventListener('mouseover', e=>{
   const pan = document.getElementById('panMap');
   const ch = document.getElementById('crosshair');
   if(pan && ch) pan.appendChild(ch);   /* 조준점을 지도 안으로 (모바일은 hover 가 없어 조준점으로 고른다) */
-  /* 보기 전환 아이콘도 우측 하단 아이콘 레일에 함께 쌓는다 (4개 한 줄) */
-  const fab = document.getElementById('mapViewFab');
-  const rail = document.getElementById('mapIcons');
-  if(rail && fab) rail.insertBefore(fab, rail.firstChild);
   /* 헤더 높이를 변수로 — 지도를 헤더 위까지 끌어올릴 때 쓴다 (값을 박아 두면 헤더가 바뀔 때 깨진다) */
   const syncHdrVar = ()=>{
     const g = document.querySelector('.gnb');
