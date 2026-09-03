@@ -1109,3 +1109,26 @@ html.m .mdc-r{flex-shrink:0;display:flex;flex-direction:column;align-items:flex-
 html.m .mdc-r .badge{font-size:11px}
 html.m .mdc-rb{display:flex;align-items:center;gap:2px}
 html.m .mdc-del{position:static;width:30px;height:30px;margin-right:-8px}
+
+/* ══════════ 행정서류 홈 v3 (2026-09-03) ══════════ */
+/* 헤더는 다른 화면과 같은 흰색 (페이지 배경에 녹이던 규칙 해제) */
+html.m.docs-page .gnb{background:#fff;box-shadow:0 1px 3px rgba(16,24,40,.07),0 6px 18px rgba(16,24,40,.05)}
+/* 상단 여백: 제목·설명이 숨겨진 헤더 행이 패딩(34px)+디바이더(8px)만 남기고 있었다 — 행 자체를 감춘다
+   (모바일 작성 플로우는 몰입형이라 이 행의 스테퍼를 쓰지 않는다) */
+html.m:not(.cap-mode) #page-docs .wrap>div:first-child{display:none !important}   /* 인라인 display:flex 를 이겨야 한다 · 증빙 캡처(cap-mode)는 스테퍼 유지 */
+html.m.docs-page #page-docs .wrap{padding:6px 8px calc(70px + env(safe-area-inset-bottom))}
+/* 타이틀·서브타이틀·버튼은 회색 페이지 위(박스 밖) — .wrap>* 공통 규칙이 #dv-home 을 흰 면으로 만들어
+   박스 안에 든 것처럼 보였다 */
+html.m #dv-home{background:transparent;border-bottom:none;padding:0}   /* .wrap>div 공통 패딩(16px 20px) 해제 — 박스를 좌우로 넓힌다 */
+html.m .mdc-sec{padding:8px 8px 2px !important}
+html.m .mdc-sec .sec-t{font-size:19px}
+html.m .mdc-sub{padding:0 8px 10px}
+html.m .mdc-newwrap{padding:12px 0 0}
+/* 서류 목록 박스: 좌우 넓게, 서류명은 작게 */
+html.m #dv-home #docList{padding:2px 12px 6px}
+html.m .mdc{padding:14px 2px 12px}
+html.m .mdc-nm{font-size:13.5px;letter-spacing:-.2px;font-weight:700}
+html.m .mdc-org{font-size:11.5px}
+/* 우측 열: › 는 제거하고 그 자리에 상태 배지(작성 중 · 완료) → 아래 날짜·삭제 */
+html.m .mdc-r{gap:8px}
+html.m .mdc-r .badge{font-size:10.5px;padding:3px 8px}
